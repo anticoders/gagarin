@@ -1,0 +1,30 @@
+{
+  "name": "gagarin",
+  "version": "0.0.0",
+  "description": "another testing framework for your meteor apps",
+  "main": "gagarin.js",
+  "scripts": {
+    "test": "./test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/apendua/gagarin"
+  },
+  "keywords": [
+    "gagarin",
+    "vostok",
+    "meteor",
+    "test",
+    "mocha",
+    "laika"
+  ],
+  "author": "Tomasz Lenarcik (apendua@gmail.com)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/apendua/gagarin/issues"
+  },
+  "homepage": "https://github.com/apendua/gagarin",
+  "dependencies": {
+    "es6-promise": "^1.0.0"
+  }
+}
