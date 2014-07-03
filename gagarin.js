@@ -38,13 +38,17 @@ function GagarinAsPromise (operand, promise) {
   this._promise = promise || operand;
 }
 
+// proxies for promise methods
+
 [ 'then', 'catch' ].forEach(function (name) {
   GagarinAsPromise.prototype[name] = function () {
     return new GagarinAsPromise(this._operand, this._promise[name].apply(this._promise, arguments));
   }
 });
 
-[ 'eval', 'exit' ].forEach(function (name) {
+// proxies for transponder methods
+
+[ 'eval', 'kill' ].forEach(function (name) {
   GagarinAsPromise.prototype[name] = function () {
     var args = Array.prototype.slice.call(arguments, 0);
     var self = this;
@@ -72,7 +76,7 @@ function Transponder(process, options) {
       try {
         data = JSON.parse(data);
       } catch (err) {
-        return; // ignore
+        return; // ignore?
       }
       if (data.name) {
         self.emit(data.name, data.value);
@@ -81,9 +85,8 @@ function Transponder(process, options) {
   });
 
   self.eval = function (code) {
-    // TODO: modify code
-    var name = uniqe().toString();
     var args = Array.prototype.slice.call(arguments, 1);
+    var name = uniqe().toString();
 
     return connect.then(function (socket) {
       socket.write(JSON.stringify({
@@ -104,12 +107,11 @@ function Transponder(process, options) {
     });
   };
 
-  self.exit = function () {
+  self.kill = function () {
     //socket.destroy();
-    process.exit();
+    process.kill();
     return Promise.resolve();
   };
-
 };
 
 util.inherits(Transponder, EventEmiter);
@@ -117,9 +119,7 @@ util.inherits(Transponder, EventEmiter);
 // HELPERS
 
 function uniqe() {
-  if (!uniqe.counter) {
-    uniqe.counter = 0;
-  }
+  if (!uniqe.counter) { uniqe.counter = 0; }
   return uniqe.counter++;
 }
 
