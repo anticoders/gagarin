@@ -17,7 +17,7 @@ module.exports = function Gagarin(options) {
       if (!gagarin) {
         match = /Gagarin listening at port (\d+)/.exec(data.toString());
         if (match) {
-          gagarin = new GagarinAPI(process, { port: parseInt(match[1]) });
+          gagarin = new Transponder(process, { port: parseInt(match[1]) });
           resolve(gagarin);
         }
       }
@@ -38,21 +38,28 @@ function GagarinAsPromise (operand, promise) {
   this._promise = promise || operand;
 }
 
-['then', 'catch'].forEach(function (name) {
+[ 'then', 'catch' ].forEach(function (name) {
   GagarinAsPromise.prototype[name] = function () {
     return new GagarinAsPromise(this._operand, this._promise[name].apply(this._promise, arguments));
   }
 });
 
-GagarinAsPromise.prototype.eval = function () {
-  var self = this;
-  return new GagarinAsPromise(self._operand, Promise.all([ self._operand, self._promise ]).then(function (all) {
-  }));
-};
+[ 'eval', 'exit' ].forEach(function (name) {
+  GagarinAsPromise.prototype[name] = function () {
+    var args = Array.prototype.slice.call(arguments, 0);
+    var self = this;
+    return new GagarinAsPromise(self._operand, Promise.all([ self._operand, self._promise ]).then(function (all) {
+      return all[0][name].apply(all[0], args);
+    }));
+  };
+});
 
 // GAGARIN API
 
-function GagarinAPI(process, options) {
+function Transponder(process, options) {
+
+  // iherit from EventEmitter
+  EventEmiter.call(this);
 
   var self = this;
   var connect = new Promise(function (resolve, reject) {
@@ -73,19 +80,11 @@ function GagarinAPI(process, options) {
     });
   });
 
-  function uniqe() {
-    if (!uniqe.counter) {
-      uniqe.counter = 0;
-    }
-    return uniqe.counter++;
-  }
-
-  EventEmiter.call(this);
-
   self.eval = function (code) {
     // TODO: modify code
     var name = uniqe().toString();
     var args = Array.prototype.slice.call(arguments, 1);
+
     return connect.then(function (socket) {
       socket.write(JSON.stringify({
           name: name,
@@ -108,8 +107,20 @@ function GagarinAPI(process, options) {
   self.exit = function () {
     //socket.destroy();
     process.exit();
+    return Promise.resolve();
   };
 
 };
 
-util.inherits(GagarinAPI, EventEmiter);
+util.inherits(Transponder, EventEmiter);
+
+// HELPERS
+
+function uniqe() {
+  if (!uniqe.counter) {
+    uniqe.counter = 0;
+  }
+  return uniqe.counter++;
+}
+
+
