@@ -1,6 +1,6 @@
 
 var Promise = require('es6-promise').Promise;
-var exec = require('child_process').exec;
+var spawn = require('child_process').spawn;
 var net = require('net');
 var util = require('util');
 var EventEmiter = require('events').EventEmitter;
@@ -9,7 +9,7 @@ module.exports = function Gagarin(options) {
   options = options || {};
   return new GagarinAsPromise(new Promise(function (resolve, reject) {
     // add timeout ??
-    var process = exec('node ' + options.pathToApp);
+    var process = spawn('node', [ options.pathToApp ]);
     var gagarin = null;
     
     process.stdout.on('data', function (data) {
