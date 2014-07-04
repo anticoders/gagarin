@@ -8,20 +8,21 @@ Gagarin = {};
 
 if (Meteor.isDevelopment) {
 
-  server = net.createServer(function (socket) {
-    socket.on('data', function (data) {
-      try {
-        data = JSON.parse(data);
-      } catch (err) {
-        return;
-      }
-      if (data.name && data.code) {
-        evaluate(data.name, data.code, data.args, socket);
-      }
+  Meteor.startup(function () {
+    server = net.createServer(function (socket) {
+      socket.on('data', function (data) {
+        try {
+          data = JSON.parse(data);
+        } catch (err) {
+          return;
+        }
+        if (data.name && data.code) {
+          evaluate(data.name, data.code, data.args, socket);
+        }
+      });
+    }).listen(0, function () {
+      console.log('Gagarin listening at port ' + server.address().port);
     });
-
-  }).listen(0, function () {
-    console.log('Gagarin listening at port ' + server.address().port);
   });
 
 }
@@ -35,11 +36,12 @@ function evaluate(name, code, args, socket) {
   if (typeof context.value === 'function') {
     Fibers(function () {
       context.value = context.value.apply(null, args || []);
+
+      socket.write(JSON.stringify({
+        value : context.value,
+        name  : name,
+      }));
     }).run();
   }
 
-  socket.write(JSON.stringify({
-    value : context.value,
-    name  : name,
-  }));
 }
