@@ -1,6 +1,6 @@
 {
   "name": "gagarin",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "another testing framework for your meteor apps",
   "main": "gagarin.js",
   "scripts": {
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/apendua/gagarin"
+    "url": "git://github.com/anticoders/gagarin"
   },
   "keywords": [
     "gagarin",
@@ -21,9 +21,9 @@
   "author": "Tomasz Lenarcik (apendua@gmail.com)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/apendua/gagarin/issues"
+    "url": "https://github.com/anticoders/gagarin/issues"
   },
-  "homepage": "https://github.com/apendua/gagarin",
+  "homepage": "https://github.com/anticoders/gagarin",
   "dependencies": {
     "es6-promise": "^1.0.0",
     "mongodb": "^1.4.7"
