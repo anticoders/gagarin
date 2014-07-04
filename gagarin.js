@@ -4,35 +4,51 @@ var spawn = require('child_process').spawn;
 var net = require('net');
 var util = require('util');
 var EventEmiter = require('events').EventEmitter;
+var mongo = require('./mongo');
+var mongoServer = null;
 
 module.exports = function Gagarin(options) {
   options = options || {};
-  return new GagarinAsPromise(new Promise(function (resolve, reject) {
-    // add timeout ??
-    
-    var port = 4000 + Math.floor(Math.random() * 1000);
+  
+  if (!mongoServer) {
+    mongoServer = new mongo.Server();
+  }
 
-    process.env.MONGO_URL = 'mongodb://localhost:27017/meteor';
-    process.env.PORT      = port;
-    process.env.ROOT_URL  = 'http://localhost:' + port;
+  return new GagarinAsPromise(mongoServer.then(function (handle) {
 
-    var meteor = spawn('node', [ options.pathToApp ], { env: process.env });
-    var gagarin = null;
-    
-    meteor.stdout.on('data', function (data) {
-      var match;
-      if (!gagarin) {
-        match = /Gagarin listening at port (\d+)/.exec(data.toString());
-        if (match) {
-          gagarin = new Transponder(meteor, { port: parseInt(match[1]) });
-          resolve(gagarin);
+    return new Promise(function (resolve, reject) {
+      // add timeout ??
+      
+      var port = 4000 + Math.floor(Math.random() * 1000);
+      var name = 'gagarin_' + Date.now();
+
+      process.env.MONGO_URL = 'mongodb://localhost:' + handle.port + '/' + name;
+      process.env.PORT      = port;
+      process.env.ROOT_URL  = 'http://localhost:' + port;
+
+      var meteor = spawn('node', [ options.pathToApp ], { env: process.env });
+      var gagarin = null;
+      
+      meteor.stdout.on('data', function (data) {
+        var match;
+        if (!gagarin) {
+          match = /Gagarin listening at port (\d+)/.exec(data.toString());
+          if (match) {
+            gagarin = new Transponder(meteor, { port: parseInt(match[1]), cleanUp: function () {
+              return mongo.connect(mongoServer, name).then(function (db) {
+                return db.drop();
+              });
+            }});
+            resolve(gagarin);
+          }
         }
-      }
-    });
+      });
 
-    // TODO: only log in verbose mode
-    meteor.stderr.on('data', function (data) {
-      console.error(data.toString());
+      // TODO: only log in verbose mode
+      meteor.stderr.on('data', function (data) {
+        console.error(data.toString());
+      });
+
     });
 
   }));
@@ -86,6 +102,7 @@ function Transponder(meteor, options) {
     var socket = net.createConnection(options.port, function () {
       resolve(socket);
     });
+
     // listen to emit events
     socket.setEncoding('utf8');
     socket.on('data', function (data) {
@@ -124,17 +141,23 @@ function Transponder(meteor, options) {
   };
 
   self.kill = function () {
-    //socket.destroy();
-    return new Promise(function (resolve, reject) {
-      meteor.once('error', function () {
-        reject();
-      });
-      meteor.once('exit', function () {
-        resolve();
-      });
-      meteor.kill();
-    });
-  };
+    return Promise.all([
+
+      options.cleanUp(),
+
+      new Promise(function (resolve, reject) {
+        meteor.once('error', function () {
+          reject();
+        });
+        meteor.once('exit', function () {
+          resolve();
+        });
+        meteor.kill();
+      })
+
+    ]);
+  };// kill
+
 };
 
 util.inherits(Transponder, EventEmiter);

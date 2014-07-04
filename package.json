@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/apendua/gagarin",
   "dependencies": {
-    "es6-promise": "^1.0.0"
+    "es6-promise": "^1.0.0",
+    "mongodb": "^1.4.7"
   }
 }
