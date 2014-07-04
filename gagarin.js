@@ -9,22 +9,29 @@ module.exports = function Gagarin(options) {
   options = options || {};
   return new GagarinAsPromise(new Promise(function (resolve, reject) {
     // add timeout ??
-    var process = spawn('node', [ options.pathToApp ]);
+    
+    var port = 4000 + Math.floor(Math.random() * 1000);
+
+    process.env.MONGO_URL = 'mongodb://localhost:27017/meteor';
+    process.env.PORT      = port;
+    process.env.ROOT_URL  = 'http://localhost:' + port;
+
+    var meteor = spawn('node', [ options.pathToApp ], { env: process.env });
     var gagarin = null;
     
-    process.stdout.on('data', function (data) {
+    meteor.stdout.on('data', function (data) {
       var match;
       if (!gagarin) {
         match = /Gagarin listening at port (\d+)/.exec(data.toString());
         if (match) {
-          gagarin = new Transponder(process, { port: parseInt(match[1]) });
+          gagarin = new Transponder(meteor, { port: parseInt(match[1]) });
           resolve(gagarin);
         }
       }
     });
 
     // TODO: only log in verbose mode
-    process.stderr.on('data', function (data) {
+    meteor.stderr.on('data', function (data) {
       console.error(data.toString());
     });
 
@@ -37,6 +44,15 @@ function GagarinAsPromise (operand, promise) {
   this._operand = operand;
   this._promise = promise || operand;
 }
+
+GagarinAsPromise.prototype.sleep = function (timeout) {
+  var self = this;
+  return self.then(function () {
+    return new Promise(function (resolve) {
+      setTimeout(resolve, timeout);
+    });
+  });
+};
 
 // proxies for promise methods
 
@@ -60,7 +76,7 @@ function GagarinAsPromise (operand, promise) {
 
 // GAGARIN API
 
-function Transponder(process, options) {
+function Transponder(meteor, options) {
 
   // iherit from EventEmitter
   EventEmiter.call(this);
@@ -109,8 +125,15 @@ function Transponder(process, options) {
 
   self.kill = function () {
     //socket.destroy();
-    process.kill();
-    return Promise.resolve();
+    return new Promise(function (resolve, reject) {
+      meteor.once('error', function () {
+        reject();
+      });
+      meteor.once('exit', function () {
+        resolve();
+      });
+      meteor.kill();
+    });
   };
 };
 
