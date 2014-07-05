@@ -8,7 +8,6 @@ var EventEmiter = require('events').EventEmitter;
 var mongo = require('./mongo');
 var tools = require('./tools');
 var mongoServer = null;
-var mongoUsers = 0;
 var config = {};
 
 module.exports = Gagarin; 
@@ -17,9 +16,9 @@ function Gagarin (options) {
   options = options || {};
   
   if (!mongoServer) {
+    // only do it once
     mongoServer = new mongo.Server(tools.getConfig());
   }
-  mongoUsers += 1;
   
   return new GagarinAsPromise(mongoServer.then(function (handle) {
 
@@ -44,12 +43,6 @@ function Gagarin (options) {
             gagarin = new Transponder(meteor, { port: parseInt(match[1]), cleanUp: function () {
               return mongo.connect(mongoServer, name).then(function (db) {
                 return db.drop();
-              }).then(function () {
-                // TODO: do it, even if the other routines fail
-                mongoUsers -= 1;
-                if (mongoUsers <= 0) {
-                  handle.kill();
-                }
               });
             }});
             resolve(gagarin);

@@ -20,14 +20,15 @@ module.exports = {
       }
       mongod = spawn(options.mongoPath || 'mongod', args);  
       mongod.stdout.on('data', function (data) {
-        //console.log(data.toString());
+        // TODO: check if this works fine on MacOS
         if (/waiting for connections/.test(data.toString())) {
           resolve(new MongoHandle(mongod, port));
         }
       });
-      //mongod.stderr.on('data', function (data) {
-      //  console.log(data.toString());
-      //});
+      process.on('exit', function () {
+        // make sure mongod is killed as well
+        mongod.kill();
+      });
     });
   },
 
