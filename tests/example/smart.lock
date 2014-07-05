@@ -1,0 +1,20 @@
+{
+  "meteor": {},
+  "dependencies": {
+    "basePackages": {
+      "gagarin": {}
+    },
+    "packages": {
+      "gagarin": {
+        "git": "https://github.com/anticoders/gagarin.git",
+        "tag": "v0.0.2",
+        "commit": "d582dd6da494676b6fd53e7d3dc6461c192a4bea"
+      },
+      "altimeter": {
+        "git": "https://github.com/apendua/altimeter.git",
+        "tag": "v0.0.2",
+        "commit": "eafabe3241b16d9bd0058ba8d24d8c3e4258a68d"
+      }
+    }
+  }
+}

@@ -1,19 +1,26 @@
 
 var Promise = require('es6-promise').Promise;
 var spawn = require('child_process').spawn;
+var fs = require('fs');
 var net = require('net');
 var util = require('util');
 var EventEmiter = require('events').EventEmitter;
 var mongo = require('./mongo');
+var tools = require('./tools');
 var mongoServer = null;
+var mongoUsers = 0;
+var config = {};
 
-module.exports = function Gagarin(options) {
+module.exports = Gagarin; 
+  
+function Gagarin (options) {
   options = options || {};
   
   if (!mongoServer) {
-    mongoServer = new mongo.Server();
+    mongoServer = new mongo.Server(tools.getConfig());
   }
-
+  mongoUsers += 1;
+  
   return new GagarinAsPromise(mongoServer.then(function (handle) {
 
     return new Promise(function (resolve, reject) {
@@ -37,6 +44,12 @@ module.exports = function Gagarin(options) {
             gagarin = new Transponder(meteor, { port: parseInt(match[1]), cleanUp: function () {
               return mongo.connect(mongoServer, name).then(function (db) {
                 return db.drop();
+              }).then(function () {
+                // TODO: do it, even if the other routines fail
+                mongoUsers -= 1;
+                if (mongoUsers <= 0) {
+                  handle.kill();
+                }
               });
             }});
             resolve(gagarin);
@@ -53,6 +66,12 @@ module.exports = function Gagarin(options) {
 
   }));
 }
+
+Gagarin.config = function (options) {
+  Object.keys(options).forEach(function (key) {
+    config[key] = options[key];
+  });
+};
 
 // GAGARIN AS PROMISE
 

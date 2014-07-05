@@ -1,26 +1,33 @@
 var MongoClient = require('mongodb').MongoClient;
 var Promise = require('es6-promise').Promise;
-var exec = require('child_process').exec;
+var spawn = require('child_process').spawn;
 var path = require('path');
 
 module.exports = {
 
   Server: function (options) {
-    var port = 27017; // pick random?
+    var port = 27018 + Math.floor(Math.random() * 1000);
     return new Promise(function (resolve, reject) {
-      //var db_path = path.resolve(options.db_path);
-      var mongod = exec('mongod', [
-        //'--dbpath', db_path,
+      var mongod;
+      var args = [
         '--port', port,
         '--smallfiles',
         '--nojournal',
         '--noprealloc',
-      ]);
+      ];
+      if (options.dbPath) {
+        args.push('--dbpath', path.resolve(options.dbPath));
+      }
+      mongod = spawn(options.mongoPath || 'mongod', args);  
       mongod.stdout.on('data', function (data) {
-        if (/all output going to/.test(data.toString())) {
+        //console.log(data.toString());
+        if (/waiting for connections/.test(data.toString())) {
           resolve(new MongoHandle(mongod, port));
         }
       });
+      //mongod.stderr.on('data', function (data) {
+      //  console.log(data.toString());
+      //});
     });
   },
 
