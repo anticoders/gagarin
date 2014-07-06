@@ -3,9 +3,6 @@
   "version": "0.0.2",
   "description": "another testing framework for your meteor apps",
   "main": "gagarin.js",
-  "scripts": {
-    "test": "./test.js"
-  },
   "repository": {
     "type": "git",
     "url": "git://github.com/anticoders/gagarin"
