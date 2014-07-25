@@ -1,32 +1,40 @@
 
 var Promise = require('es6-promise').Promise;
 var spawn = require('child_process').spawn;
+var fs = require('fs');
 var net = require('net');
 var util = require('util');
 var EventEmiter = require('events').EventEmitter;
 var mongo = require('./mongo');
+var tools = require('./tools');
 var mongoServer = null;
+var config = tools.getConfig();
 
-module.exports = function Gagarin(options) {
+module.exports = Gagarin;
+  
+function Gagarin (options) {
   options = options || {};
   
-  if (!mongoServer) {
-    mongoServer = new mongo.Server();
-  }
+  var port = 4000 + Math.floor(Math.random() * 1000);
+  var dbName = options.dbName || 'gagarin_' + Date.now();
+  var env = Object.create(process.env);
 
-  return new GagarinAsPromise(mongoServer.then(function (handle) {
+  env.ROOT_URL = 'http://localhost:' + port;
+  env.PORT = port;
+  
+  if (!mongoServer) {
+    // only do it once
+    mongoServer = new mongo.Server(config);
+  }
+  
+  var gagarinAsPromise = new GagarinAsPromise(mongoServer.then(function (handle) {
 
     return new Promise(function (resolve, reject) {
       // add timeout ??
       
-      var port = 4000 + Math.floor(Math.random() * 1000);
-      var name = 'gagarin_' + Date.now();
-
-      process.env.MONGO_URL = 'mongodb://localhost:' + handle.port + '/' + name;
-      process.env.PORT      = port;
-      process.env.ROOT_URL  = 'http://localhost:' + port;
-
-      var meteor = spawn('node', [ options.pathToApp ], { env: process.env });
+      env.MONGO_URL = 'mongodb://localhost:' + handle.port + '/' + dbName;
+      
+      var meteor = spawn('node', [ options.pathToApp ], { env: env });
       var gagarin = null;
       
       meteor.stdout.on('data', function (data) {
@@ -35,7 +43,7 @@ module.exports = function Gagarin(options) {
           match = /Gagarin listening at port (\d+)/.exec(data.toString());
           if (match) {
             gagarin = new Transponder(meteor, { port: parseInt(match[1]), cleanUp: function () {
-              return mongo.connect(mongoServer, name).then(function (db) {
+              return mongo.connect(mongoServer, dbName).then(function (db) {
                 return db.drop();
               });
             }});
@@ -52,7 +60,17 @@ module.exports = function Gagarin(options) {
     });
 
   }));
+  
+  gagarinAsPromise.location = env.ROOT_URL;
+  
+  return gagarinAsPromise;
 }
+
+Gagarin.config = function (options) {
+  Object.keys(options).forEach(function (key) {
+    config[key] = options[key];
+  });
+};
 
 // GAGARIN AS PROMISE
 
