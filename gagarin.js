@@ -26,13 +26,14 @@ function Gagarin (options) {
       // add timeout ??
       
       var port = 4000 + Math.floor(Math.random() * 1000);
-      var name = 'gagarin_' + Date.now();
+      var dbName = options.dbName || 'gagarin_' + Date.now();
+      var env = Object.create(process.env);
+      
+      env.MONGO_URL = 'mongodb://localhost:' + handle.port + '/' + dbName;
+      env.ROOT_URL = 'http://localhost:' + port;
+      env.PORT = port;
 
-      process.env.MONGO_URL = 'mongodb://localhost:' + handle.port + '/' + name;
-      process.env.ROOT_URL  = 'http://localhost:' + port;
-      process.env.PORT      = port;
-
-      var meteor = spawn('node', [ options.pathToApp ], { env: process.env });
+      var meteor = spawn('node', [ options.pathToApp ], { env: env });
       var gagarin = null;
       
       meteor.stdout.on('data', function (data) {
@@ -41,10 +42,11 @@ function Gagarin (options) {
           match = /Gagarin listening at port (\d+)/.exec(data.toString());
           if (match) {
             gagarin = new Transponder(meteor, { port: parseInt(match[1]), cleanUp: function () {
-              return mongo.connect(mongoServer, name).then(function (db) {
+              return mongo.connect(mongoServer, dbName).then(function (db) {
                 return db.drop();
               });
             }});
+            gagarin.location = env.ROOT_URL;
             resolve(gagarin);
           }
         }
