@@ -8,16 +8,16 @@ var EventEmiter = require('events').EventEmitter;
 var mongo = require('./mongo');
 var tools = require('./tools');
 var mongoServer = null;
-var config = {};
+var config = tools.getConfig();
 
-module.exports = Gagarin; 
+module.exports = Gagarin;
   
 function Gagarin (options) {
   options = options || {};
   
   if (!mongoServer) {
     // only do it once
-    mongoServer = new mongo.Server(tools.getConfig());
+    mongoServer = new mongo.Server(config);
   }
   
   return new GagarinAsPromise(mongoServer.then(function (handle) {
@@ -29,8 +29,8 @@ function Gagarin (options) {
       var name = 'gagarin_' + Date.now();
 
       process.env.MONGO_URL = 'mongodb://localhost:' + handle.port + '/' + name;
-      process.env.PORT      = port;
       process.env.ROOT_URL  = 'http://localhost:' + port;
+      process.env.PORT      = port;
 
       var meteor = spawn('node', [ options.pathToApp ], { env: process.env });
       var gagarin = null;
