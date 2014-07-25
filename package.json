@@ -26,7 +26,8 @@
   "homepage": "https://github.com/anticoders/gagarin",
   "devDependencies": {
     "chai": "^1.9.1",
-    "mocha": "^1.20.1"
+    "mocha": "^1.20.1",
+    "phantom-as-promise": "0.0.2"
   },
   "dependencies": {
     "debounce": "^1.0.0",
