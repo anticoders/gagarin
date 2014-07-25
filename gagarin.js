@@ -15,24 +15,25 @@ module.exports = Gagarin;
 function Gagarin (options) {
   options = options || {};
   
+  var port = 4000 + Math.floor(Math.random() * 1000);
+  var dbName = options.dbName || 'gagarin_' + Date.now();
+  var env = Object.create(process.env);
+
+  env.ROOT_URL = 'http://localhost:' + port;
+  env.PORT = port;
+  
   if (!mongoServer) {
     // only do it once
     mongoServer = new mongo.Server(config);
   }
   
-  return new GagarinAsPromise(mongoServer.then(function (handle) {
+  var gagarinAsPromise = new GagarinAsPromise(mongoServer.then(function (handle) {
 
     return new Promise(function (resolve, reject) {
       // add timeout ??
       
-      var port = 4000 + Math.floor(Math.random() * 1000);
-      var dbName = options.dbName || 'gagarin_' + Date.now();
-      var env = Object.create(process.env);
-      
       env.MONGO_URL = 'mongodb://localhost:' + handle.port + '/' + dbName;
-      env.ROOT_URL = 'http://localhost:' + port;
-      env.PORT = port;
-
+      
       var meteor = spawn('node', [ options.pathToApp ], { env: env });
       var gagarin = null;
       
@@ -46,7 +47,6 @@ function Gagarin (options) {
                 return db.drop();
               });
             }});
-            gagarin.location = env.ROOT_URL;
             resolve(gagarin);
           }
         }
@@ -60,6 +60,10 @@ function Gagarin (options) {
     });
 
   }));
+  
+  gagarinAsPromise.location = env.ROOT_URL;
+  
+  return gagarinAsPromise;
 }
 
 Gagarin.config = function (options) {
