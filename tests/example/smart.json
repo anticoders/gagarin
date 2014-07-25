@@ -1,5 +1,7 @@
 {
   "packages": {
-    "gagarin": {}
+    "gagarin": {
+      "path": "../.."
+    }
   }
 }
