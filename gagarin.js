@@ -128,31 +128,35 @@ function Transponder(meteor, options) {
       resolve(socket);
     });
 
-    // listen to emit events
+    //--------------- PARSE RESPONSE FROM SERVER ------------------
     socket.setEncoding('utf8');
     socket.on('data', function (data) {
       try {
         data = JSON.parse(data);
-        //--------------------------
-        if (data.what === 'error') {
+        //----------------------
+        if (data.error) {
           if (data.name) {
-            self.emit(data.name, new Error(data.resp));
+            self.emit(data.name, new Error(data.error));
           } else {
-            self.emit('error', new Error(data.resp));
+            self.emit('error', new Error(data.error));
           }
         } else {
-          data.name && self.emit(data.name, null, data.resp);
+          data.name && self.emit(data.name, null, data.result);
         }
       } catch (err) { // parse error?
         self.emit('error', err);
       }
     });
+    //-------------------------------------------------------------
+    //\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+    //-------------------------------------------------------------
   });
 
   function factory(mode) {
     return function (code) {
       var args = Array.prototype.slice.call(arguments, 1);
       var name = uniqe().toString();
+      //-------------------------------------
       return connect.then(function (socket) {
         socket.write(JSON.stringify({
           code: code.toString(),

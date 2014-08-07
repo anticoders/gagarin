@@ -13,21 +13,23 @@ if (Meteor.isDevelopment) {
       socket.on('data', function (data) {
         try {
           data = JSON.parse(data);
-        } catch (err) {
-          return;
-        }
-        if (data.name && data.code) {
-          if (data.mode === 'promise') {
-            evaluateAsPromise(data.name, data.code, data.args, socket);
-          } else if (data.mode === 'evaluate') {
-            evaluate(data.name, data.code, data.args, socket);
-          } else {
-            socket.write(JSON.stringify({
-              name : data.name,
-              what : 'error',
-              resp : 'evaluation mode ' + JSON.stringify(data.mode) + ' is not supported',
-            }));
+          if (data.name && data.code) {
+            if (data.mode === 'promise') {
+              evaluateAsPromise(data.name, data.code, data.args, socket);
+
+            } else if (data.mode === 'evaluate') {
+              evaluate(data.name, data.code, data.args, socket);
+
+            } else {
+              socket.write(JSON.stringify({
+                error : 'evaluation mode ' + JSON.stringify(data.mode) + ' is not supported',
+                name : data.name,
+              }));
+            }
           }
+
+        } catch (err) {
+          socket.write(JSON.stringify({ error: err.message }));
         }
       });
     }).listen(0, function () {
@@ -47,11 +49,9 @@ function evaluate(name, code, args, socket) {
     Fibers(function () {
       var data = { name: name };
       try {
-        data.resp = context.value.apply(null, args || []);
-        data.what = 'result';
+        data.result = context.value.apply(null, args || []);
       } catch (err) {
-        data.resp = err.toString();
-        data.what = 'error';
+        data.error = err.message;
       }
       socket.write(JSON.stringify(data));
     }).run();
@@ -69,17 +69,15 @@ function evaluateAsPromise(name, code, args, socket) {
 
       args.unshift(function (err) { // reject
         socket.write(JSON.stringify({
-          resp : err.toString(),
-          name : name,
-          what : 'error',
+          error : err.toString(),
+          name  : name,
         }));
       });
 
       args.unshift(function (result) { // resolve
         socket.write(JSON.stringify({
-          resp : result,
-          name  : name,
-          what  : 'result',
+          result : result,
+          name   : name,
         }));
       });
 
