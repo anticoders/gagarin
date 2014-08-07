@@ -98,7 +98,7 @@ GagarinAsPromise.prototype.sleep = function (timeout) {
 
 // proxies for transponder methods
 
-[ 'eval', 'kill' ].forEach(function (name) {
+[ 'eval', 'promise', 'kill' ].forEach(function (name) {
   GagarinAsPromise.prototype[name] = function () {
     var args = Array.prototype.slice.call(arguments, 0);
     var self = this;
@@ -129,8 +129,14 @@ function Transponder(meteor, options) {
       } catch (err) {
         return; // ignore?
       }
-      if (data.name) {
-        self.emit(data.name, data.value);
+      if (data.what === 'error') {
+        if (data.name) {
+          self.emit(data.name, data.resp);
+        } else {
+          self.emit('error', data.resp);
+        }
+      } else {
+        data.name && self.emit(data.name, null, data.resp);
       }
     });
   });
@@ -141,6 +147,7 @@ function Transponder(meteor, options) {
 
     return connect.then(function (socket) {
       socket.write(JSON.stringify({
+          mode: 'evaluate',
           name: name,
           code: code.toString(),
           args: args,
@@ -149,10 +156,28 @@ function Transponder(meteor, options) {
         });
 
       return new Promise(function (resolve, reject) {
-        self.once(name, function (value) {
-          resolve(value);
+        self.once(name, tools.either(reject).or(resolve));
+      });
+
+    });
+  };
+
+  self.promise = function (code) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    var name = uniqe().toString();
+
+    return connect.then(function (socket) {
+      socket.write(JSON.stringify({
+          mode: 'promise',
+          name: name,
+          code: code.toString(),
+          args: args,
+        }), function () {
+          // do we need this callback (?)
         });
-        // reject? timeout?
+
+      return new Promise(function (resolve, reject) {
+        self.once(name, tools.either(reject).or(resolve));
       });
 
     });

@@ -37,4 +37,15 @@ describe('Benchmark test suite', function () {
     });
   });
 
+  it('promise should work', function () {
+    return gagarin.promise(function (resolve, reject) {
+      Meteor.setTimeout(function () {
+        resolve(Meteor.release);
+      }, 100);
+    })
+    .then(function (value) {
+      expect(value).not.to.be.empty;
+    });
+  });
+
 });
