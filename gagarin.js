@@ -88,6 +88,13 @@ GagarinAsPromise.prototype.sleep = function (timeout) {
   });
 };
 
+GagarinAsPromise.prototype.expectError = function (callback) {
+  var self = this;
+  return self.then(function () {
+    throw new Error('exception was not thrown');
+  }, callback);
+};
+
 // proxies for promise methods
 
 [ 'then', 'catch' ].forEach(function (name) {
@@ -141,53 +148,35 @@ function Transponder(meteor, options) {
     });
   });
 
-  self.eval = function (code) {
-    var args = Array.prototype.slice.call(arguments, 1);
-    var name = uniqe().toString();
-
-    return connect.then(function (socket) {
-      socket.write(JSON.stringify({
-          mode: 'evaluate',
-          name: name,
+  function factory(mode) {
+    return function (code) {
+      var args = Array.prototype.slice.call(arguments, 1);
+      var name = uniqe().toString();
+      return connect.then(function (socket) {
+        socket.write(JSON.stringify({
           code: code.toString(),
+          mode: mode,
+          name: name,
           args: args,
         }), function () {
           // do we need this callback (?)
         });
-
-      return new Promise(function (resolve, reject) {
-        self.once(name, tools.either(reject).or(resolve));
-      });
-
-    });
-  };
-
-  self.promise = function (code) {
-    var args = Array.prototype.slice.call(arguments, 1);
-    var name = uniqe().toString();
-
-    return connect.then(function (socket) {
-      socket.write(JSON.stringify({
-          mode: 'promise',
-          name: name,
-          code: code.toString(),
-          args: args,
-        }), function () {
-          // do we need this callback (?)
+        return new Promise(function (resolve, reject) {
+          self.once(name, tools.either(reject).or(resolve));
         });
-
-      return new Promise(function (resolve, reject) {
-        self.once(name, tools.either(reject).or(resolve));
       });
+    }
+  }
 
-    });
-  };
+  self.promise = factory('promise');
+  self.eval    = factory('evaluate');
 
   self.kill = function () {
     return Promise.all([
-
+      // 1
       options.cleanUp(),
 
+      // 2
       new Promise(function (resolve, reject) {
         meteor.once('error', function () {
           reject();
@@ -196,7 +185,7 @@ function Transponder(meteor, options) {
           resolve();
         });
         meteor.kill();
-      })
+      }),
 
     ]);
   };// kill

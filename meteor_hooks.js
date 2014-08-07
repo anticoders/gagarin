@@ -45,18 +45,18 @@ function evaluate(name, code, args, socket) {
 
   if (typeof context.value === 'function') {
     Fibers(function () {
-      context.value = context.value.apply(null, args || []);
-
-      socket.write(JSON.stringify({
-        resp : context.value,
-        name : name,
-        what : 'result',
-      }));
+      var data = { name: name };
+      try {
+        data.resp = context.value.apply(null, args || []);
+        data.what = 'result';
+      } catch (err) {
+        data.resp = err.toString();
+        data.what = 'error';
+      }
+      socket.write(JSON.stringify(data));
     }).run();
   }
-
 }
-
 
 function evaluateAsPromise(name, code, args, socket) {
   // maybe we could avoid creating it multiple times?

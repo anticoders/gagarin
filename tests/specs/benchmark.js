@@ -48,4 +48,12 @@ describe('Benchmark test suite', function () {
     });
   });
 
+  it('should throw a descriptive error', function () {
+    return gagarin.eval(function () {
+      undefined[0];
+    }).expectError(function (err) {
+      expect(err).to.contain('property');
+    });
+  });
+
 });
