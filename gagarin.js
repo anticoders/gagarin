@@ -133,17 +133,18 @@ function Transponder(meteor, options) {
     socket.on('data', function (data) {
       try {
         data = JSON.parse(data);
-      } catch (err) {
-        return; // ignore?
-      }
-      if (data.what === 'error') {
-        if (data.name) {
-          self.emit(data.name, data.resp);
+        //--------------------------
+        if (data.what === 'error') {
+          if (data.name) {
+            self.emit(data.name, new Error(data.resp));
+          } else {
+            self.emit('error', new Error(data.resp));
+          }
         } else {
-          self.emit('error', data.resp);
+          data.name && self.emit(data.name, null, data.resp);
         }
-      } else {
-        data.name && self.emit(data.name, null, data.resp);
+      } catch (err) { // parse error?
+        self.emit('error', err);
       }
     });
   });

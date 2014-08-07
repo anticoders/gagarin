@@ -52,7 +52,7 @@ describe('Benchmark test suite', function () {
     return gagarin.eval(function () {
       undefined[0];
     }).expectError(function (err) {
-      expect(err).to.contain('property');
+      expect(err.toString()).to.contain('property');
     });
   });
 
