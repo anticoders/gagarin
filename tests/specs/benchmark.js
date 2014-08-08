@@ -19,7 +19,7 @@ describe('Benchmark test suite', function () {
   });
 
   after(function () {
-    return gagarin.kill();
+    return gagarin.exit();
   });
 
   it('should be able to find the release config', function () {

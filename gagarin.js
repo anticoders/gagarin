@@ -115,7 +115,7 @@ GagarinAsPromise.prototype.expectError = function (callback) {
 
 // proxies for transponder methods
 
-[ 'eval', 'promise', 'kill' ].forEach(function (name) {
+[ 'eval', 'promise', 'exit' ].forEach(function (name) {
   GagarinAsPromise.prototype[name] = function () {
     var args = Array.prototype.slice.call(arguments, 0);
     var self = this;
@@ -186,7 +186,7 @@ function Transponder(meteor, options) {
   self.promise = factory('promise');
   self.eval    = factory('evaluate');
 
-  self.kill = function () {
+  self.exit = function () {
     return Promise.all([
       // 1
       options.cleanUp(),
@@ -203,7 +203,7 @@ function Transponder(meteor, options) {
       }),
 
     ]);
-  };// kill
+  };// exit
 
 };
 

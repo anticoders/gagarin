@@ -30,7 +30,7 @@ describe('Tests with phantomjs browser', function () {
   after(function () {
     return Promise.all([
       phantom.exit(),
-      gagarin.kill(),
+      gagarin.exit(),
     ]);
   });
 
