@@ -10,7 +10,7 @@ describe('Tests with phantomjs browser', function () {
   
   var phantom = new PhantomAsPromise();
   var gagarin = new Gagarin({
-    pathToApp: path.resolve('./tests/example/.meteor/local/build/main.js')
+    pathToApp: path.resolve('./tests/example')
   });
 
   before(function () {
@@ -60,5 +60,5 @@ describe('Tests with phantomjs browser', function () {
       expect(item).to.be.ok;
     });
   });
-      
+
 });

@@ -1,12 +1,15 @@
 var Promise = require('es6-promise').Promise;
 var Gagarin = require('../../gagarin');
+var tools = require('../../tools');
 var path = require('path');
 var expect = require('chai').expect;
 
 describe('Benchmark test suite', function () {
 
+  var pathToApp = path.resolve('./tests/example');
+
   var gagarin = new Gagarin({
-    pathToApp: path.resolve('./tests/example/.meteor/local/build/main.js')
+    pathToApp: path.resolve('./tests/example')
   });
 
   before(function () {
@@ -17,6 +20,16 @@ describe('Benchmark test suite', function () {
 
   after(function () {
     return gagarin.kill();
+  });
+
+  it('should be able to find the release config', function () {
+    var config = tools.getReleaseConfig(pathToApp);
+    expect(config.tools).to.be.ok;
+    expect(config.packages).not.to.be.empty;
+  });
+
+  it('should be able to build app', function () {
+    return tools.buildAsPromise(pathToApp);
   });
 
   it('eval should work', function () {

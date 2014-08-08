@@ -9,9 +9,10 @@ var mongo = require('./mongo');
 var tools = require('./tools');
 var mongoServer = null;
 var config = tools.getConfig();
+var path = require('path');
 
 module.exports = Gagarin;
-  
+
 function Gagarin (options) {
   options = options || {};
   
@@ -24,17 +25,23 @@ function Gagarin (options) {
   
   if (!mongoServer) {
     // only do it once
+    config.mongoPath = path.join(tools.getUserHome(), '.meteor', 'tools', 'latest', 'mongodb', 'bin', 'mongod');
     mongoServer = new mongo.Server(config);
   }
-  
-  var gagarinAsPromise = new GagarinAsPromise(mongoServer.then(function (handle) {
+
+  var configure = mongoServer.then(function (mongoHandle) {
+    env.MONGO_URL = 'mongodb://localhost:' + mongoHandle.port + '/' + dbName;
+    return tools.buildAsPromise(options.pathToApp);
+  });
+
+  var gagarinAsPromise = new GagarinAsPromise(configure.then(function (pathToMain) {
 
     return new Promise(function (resolve, reject) {
       // add timeout ??
-      
-      env.MONGO_URL = 'mongodb://localhost:' + handle.port + '/' + dbName;
-      
-      var meteor = spawn('node', [ options.pathToApp ], { env: env });
+
+      // TODO: guess the correct path from .meteor/release file
+      var nodePath = path.join(tools.getUserHome(), '.meteor', 'tools', 'latest', 'bin', 'node');
+      var meteor = spawn(nodePath, [ pathToMain ], { env: env });
       var gagarin = null;
       
       meteor.stdout.on('data', function (data) {
