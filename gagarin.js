@@ -19,13 +19,16 @@ function Gagarin (options) {
   var port = 4000 + Math.floor(Math.random() * 1000);
   var dbName = options.dbName || 'gagarin_' + Date.now();
   var env = Object.create(process.env);
+  var meteorConfig = tools.getReleaseConfig(options.pathToApp);
 
   env.ROOT_URL = 'http://localhost:' + port;
   env.PORT = port;
   
   if (!mongoServer) {
     // only do it once
-    config.mongoPath = path.join(tools.getUserHome(), '.meteor', 'tools', 'latest', 'mongodb', 'bin', 'mongod');
+    if (!config.mongoPath) {
+      config.mongoPath = path.join(tools.getUserHome(), '.meteor', 'tools', meteorConfig.tools, 'mongodb', 'bin', 'mongod');
+    }
     mongoServer = new mongo.Server(config);
   }
 
@@ -40,7 +43,7 @@ function Gagarin (options) {
       // add timeout ??
 
       // TODO: guess the correct path from .meteor/release file
-      var nodePath = path.join(tools.getUserHome(), '.meteor', 'tools', 'latest', 'bin', 'node');
+      var nodePath = path.join(tools.getUserHome(), '.meteor', 'tools',  meteorConfig.tools, 'bin', 'node');
       var meteor = spawn(nodePath, [ pathToMain ], { env: env });
       var gagarin = null;
       
