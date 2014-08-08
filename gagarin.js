@@ -54,6 +54,7 @@ function Gagarin (options) {
       var meteor = null;
       var meteorPromise = null;
       var meteorNeedRestart = true;
+      var meteorRestartTimeout = 0;
 
       function meteorAsPromise () {
 
@@ -61,37 +62,45 @@ function Gagarin (options) {
           return meteorPromise;
         }
 
+        console.log('starting meteor again');
+
         meteorNeedRestart = false;
         meteorPromise = new Promise(function (resolve, reject) {
 
-          process.on('exit', function () {
-            meteor && meteor.kill();
-            meteor = null;
-          });
-
           meteor && meteor.kill('SIGINT');
-          meteor = spawn(nodePath, [ pathToMain ], { env: env });
-
-          meteor.stdout.on('data', function (data) {
-            var match = /Gagarin listening at port (\d+)/.exec(data.toString());
-            if (match) {
-              meteor.gagarinPort = parseInt(match[1]);
-              resolve(meteor);
-            }
-          });
 
           setTimeout(function () {
-            meteor.kill('SIGINT');
-            reject(new Error('Gagarin is not there. Make sure you have added it with: mrt install gagarin.'));
-          }, options.timeout || 10000);
+            //process.on('exit', function () {
+            //  meteor && meteor.kill();
+            //  meteor = null;
+            //});
+
+            meteor = spawn(nodePath, [ pathToMain ], { env: env });
+
+            meteor.stdout.on('data', function (data) {
+              var match = /Gagarin listening at port (\d+)/.exec(data.toString());
+              if (match) {
+                meteor.gagarinPort = parseInt(match[1]);
+                resolve(meteor);
+              }
+            });
+
+            setTimeout(function () {
+              meteor.kill('SIGINT');
+              reject(new Error('Gagarin is not there. Make sure you have added it with: mrt install gagarin.'));
+            }, options.timeout || 10000);
+
+          }, meteorRestartTimeout);
+
 
         });
 
         return meteorPromise;
       }
 
-      //-----------------------------------------
-      meteorAsPromise.needRestart = function () {
+      //-------------------------------------------------
+      meteorAsPromise.needRestart = function (timeout) {
+        meteorRestartTimeout = timeout;
         meteorNeedRestart = true;
       };
 
@@ -146,7 +155,7 @@ GagarinAsPromise.prototype.expectError = function (callback) {
 
 [ 'then', 'catch' ].forEach(function (name) {
   GagarinAsPromise.prototype[name] = function () {
-    return new GagarinAsPromise(this._operand, this._promise[name].apply(this._promise, arguments));
+    return new GagarinAsPromise(this._options, this._operand, this._promise[name].apply(this._promise, arguments));
   }
 });
 
@@ -156,7 +165,7 @@ GagarinAsPromise.prototype.expectError = function (callback) {
   GagarinAsPromise.prototype[name] = function () {
     var args = Array.prototype.slice.call(arguments, 0);
     var self = this;
-    return new GagarinAsPromise(self._operand, Promise.all([ self._operand, self._promise ]).then(function (all) {
+    return new GagarinAsPromise(self._options, self._operand, Promise.all([ self._operand, self._promise ]).then(function (all) {
       return all[0][name].apply(all[0], args);
     }));
   };

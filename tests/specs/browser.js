@@ -82,4 +82,30 @@ describe('Tests with phantomjs browser', function () {
 
   });
 
+  describe('Restarting server', function () {
+
+    before(function () {
+      // reload the page
+      return page.open(gagarin.location)
+        .eval(function () {});
+    });
+
+    before(function () {
+      return gagarin
+        .restart(2000).sleep(2000).then(function () {
+          return gagarin.restart(2000).sleep(2000);
+        });
+    });
+
+    it('should observe that the server was restarted twice', function () {
+      return page.eval(function () {
+        return reset;
+      })
+      .then(function (numberOfResets) {
+        expect(numberOfResets).to.equal(2);
+      });
+    });
+
+  });
+
 });
