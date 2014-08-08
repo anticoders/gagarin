@@ -1,6 +1,6 @@
+var EventEmiter = require('events').EventEmitter;
 var Promise = require('es6-promise').Promise;
 var util = require('util');
-var EventEmiter = require('events').EventEmitter;
 var tools = require('./tools');
 var makeSocketFactory = require('./socket');
 

@@ -2,50 +2,54 @@
 var Promise = require('es6-promise').Promise;
 var spawn = require('child_process').spawn;
 var fs = require('fs');
-var util = require('util');
-var EventEmiter = require('events').EventEmitter;
 var mongo = require('./mongo');
 var tools = require('./tools');
-var mongoServer = null;
-var config = tools.getConfig();
 var path = require('path');
 var buildAsPromise = require('./build');
-var makeSocketFactory = require('./socket');
 var GagarinTransponder = require('./transponder');
+
+var defaults = tools.getConfig();
+var mongoServerPromise = null;
 
 module.exports = Gagarin;
 
 function Gagarin (options) {
-  options = options || {};
-  
-  var port = 4000 + Math.floor(Math.random() * 1000);
-  var dbName = options.dbName || 'gagarin_' + Date.now();
-  var env = Object.create(process.env);
-  var meteorConfig = tools.getReleaseConfig(options.pathToApp);
 
-  env.ROOT_URL = 'http://localhost:' + port;
-  env.PORT = port;
+  //\/\/\/\/\/\/\/\/\/\/\/\ DEFAULT OPTIONS \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+  options = options || {};
+  options.pathToApp = options.pathToApp || defaults.pathToApp || path.resolve('.');
+  options.dbName = options.dbName || 'gagarin_' + Math.floor(Math.random() * 1000);
+  options.port = options.port || 4000 + Math.floor(Math.random() * 1000);
+  options.location = 'http://localhost:' + options.port;
+  //\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+
+  var release = tools.getReleaseConfig(options.pathToApp);
+  var env = Object.create(process.env);
+
+  env.ROOT_URL = options.location;
+  env.PORT = options.port;
   
-  if (!mongoServer) {
-    if (!config.mongoPath) {
-      config.mongoPath = path.join(tools.getUserHome(), '.meteor', 'tools', meteorConfig.tools, 'mongodb', 'bin', 'mongod');
+  if (!mongoServerPromise) {
+    if (!defaults.mongoPath) {
+      defaults.mongoPath =
+        path.join(tools.getUserHome(), '.meteor', 'tools',
+          release.tools, 'mongodb', 'bin', 'mongod');
     }
-    mongoServer = new mongo.Server(config);
+    mongoServerPromise = new mongo.Server(defaults);
   }
 
-  var gagarinAsPromise = new GagarinAsPromise(Promise.all([
-    buildAsPromise(options.pathToApp), mongoServer
+  var gagarinAsPromise = new GagarinAsPromise(options, Promise.all([
+
+    buildAsPromise(options.pathToApp), mongoServerPromise
+
   ]).then(function (all) {
 
     var pathToMain = all[0];
 
-    env.MONGO_URL = 'mongodb://localhost:' + all[1].port + '/' + dbName;
+    env.MONGO_URL = 'mongodb://localhost:' + all[1].port + '/' + options.dbName;
 
     return new Promise(function (resolve, reject) {
-      // add timeout ??
-
-      // TODO: guess the correct path from .meteor/release file
-      var nodePath = path.join(tools.getUserHome(), '.meteor', 'tools',  meteorConfig.tools, 'bin', 'node');
+      var nodePath = path.join(tools.getUserHome(), '.meteor', 'tools',  release.tools, 'bin', 'node');
       
       var meteor = null;
       var meteorPromise = null;
@@ -53,10 +57,8 @@ function Gagarin (options) {
 
       function meteorAsPromise () {
 
-        if (!meteorNeedRestart) {
-          if (meteorPromise) {
-            return meteorPromise;
-          }
+        if (!meteorNeedRestart && meteorPromise) {
+          return meteorPromise;
         }
 
         meteorNeedRestart = false;
@@ -67,7 +69,7 @@ function Gagarin (options) {
             meteor = null;
           });
 
-          meteor && meteor.kill();
+          meteor && meteor.kill('SIGINT');
           meteor = spawn(nodePath, [ pathToMain ], { env: env });
 
           meteor.stdout.on('data', function (data) {
@@ -77,6 +79,11 @@ function Gagarin (options) {
               resolve(meteor);
             }
           });
+
+          setTimeout(function () {
+            meteor.kill('SIGINT');
+            reject(new Error('Gagarin is not there. Make sure you have added it with: mrt install gagarin.'));
+          }, options.timeout || 10000);
 
         });
 
@@ -88,34 +95,35 @@ function Gagarin (options) {
         meteorNeedRestart = true;
       };
 
-      var gagarin = new GagarinTransponder(meteorAsPromise, { cleanUp: function () {
-        return mongo.connect(mongoServer, dbName).then(function (db) {
-          return db.drop();
-        });
-      }});
-
-      resolve(gagarin);
+      resolve(new GagarinTransponder(meteorAsPromise, {
+        cleanUp: function () {
+          return mongo.connect(mongoServerPromise, options.dbName).then(function (db) {
+            return db.drop();
+          });
+        }
+      }));
 
     });
 
   }));
   
-  gagarinAsPromise.location = env.ROOT_URL;
+  gagarinAsPromise.location = options.location;
   
   return gagarinAsPromise;
 }
 
 Gagarin.config = function (options) {
   Object.keys(options).forEach(function (key) {
-    config[key] = options[key];
+    defaults[key] = options[key];
   });
 };
 
 // GAGARIN AS PROMISE
 
-function GagarinAsPromise (operand, promise) {
+function GagarinAsPromise (options, operand, promise) {
   this._operand = operand;
   this._promise = promise || operand;
+  this._options = options;
 }
 
 GagarinAsPromise.prototype.sleep = function (timeout) {

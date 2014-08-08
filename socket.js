@@ -11,10 +11,8 @@ module.exports = function makeSocketFactory (emitter, meteorAsPromise) {
   return function socketAsPromise () {
     return meteorAsPromise().then(function (meteor) {
 
-      if (socketPort === meteor.gagarinPort) {
-        if (socketPromise) {
-          return socketPromise;
-        }
+      if (socketPort === meteor.gagarinPort && socketPromise) {
+        return socketPromise;
       }
 
       socketPort = meteor.gagarinPort;
