@@ -8,7 +8,10 @@ describe('Tests with phantomjs browser', function () {
 
   var page = null;
   
-  var phantom = new PhantomAsPromise();
+  var phantom = new PhantomAsPromise({
+    phantomPath: require('phantomjs').path
+  });
+  
   var gagarin = new Gagarin({
     pathToApp: path.resolve('./tests/example')
   });
