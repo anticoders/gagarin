@@ -3,6 +3,7 @@ var Gagarin = require('../../gagarin');
 var tools = require('../../tools');
 var path = require('path');
 var expect = require('chai').expect;
+var buildAsPromise = require('../../build');
 
 describe('Benchmark test suite', function () {
 
@@ -29,7 +30,7 @@ describe('Benchmark test suite', function () {
   });
 
   it('should be able to build app', function () {
-    return tools.buildAsPromise(pathToApp);
+    return buildAsPromise(pathToApp);
   });
 
   it('eval should work', function () {

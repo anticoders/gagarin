@@ -10,6 +10,7 @@ var tools = require('./tools');
 var mongoServer = null;
 var config = tools.getConfig();
 var path = require('path');
+var buildAsPromise = require('./build');
 
 module.exports = Gagarin;
 
@@ -34,7 +35,7 @@ function Gagarin (options) {
 
   var configure = mongoServer.then(function (mongoHandle) {
     env.MONGO_URL = 'mongodb://localhost:' + mongoHandle.port + '/' + dbName;
-    return tools.buildAsPromise(options.pathToApp);
+    return buildAsPromise(options.pathToApp);
   });
 
   var gagarinAsPromise = new GagarinAsPromise(configure.then(function (pathToMain) {
