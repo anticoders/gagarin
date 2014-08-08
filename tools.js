@@ -90,9 +90,11 @@ module.exports = {
         '--production',
         '--port', port
       ], { cwd: pathToApp, env: env });
+      var lastError = '';
       //----------------------------------------
       meteor.stdout.on('data', function (data) {
-        var match = /App running at:/.exec(data.toString());
+        var message = data.toString();
+        var match = /App running at:/.exec(message);
         if (match) {
           meteor.once('exit', function () {
             if (fs.existsSync(pathToMain)) {
@@ -102,6 +104,16 @@ module.exports = {
             }
           });
           meteor.kill('SIGINT');
+        } else {
+          match = /Error\:\s*(.*)/.exec(message);
+          if (match) {
+            lastError = match[1];
+          } else {
+            match = /Exited with code:/.exec(message);
+            if (match) {
+              reject(new Error(lastError || 'Your app does not compile well, but I do not know the reason.'));
+            }
+          }
         }
       });
 
