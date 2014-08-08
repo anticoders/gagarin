@@ -134,41 +134,65 @@ function GagarinTransponder(meteor, options) {
   EventEmiter.call(this);
 
   var self = this;
-  var connect = new Promise(function (resolve, reject) {
-    var socket = net.createConnection(options.port, function () {
-      resolve(socket);
-    });
+  var socket = null;
+  var socketPort = null;
+  var socketPromise = null;
 
-    //--------------- PARSE RESPONSE FROM SERVER ------------------
-    socket.setEncoding('utf8');
-    socket.on('data', function (data) {
-      try {
-        data = JSON.parse(data);
-        //----------------------
-        if (data.error) {
-          if (data.name) {
-            self.emit(data.name, new Error(data.error));
-          } else {
-            self.emit('error', new Error(data.error));
-          }
-        } else {
-          data.name && self.emit(data.name, null, data.result);
+  // temporary fake
+  var meteorAsPromise = function () { return Promise.resolve(meteor) };
+  meteor.gagarinPort = options.port;
+
+  function socketAsPromise () {
+    return meteorAsPromise().then(function (meteor) {
+
+      if (socketPort === meteor.gagarinPort) {
+        if (socketPromise) {
+          return socketPromise;
         }
-      } catch (err) { // parse error?
-        self.emit('error', err);
       }
+
+      socketPort = meteor.gagarinPort;
+      socketPromise = new Promise(function (resolve, reject) {
+
+        socket && socket.close();
+        socket = net.createConnection(socketPort, function () {
+          resolve(socket);
+        });
+
+        //--------------- PARSE RESPONSE FROM SERVER ------------------
+        socket.setEncoding('utf8');
+        socket.on('data', function (data) {
+          try {
+            data = JSON.parse(data);
+            //----------------------
+            if (data.error) {
+              if (data.name) {
+                self.emit(data.name, new Error(data.error));
+              } else {
+                self.emit('error', new Error(data.error));
+              }
+            } else {
+              data.name && self.emit(data.name, null, data.result);
+            }
+          } catch (err) { // parse error?
+            self.emit('error', err);
+          }
+        });
+        //-------------------------------------------------------------
+        //\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+        //-------------------------------------------------------------
+      });
+
+      return socketPromise;
     });
-    //-------------------------------------------------------------
-    //\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
-    //-------------------------------------------------------------
-  });
+  }
 
   function factory(mode) {
     return function (code) {
       var args = Array.prototype.slice.call(arguments, 1);
       var name = uniqe().toString();
-      //-------------------------------------
-      return connect.then(function (socket) {
+      //-----------------------------------------------
+      return socketAsPromise().then(function (socket) {
         socket.write(JSON.stringify({
           code: code.toString(),
           mode: mode,
