@@ -86,35 +86,71 @@ module.exports = {
     env.MONGO_URL = 'mongodb://localhost:' + port + '/there_should_be_no_database_on_this_port';
 
     function buildPromiseFuncion(resolve, reject) {
+      
       var meteor = spawn('meteor', [
         '--production',
         '--port', port
       ], { cwd: pathToApp, env: env });
+
       var lastError = '';
+      var lastErrorAt = 'nowhere';
       //----------------------------------------
       meteor.stdout.on('data', function (data) {
-        var message = data.toString();
-        var match = /App running at:/.exec(message);
-        if (match) {
-          meteor.once('exit', function () {
-            if (fs.existsSync(pathToMain)) {
-              resolve(pathToMain);
-            } else {
-              reject(new Error('Meteor build failed.'));
+
+        //process.stdout.write(data);
+
+        [
+          {
+            regExp: /App running at:/,
+            action: function () {
+              meteor.once('exit', function () {
+                if (fs.existsSync(pathToMain)) {
+                  resolve(pathToMain);
+                } else {
+                  reject(new Error('Meteor build failed.'));
+                }
+              });
+              meteor.kill('SIGINT');
             }
-          });
-          meteor.kill('SIGINT');
-        } else {
-          match = /Error\:\s*(.*)/.exec(message);
+          },
+
+          {
+            regExp: /Error\:\s*(.*)/,
+            action: function (match) {
+              lastError   = match[1];
+              lastErrorAt = '';
+            },
+          },
+
+          {
+            regExp: /at\s.*/,
+            action: function (match) {
+              if (!lastErrorAt) {
+                lastErrorAt = match[0];
+              }
+            },
+          },
+
+          {
+            regExp: /Exited with code:/,
+            action: function () {
+              if (lastError) {
+                reject(new Error(lastError.red + ' => '.magenta + lastErrorAt.magenta));
+              } else {
+                reject(new Error('Your app does not compile, but I do not know the reason.'));
+              }
+            },
+          },
+
+        ].forEach(function (options) {
+
+          var match = options.regExp.exec(data.toString());
           if (match) {
-            lastError = match[1];
-          } else {
-            match = /Exited with code:/.exec(message);
-            if (match) {
-              reject(new Error(lastError || 'Your app does not compile well, but I do not know the reason.'));
-            }
+            options.action.call(null, match);
+            return true;
           }
-        }
+
+        });
       });
 
       meteor.stdout.on('error', function (data) {
