@@ -26,47 +26,79 @@ function Gagarin (options) {
   env.PORT = port;
   
   if (!mongoServer) {
-    // only do it once
     if (!config.mongoPath) {
       config.mongoPath = path.join(tools.getUserHome(), '.meteor', 'tools', meteorConfig.tools, 'mongodb', 'bin', 'mongod');
     }
     mongoServer = new mongo.Server(config);
   }
 
-  var configure = mongoServer.then(function (mongoHandle) {
-    env.MONGO_URL = 'mongodb://localhost:' + mongoHandle.port + '/' + dbName;
-    return buildAsPromise(options.pathToApp);
-  });
+  var gagarinAsPromise = new GagarinAsPromise(Promise.all([
+    buildAsPromise(options.pathToApp), mongoServer
+  ]).then(function (all) {
 
-  var gagarinAsPromise = new GagarinAsPromise(configure.then(function (pathToMain) {
+    var pathToMain = all[0];
+
+    env.MONGO_URL = 'mongodb://localhost:' + all[1].port + '/' + dbName;
 
     return new Promise(function (resolve, reject) {
       // add timeout ??
 
       // TODO: guess the correct path from .meteor/release file
       var nodePath = path.join(tools.getUserHome(), '.meteor', 'tools',  meteorConfig.tools, 'bin', 'node');
-      var meteor = spawn(nodePath, [ pathToMain ], { env: env });
-      var gagarin = null;
       
-      meteor.stdout.on('data', function (data) {
-        var match;
-        if (!gagarin) {
-          match = /Gagarin listening at port (\d+)/.exec(data.toString());
-          if (match) {
-            gagarin = new GagarinTransponder(meteor, { port: parseInt(match[1]), cleanUp: function () {
-              return mongo.connect(mongoServer, dbName).then(function (db) {
-                return db.drop();
-              });
-            }});
-            resolve(gagarin);
+      var meteor = null;
+      var meteorPromise = null;
+      var meteorNeedRestart = true;
+
+      function meteorAsPromise () {
+
+        if (!meteorNeedRestart) {
+          if (meteorPromise) {
+            return meteorPromise;
           }
         }
-      });
 
-      // TODO: only log in verbose mode
-      meteor.stderr.on('data', function (data) {
-        console.error(data.toString());
-      });
+        meteorNeedRestart = false;
+        meteorPromise = new Promise(function (resolve, reject) {
+
+          process.on('exit', function () {
+            meteor && meteor.kill();
+            meteor = null;
+          });
+
+          meteor && meteor.kill();
+          meteor = spawn(nodePath, [ pathToMain ], { env: env });
+
+          meteor.stdout.on('data', function (data) {
+            var match = /Gagarin listening at port (\d+)/.exec(data.toString());
+            if (match) {
+              meteor.gagarinPort = parseInt(match[1]);
+              resolve(meteor);
+            }
+          });
+
+        });
+
+        return meteorPromise;
+      }
+
+      //-------------------------------------
+      meteorAsPromise.restart = function () {
+        meteorNeedRestart = true;
+        return meteorAsPromise();
+      };
+
+      meteorAsPromise.start = function () {
+        return meteorAsPromise();
+      };
+
+      var gagarin = new GagarinTransponder(meteorAsPromise, { cleanUp: function () {
+        return mongo.connect(mongoServer, dbName).then(function (db) {
+          return db.drop();
+        });
+      }});
+
+      resolve(gagarin);
 
     });
 
@@ -116,7 +148,7 @@ GagarinAsPromise.prototype.expectError = function (callback) {
 
 // proxies for transponder methods
 
-[ 'eval', 'promise', 'exit' ].forEach(function (name) {
+[ 'eval', 'promise', 'exit', 'start', 'restart' ].forEach(function (name) {
   GagarinAsPromise.prototype[name] = function () {
     var args = Array.prototype.slice.call(arguments, 0);
     var self = this;
@@ -128,7 +160,7 @@ GagarinAsPromise.prototype.expectError = function (callback) {
 
 // GAGARIN API
 
-function GagarinTransponder(meteor, options) {
+function GagarinTransponder(meteorAsPromise, options) {
 
   // iherit from EventEmitter
   EventEmiter.call(this);
@@ -137,10 +169,6 @@ function GagarinTransponder(meteor, options) {
   var socket = null;
   var socketPort = null;
   var socketPromise = null;
-
-  // temporary fake
-  var meteorAsPromise = function () { return Promise.resolve(meteor) };
-  meteor.gagarinPort = options.port;
 
   function socketAsPromise () {
     return meteorAsPromise().then(function (meteor) {
@@ -154,7 +182,7 @@ function GagarinTransponder(meteor, options) {
       socketPort = meteor.gagarinPort;
       socketPromise = new Promise(function (resolve, reject) {
 
-        socket && socket.close();
+        socket && socket.destroy();
         socket = net.createConnection(socketPort, function () {
           resolve(socket);
         });
@@ -211,16 +239,20 @@ function GagarinTransponder(meteor, options) {
   self.promise = factory('promise');
   self.eval    = factory('evaluate');
 
+  self.start = function () {
+    return meteorAsPromise.start();
+  };
+
   self.restart = function () {
-    return tools.exitAsPromise(meteor);
+    return meteorAsPromise.restart();
   };
 
   self.exit = function () {
     return Promise.all([
       options.cleanUp(),
-      tools.exitAsPromise(meteor),
+      meteorAsPromise().then(tools.exitAsPromise)
     ]);
-  };// exit
+  };
 
 };
 

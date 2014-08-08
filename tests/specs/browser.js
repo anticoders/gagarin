@@ -19,7 +19,7 @@ describe('Tests with phantomjs browser', function () {
   before(function () {
     // the sleep is not required but
     // lets demonstrate that it works :)
-    return gagarin.sleep(500);
+    return gagarin.start().sleep(500);
   });
   
   before(function () {
