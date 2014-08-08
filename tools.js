@@ -46,17 +46,21 @@ module.exports = {
     };
   },
 
+  exitAsPromise: function (otherProcess) {
+    return new Promise(function (resolve, reject) {
+      otherProcess.once('error', reject);
+      otherProcess.once('exit', resolve);
+      otherProcess.kill();
+    });
+  },
+
   smartPackagesAsPromise: function (pathToApp) {
     return new Promise(function (resolve, reject) {
       var meteorite = spawn('mrt', [ 'install' ], { cwd: pathToApp });
 
-      meteorite.on('exit', function (code) {
-        if (code) {
-          reject(new Error('Bad luck, meteorite exited with code: ' + code));
-        } else {
-          resolve();
-        }
-      });
+      meteorite.on('exit', module.exports.either(function (code) {
+        reject(new Error('Bad luck, meteorite exited with code: ' + code));
+      }).or(resolve));
 
       // TODO: timeout
 

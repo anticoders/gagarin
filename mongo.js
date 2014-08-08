@@ -40,13 +40,9 @@ module.exports = {
     return mongod.then(function (handle) {
       var mongoUrl = 'mongodb://127.0.0.1:' + handle.port + '/' + db_name;
       return new Promise(function (resolve, reject) {
-        MongoClient.connect(mongoUrl, function (err, db) {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(new DatabaseHandle(db, mongoUrl));
-          }
-        });
+        MongoClient.connect(mongoUrl, either(reject).or(function (db) {
+          resolve(new DatabaseHandle(db, mongoUrl));
+        }));
       });
     });
   },
@@ -56,29 +52,15 @@ module.exports = {
 function MongoHandle(mongod, port) {
   this.port = port;
   this.kill = function () {
-    return new Promise(function (resolve, reject) {
-      mongod.once('error', function () {
-        reject();
-      });
-      mongod.once('exit', function () {
-        resolve();
-      });
-      mongod.kill();
-    });
-  }
+    return tools.exitAsPromise(mongod);
+  };
 }
 
 function DatabaseHandle(db, mongoUrl) {
   this.mongoUrl = mongoUrl;
   this.drop = function () {
     return new Promise(function (resolve, reject) {
-      db.dropDatabase(function (err) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      })
+      db.dropDatabase(either(reject).or(resolve));
     });
   }
 }

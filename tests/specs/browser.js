@@ -34,6 +34,10 @@ describe('Tests with phantomjs browser', function () {
     ]);
   });
 
+  it('should be ok', function () {
+    return Promise.resolve('should be ok');
+  });
+
   it('eval should work in browser', function () {
     return page.eval(function () {
       return Meteor.release;

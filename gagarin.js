@@ -52,7 +52,7 @@ function Gagarin (options) {
         if (!gagarin) {
           match = /Gagarin listening at port (\d+)/.exec(data.toString());
           if (match) {
-            gagarin = new Transponder(meteor, { port: parseInt(match[1]), cleanUp: function () {
+            gagarin = new GagarinTransponder(meteor, { port: parseInt(match[1]), cleanUp: function () {
               return mongo.connect(mongoServer, dbName).then(function (db) {
                 return db.drop();
               });
@@ -127,7 +127,7 @@ GagarinAsPromise.prototype.expectError = function (callback) {
 
 // GAGARIN API
 
-function Transponder(meteor, options) {
+function GagarinTransponder(meteor, options) {
 
   // iherit from EventEmitter
   EventEmiter.call(this);
@@ -186,28 +186,20 @@ function Transponder(meteor, options) {
   self.promise = factory('promise');
   self.eval    = factory('evaluate');
 
+  self.restart = function () {
+    return tools.exitAsPromise(meteor);
+  };
+
   self.exit = function () {
     return Promise.all([
-      // 1
       options.cleanUp(),
-
-      // 2
-      new Promise(function (resolve, reject) {
-        meteor.once('error', function () {
-          reject();
-        });
-        meteor.once('exit', function () {
-          resolve();
-        });
-        meteor.kill();
-      }),
-
+      tools.exitAsPromise(meteor),
     ]);
   };// exit
 
 };
 
-util.inherits(Transponder, EventEmiter);
+util.inherits(GagarinTransponder, EventEmiter);
 
 // HELPERS
 
