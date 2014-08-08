@@ -87,7 +87,7 @@ module.exports = {
 
     function buildPromiseFuncion(resolve, reject) {
       var meteor = spawn('meteor', [
-        // '--production', looks like "production" gets rid of insecure package :P
+        '--production',
         '--port', port
       ], { cwd: pathToApp, env: env });
       //----------------------------------------

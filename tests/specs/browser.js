@@ -11,7 +11,7 @@ describe('Tests with phantomjs browser', function () {
   var phantom = new PhantomAsPromise({
     phantomPath: require('phantomjs').path
   });
-  
+
   var gagarin = new Gagarin({
     pathToApp: path.resolve('./tests/example')
   });
@@ -43,25 +43,39 @@ describe('Tests with phantomjs browser', function () {
     });
   });
       
-  var id = Math.floor(1000 * Math.random());
+  var id = Math.floor(1000 * Math.random()).toString();
 
-  it('db insert should work in browser', function () {
-    return page.eval(function (id) {
-      return Items.insert({vostok: id});
-    }, id)
-    .then(function (value) {
-      expect(value).not.to.be.empty;
+  describe('Database insertions', function () {
+    before(function () {
+      return page.promise(function (resolve, reject, id) {
+        Items.insert({_id: id}, either(reject).or(resolve));
+      }, id)
+      .then(function (value) {
+        expect(value).to.equal(id);
+      });
     });
-  });
-  
-  it('the same element should be present on server', function () {
-    return gagarin.eval(function (id) {
-      // TODO: wait?
-      return Items.findOne({vostok: id});
-    }, id)
-    .then(function (item) {
-      expect(item).to.be.ok;
+
+    it('db insert should work in browser', function () {
+      return page.eval(function (id) {
+        return Items.findOne({_id: id});
+      }, id)
+      .then(function (value) {
+        expect(value).not.to.be.empty;
+        expect(value._id).to.equal(id);
+      });
     });
+    
+    it('the same element should be present on server', function () {
+      return gagarin.eval(function (id) {
+        // TODO: wait?
+        return Items.findOne({_id: id});
+      }, id)
+      .then(function (value) {
+        expect(value).not.to.be.empty;
+        expect(value._id).to.equal(id);
+      });
+    });
+
   });
 
 });
