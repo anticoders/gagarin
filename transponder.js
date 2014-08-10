@@ -40,14 +40,13 @@ function GagarinTransponder(meteorAsPromise, options) {
     return meteorAsPromise();
   };
 
-  self.restart = function (timeout) {
-    meteorAsPromise.needRestart(timeout);
-    return meteorAsPromise();
+  self.restart = function (restartTimeout) {
+    return meteorAsPromise(true, restartTimeout);
   };
 
   self.exit = function () {
     return Promise.all([
-      //options.cleanUp(),
+      options.cleanUp(),
       meteorAsPromise().then(tools.exitAsPromise)
     ]);
   };

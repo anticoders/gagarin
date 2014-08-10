@@ -22,6 +22,7 @@ module.exports = {
         mongod = spawn(options.mongoPath || 'mongod', args);
         // use debounce to give the process some time in case it exits prematurely
         mongod.stdout.on('data', debounce(function (data) {
+          //process.stdout.write(data);
           resolve(new MongoHandle(mongod, port));
         }, 100));
         // on premature exit, reject the promise
