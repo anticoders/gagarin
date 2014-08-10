@@ -93,7 +93,7 @@ describe('Tests with phantomjs browser', function () {
     });
 
     before(function () {
-      return gagarin.restart(2000).sleep(2000);
+      return gagarin.restart(2000);
     });
 
     it ('should be all right', function () {
@@ -106,7 +106,7 @@ describe('Tests with phantomjs browser', function () {
     });
 
     it('should recognize that the server was restarted', function () {
-      return anotherPage.wait(2000, 'until reset value changes', function () {
+      return anotherPage.wait(5000, 'until reset value changes', function () {
         return reset;
       })
       .then(function (numberOfResets) {

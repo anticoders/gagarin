@@ -91,6 +91,9 @@ function Gagarin (options) {
               meteor.stdout.on('data', function (data) {
                 var match = /Gagarin listening at port (\d+)/.exec(data.toString());
                 if (match) {
+                  // make sure we won't kill this process by accident
+                  clearTimeout(meteorSafetyTimeout);
+                  meteorSafetyTimeout = null;
                   meteor.gagarinPort = parseInt(match[1]);
                   resolve(meteor);
                 }
