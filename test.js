@@ -3,7 +3,7 @@
 var Mocha = require('mocha');
 var path = require('path');
 var fs = require('fs');
-var buildAsPromise = require('./build');
+var BuildAsPromise = require('./gagarin').BuildAsPromise;
 var colors = require('colors');
 var pathToApp = path.resolve('./tests/example');
 
@@ -22,7 +22,7 @@ var handle = setInterval(function () {
   process.stdout.write('\b' + '/-\\|'.charAt(counter++ % 4).blue);
 }, 100);
 
-buildAsPromise(pathToApp).then(function () {
+BuildAsPromise(pathToApp).then(function () {
 
   clearInterval(handle);
 

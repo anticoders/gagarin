@@ -12,6 +12,7 @@ var defaults = tools.getConfig();
 var mongoServerPromise = null;
 
 module.exports = Gagarin;
+module.exports.BuildAsPromise = require('./build');
 
 function Gagarin (options) {
 

@@ -7,7 +7,7 @@ var tools = require('./tools');
 
 var myBuildPromise = null;
 
-module.exports = function buildAsPromise (pathToApp, timeout) {
+module.exports = function BuildAsPromise (pathToApp, timeout) {
 
   var pathToSmartJson = path.join(pathToApp, 'smart.json');
   var pathToMongoLock = path.join(pathToApp, '.meteor', 'local', 'db', 'mongod.lock');
