@@ -10,7 +10,7 @@ describe('Tests with phantomjs browser', function () {
   
   var phantom = new PhantomAsPromise({
     phantomPath: require('phantomjs').path
-  });
+  }, require('phantom-as-promise').meteor_helpers);
 
   var gagarin = new Gagarin({
     pathToApp: path.resolve('./tests/example')
@@ -77,6 +77,49 @@ describe('Tests with phantomjs browser', function () {
       .then(function (value) {
         expect(value).not.to.be.empty;
         expect(value._id).to.equal(id);
+      });
+    });
+
+  });
+
+  describe('Restarting server', function () {
+
+    var anotherPage = null;
+
+    before(function () {
+      anotherPage = phantom.page();
+      return anotherPage.open(gagarin.location)
+        .waitForMeteor();
+    });
+
+    before(function () {
+      return gagarin.restart(2000);
+    });
+
+    it ('should be all right', function () {
+      return gagarin.eval(function ()  {
+        return Meteor.release;
+      })
+      .then(function (release) {
+        expect(release).to.be.ok;
+      });
+    });
+
+    it('should recognize that the server was restarted', function () {
+      return anotherPage.wait(5000, 'until reset value changes', function () {
+        return reset;
+      })
+      .then(function (numberOfResets) {
+        expect(numberOfResets).to.equal(1);
+      });
+    });
+
+    it ('another restart shoud work as well', function () {
+      return gagarin.restart().eval(function ()  {
+        return Meteor.release;
+      })
+      .then(function (release) {
+        expect(release).to.be.ok;
       });
     });
 

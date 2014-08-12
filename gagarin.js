@@ -18,7 +18,7 @@ function Gagarin (options) {
   //\/\/\/\/\/\/\/\/\/\/\/\ DEFAULT OPTIONS \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
   options = options || {};
   options.pathToApp = options.pathToApp || defaults.pathToApp || path.resolve('.');
-  options.dbName = options.dbName || 'gagarin_' + Math.floor(Math.random() * 1000);
+  options.dbName = options.dbName || 'gagarin_' + (new Date()).getTime();
   options.port = options.port || 4000 + Math.floor(Math.random() * 1000);
   options.location = 'http://localhost:' + options.port;
   //\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
@@ -49,49 +49,78 @@ function Gagarin (options) {
     env.MONGO_URL = 'mongodb://localhost:' + all[1].port + '/' + options.dbName;
 
     return new Promise(function (resolve, reject) {
-      var nodePath = path.join(tools.getUserHome(), '.meteor', 'tools',  release.tools, 'bin', 'node');
       
+      var nodePath = path.join(tools.getUserHome(), '.meteor', 'tools',  release.tools, 'bin', 'node');
       var meteor = null;
       var meteorPromise = null;
-      var meteorNeedRestart = true;
+      var meteorSafetyTimeout = null;
 
-      function meteorAsPromise () {
+      function cleanUpThen(callback) {
+        if (meteor) {
+          meteor.once('exit', callback);
+          meteor.kill();
+          meteor = null;
+          clearTimeout(meteorSafetyTimeout);
+          meteorSafetyTimeout = null;
+        } else {
+          setTimeout(callback);
+        }
+      }
+
+      function meteorAsPromise (meteorNeedRestart, meteorRestartTimeout) {
 
         if (!meteorNeedRestart && meteorPromise) {
           return meteorPromise;
         }
 
-        meteorNeedRestart = false;
         meteorPromise = new Promise(function (resolve, reject) {
 
-          process.on('exit', function () {
-            meteor && meteor.kill();
-            meteor = null;
+          cleanUpThen(function respawn() {
+
+            setTimeout(function () {
+
+              meteorSafetyTimeout = setTimeout(function () {
+                cleanUpThen(function () {
+                  reject(new Error('Gagarin is not there.' +
+                    ' Please make sure you have added it with: mrt install gagarin.'));
+                });
+              }, options.safetyTimeout || 10000);
+
+              meteor = spawn(nodePath, [ pathToMain ], { env: env });
+
+              meteor.stdout.on('data', function (data) {
+                var match = /Gagarin listening at port (\d+)/.exec(data.toString());
+                if (match) {
+                  // make sure we won't kill this process by accident
+                  clearTimeout(meteorSafetyTimeout);
+                  meteorSafetyTimeout = null;
+                  meteor.gagarinPort = parseInt(match[1]);
+                  resolve(meteor);
+                }
+              });
+
+              meteor.stderr.on('data', function (data) {
+                process.stdout.write(data);
+              });
+
+            }, meteorRestartTimeout);
+
+            // TODO: do we even need this one?
+            //process.on('exit', function () {
+            //  meteor && meteor.kill();
+            //  meteor = null;
+            //});
+
           });
-
-          meteor && meteor.kill('SIGINT');
-          meteor = spawn(nodePath, [ pathToMain ], { env: env });
-
-          meteor.stdout.on('data', function (data) {
-            var match = /Gagarin listening at port (\d+)/.exec(data.toString());
-            if (match) {
-              meteor.gagarinPort = parseInt(match[1]);
-              resolve(meteor);
-            }
-          });
-
-          setTimeout(function () {
-            meteor.kill('SIGINT');
-            reject(new Error('Gagarin is not there. Make sure you have added it with: mrt install gagarin.'));
-          }, options.timeout || 10000);
 
         });
 
         return meteorPromise;
       }
 
-      //-----------------------------------------
-      meteorAsPromise.needRestart = function () {
+      //-------------------------------------------------
+      meteorAsPromise.needRestart = function (timeout) {
+        meteorRestartTimeout = timeout;
         meteorNeedRestart = true;
       };
 
@@ -146,7 +175,7 @@ GagarinAsPromise.prototype.expectError = function (callback) {
 
 [ 'then', 'catch' ].forEach(function (name) {
   GagarinAsPromise.prototype[name] = function () {
-    return new GagarinAsPromise(this._operand, this._promise[name].apply(this._promise, arguments));
+    return new GagarinAsPromise(this._options, this._operand, this._promise[name].apply(this._promise, arguments));
   }
 });
 
@@ -156,7 +185,7 @@ GagarinAsPromise.prototype.expectError = function (callback) {
   GagarinAsPromise.prototype[name] = function () {
     var args = Array.prototype.slice.call(arguments, 0);
     var self = this;
-    return new GagarinAsPromise(self._operand, Promise.all([ self._operand, self._promise ]).then(function (all) {
+    return new GagarinAsPromise(self._options, self._operand, Promise.all([ self._operand, self._promise ]).then(function (all) {
       return all[0][name].apply(all[0], args);
     }));
   };

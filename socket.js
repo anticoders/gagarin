@@ -16,6 +16,7 @@ module.exports = function makeSocketFactory (emitter, meteorAsPromise) {
       }
 
       socketPort = meteor.gagarinPort;
+      
       socketPromise = new Promise(function (resolve, reject) {
 
         socket && socket.destroy();
