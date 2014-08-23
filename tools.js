@@ -34,6 +34,20 @@ module.exports = {
     return process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
   },
 
+  getMongoPath: function (pathToApp) {
+    var release = module.exports.getReleaseConfig(pathToApp);
+    return path.join(module.exports.getUserHome(), '.meteor', 'tools', release.tools, 'mongodb', 'bin', 'mongod');
+  },
+
+  getNodePath: function (pathToApp) {
+    var release = module.exports.getReleaseConfig(pathToApp);
+    return path.join(module.exports.getUserHome(), '.meteor', 'tools', release.tools, 'bin', 'node');
+  },
+
+  getPathToDB: function (pathToApp) {
+    return path.join(pathToApp || module.exports.getUserHome(), '.gagarin', 'local', 'db');
+  },
+
   either: function (first) {
     return {
       or: function (second) {

@@ -3,27 +3,33 @@ var Promise = require('es6-promise').Promise;
 var mkdirp = require('mkdirp');
 var spawn = require('child_process').spawn;
 var path = require('path');
-var either = require('./tools').either;
+var tools = require('./tools');
+var either = tools.either;
 var debounce = require('debounce');
 
 module.exports = {
 
-  Server: function (options) {
+  MongoServerAsPromise: function (options) {
     var port = 27018 + Math.floor(Math.random() * 1000);
+    
+    var mongoPath = options.mongoPath || tools.getMongoPath(options.pathToApp);
+    var dbPath = options.dbPath || tools.getPathToDB(options.pathToApp);
+
     return new Promise(function (resolve, reject) {
-      var configure = options.dbPath ? new Promise(function (resolve, reject) {
-        mkdirp(options.dbPath, either(reject).or(resolve));
+      var configure = dbPath ? new Promise(function (resolve, reject) {
+        mkdirp(dbPath, either(reject).or(resolve));
       }) : Promise.resolve('');
       //--------------------------
       configure.then(function () {
         var mongod;
         var args = [ '--port', port, '--smallfiles', '--nojournal', '--noprealloc' ];
-        options.dbPath && args.push('--dbpath', path.resolve(options.dbPath));
-        mongod = spawn(options.mongoPath || 'mongod', args);
+        dbPath && args.push('--dbpath', path.resolve(dbPath));
+        mongod = spawn(mongoPath || 'mongod', args);
+        mongod.port = port;
         // use debounce to give the process some time in case it exits prematurely
         mongod.stdout.on('data', debounce(function (data) {
           //process.stdout.write(data);
-          resolve(new MongoHandle(mongod, port));
+          resolve(mongod);
         }, 100));
         // on premature exit, reject the promise
         mongod.on('exit', function (code) {
@@ -37,31 +43,15 @@ module.exports = {
     });
   },
 
-  connect: function (mongod, db_name) {
+  connectToDB: function (mongod, dbName) {
     return mongod.then(function (handle) {
-      var mongoUrl = 'mongodb://127.0.0.1:' + handle.port + '/' + db_name;
+      var mongoUrl = 'mongodb://127.0.0.1:' + handle.port + '/' + dbName;
       return new Promise(function (resolve, reject) {
         MongoClient.connect(mongoUrl, either(reject).or(function (db) {
-          resolve(new DatabaseHandle(db, mongoUrl));
+          resolve(db);
         }));
       });
     });
   },
 
 };
-
-function MongoHandle(mongod, port) {
-  this.port = port;
-  this.kill = function () {
-    return tools.exitAsPromise(mongod);
-  };
-}
-
-function DatabaseHandle(db, mongoUrl) {
-  this.mongoUrl = mongoUrl;
-  this.drop = function () {
-    return new Promise(function (resolve, reject) {
-      db.dropDatabase(either(reject).or(resolve));
-    });
-  }
-}
