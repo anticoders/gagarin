@@ -14,6 +14,7 @@ var mongoServerPromise = null;
 
 module.exports = Gagarin;
 module.exports.BuildAsPromise = require('./build');
+module.exports.MongoAsPromise = mongo.MongoServerAsPromise;
 
 function Gagarin (options) {
 
@@ -39,11 +40,8 @@ function Gagarin (options) {
   }
 
   var gagarinAsPromise = new GagarinAsPromise(options, Promise.all([
-
     buildAsPromise(options.pathToApp), mongoServerPromise
-
   ]).then(function (all) {
-
     var pathToMain = all[0];
 
     env.MONGO_URL = 'mongodb://localhost:' + all[1].port + '/' + options.dbName;
@@ -68,7 +66,6 @@ function Gagarin (options) {
       }
 
       function meteorAsPromise (meteorNeedRestart, meteorRestartTimeout) {
-
         if (!meteorNeedRestart && meteorPromise) {
           return meteorPromise;
         }

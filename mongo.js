@@ -7,15 +7,25 @@ var tools = require('./tools');
 var either = tools.either;
 var debounce = require('debounce');
 
+var mongoServerPromise = null;
+
 module.exports = {
 
   MongoServerAsPromise: function (options) {
+
+    // TODO: we only want to start one mongo server per app,
+    //       but theoretically there may be multiple apps
+    if (mongoServerPromise) {
+      return Promise.resolve(mongoServerPromise);
+    }
+
     var port = 27018 + Math.floor(Math.random() * 1000);
     
     var mongoPath = options.mongoPath || tools.getMongoPath(options.pathToApp);
     var dbPath = options.dbPath || tools.getPathToDB(options.pathToApp);
 
-    return new Promise(function (resolve, reject) {
+    // TODO: ensure .gitignore
+    mongoServerPromise = new Promise(function (resolve, reject) {
       var configure = dbPath ? new Promise(function (resolve, reject) {
         mkdirp(dbPath, either(reject).or(resolve));
       }) : Promise.resolve('');
@@ -41,6 +51,8 @@ module.exports = {
         });
       }, reject);
     });
+
+    return mongoServerPromise;
   },
 
   connectToDB: function (mongod, dbName) {
