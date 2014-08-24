@@ -6,6 +6,7 @@ var path = require('path');
 var tools = require('./tools');
 var either = tools.either;
 var debounce = require('debounce');
+var fs = require('fs');
 
 var mongoServerPromise = null;
 
@@ -23,8 +24,9 @@ module.exports = {
     
     var mongoPath = options.mongoPath || tools.getMongoPath(options.pathToApp);
     var dbPath = options.dbPath || tools.getPathToDB(options.pathToApp);
+    var mongoUrl = 'mongodb://127.0.0.1:' + port;
+    var pathToGitIgnore = tools.getPathToGitIgnore(options.pathToApp);
 
-    // TODO: ensure .gitignore
     mongoServerPromise = new Promise(function (resolve, reject) {
       var configure = dbPath ? new Promise(function (resolve, reject) {
         mkdirp(dbPath, either(reject).or(resolve));
@@ -33,13 +35,18 @@ module.exports = {
       configure.then(function () {
         var mongod;
         var args = [ '--port', port, '--smallfiles', '--nojournal', '--noprealloc' ];
+        // XXX ensure .gitignore exists
+        if (!fs.existsSync(pathToGitIgnore)) {
+          fs.writeFileSync(pathToGitIgnore, 'local');
+        }
+        // ---------------------------------------------------
         dbPath && args.push('--dbpath', path.resolve(dbPath));
         mongod = spawn(mongoPath || 'mongod', args);
         mongod.port = port;
         // use debounce to give the process some time in case it exits prematurely
         mongod.stdout.on('data', debounce(function (data) {
           //process.stdout.write(data);
-          resolve(mongod);
+          resolve(mongoUrl);
         }, 100));
         // on premature exit, reject the promise
         mongod.on('exit', function (code) {
@@ -55,11 +62,10 @@ module.exports = {
     return mongoServerPromise;
   },
 
-  connectToDB: function (mongod, dbName) {
-    return mongod.then(function (handle) {
-      var mongoUrl = 'mongodb://127.0.0.1:' + handle.port + '/' + dbName;
+  connectToDB: function (mongoServerPromise, dbName) {
+    return mongoServerPromise.then(function (mongoUrl) {
       return new Promise(function (resolve, reject) {
-        MongoClient.connect(mongoUrl, either(reject).or(function (db) {
+        MongoClient.connect(mongoUrl + '/' + dbName, either(reject).or(function (db) {
           resolve(db);
         }));
       });

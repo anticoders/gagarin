@@ -48,6 +48,10 @@ module.exports = {
     return path.join(pathToApp || module.exports.getUserHome(), '.gagarin', 'local', 'db');
   },
 
+  getPathToGitIgnore: function (pathToApp) {
+    return path.join(pathToApp || module.exports.getUserHome(), '.gagarin', '.gitignore');
+  },
+
   either: function (first) {
     return {
       or: function (second) {

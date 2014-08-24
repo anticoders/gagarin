@@ -26,10 +26,14 @@ module.exports = function BuildAsPromise (pathToApp, timeout) {
 
   if (fs.existsSync(pathToSmartJson)) {
     myBuildPromise = tools.smartPackagesAsPromise(pathToApp).then(function () {
-      return BuildPromise(pathToApp, '');
+      return MongoServerAsPromise({ pathToApp: pathToApp }).then(function (mongoUrl) {
+        return BuildPromise(pathToApp, mongoUrl);
+      })
     });
   } else {
-    myBuildPromise = BuildPromise(pathToApp, '');
+    myBuildPromise = MongoServerAsPromise({ pathToApp: pathToApp }).then(function (mongoUrl) {
+      return BuildPromise(pathToApp, mongoUrl);
+    });
   }
 
   return myBuildPromise;
@@ -43,8 +47,8 @@ function BuildPromise(pathToApp, mongoUrl, timeout) {
   var env = Object.create(process.env);
   var port = 4000 + Math.floor(Math.random() * 1000);
 
-  // we don't want to have a real database here, just want the build process to finish
-  env.MONGO_URL = 'mongodb://localhost:' + port + '/there_should_be_no_database_on_this_port';
+  // TODO: eventually drop this database
+  env.MONGO_URL = mongoUrl + '/' + 'gagarin_build';
 
   return new Promise(function (resolve, reject) {
 

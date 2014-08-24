@@ -44,7 +44,7 @@ function Gagarin (options) {
   ]).then(function (all) {
     var pathToMain = all[0];
 
-    env.MONGO_URL = 'mongodb://localhost:' + all[1].port + '/' + options.dbName;
+    env.MONGO_URL = all[1] + '/' + options.dbName;
 
     return new Promise(function (resolve, reject) {
       
