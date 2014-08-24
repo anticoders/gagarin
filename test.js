@@ -16,15 +16,19 @@ fs.readdirSync(path.join(__dirname, 'tests', 'specs')).forEach(function (file) {
   mocha.addFile(path.join(__dirname, 'tests', 'specs', file));
 });
 
-process.stdout.write('\n  Building Your App [[['.blue + pathToApp.blue + ']]] /'.blue);
+process.stdout.write('\n');
+
 var counter = 0;
+var spinner = '/-\\|';
 var handle = setInterval(function () {
-  process.stdout.write('\b' + '/-\\|'.charAt(counter++ % 4).blue);
+  var animated = spinner.charAt(counter++ % spinner.length).yellow;
+  process.stdout.write('  -'.yellow + animated  + '- '.yellow + pathToApp + ' -'.yellow + animated  + '-\r'.yellow);
 }, 100);
 
 BuildAsPromise(pathToApp).then(function () {
 
   clearInterval(handle);
+  process.stdout.write('  --- '.green + pathToApp.grey + ' ---\r'.green);
 
   mocha.run(function (failedCount) {
     if (failedCount > 0) {
