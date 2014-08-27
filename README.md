@@ -5,13 +5,13 @@ Gagarin is a tool which you can use in your tests to run Meteor app in a sandbox
 ## Instalation
 
 First you need to
-```
-mrt install gagarin
-```
+
+    meteor add anti:gagarin
+
 and in your test directory
-```
-npm install --save gagarin
-```
+
+    npm install --save gagarin
+
 
 ## Example usage
 
