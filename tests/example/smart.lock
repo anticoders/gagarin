@@ -2,18 +2,13 @@
   "meteor": {},
   "dependencies": {
     "basePackages": {
-      "gagarin": {
+      "anti:gagarin": {
         "path": "../.."
       }
     },
     "packages": {
-      "gagarin": {
+      "anti:gagarin": {
         "path": "../.."
-      },
-      "altimeter": {
-        "git": "https://github.com/apendua/altimeter.git",
-        "tag": "v0.0.2",
-        "commit": "eafabe3241b16d9bd0058ba8d24d8c3e4258a68d"
       }
     }
   }

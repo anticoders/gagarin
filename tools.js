@@ -19,7 +19,7 @@ module.exports = {
   getReleaseConfig: function (pathToApp) {
     var pathToRelease = path.join(pathToApp, '.meteor', 'release'), release = 'latest';
     if (fs.existsSync(pathToRelease)) {
-      release = fs.readFileSync(pathToRelease).toString('utf8').replace(/\s/g, '');
+      release = parseRelease(fs.readFileSync(pathToRelease).toString('utf8').replace(/\s/g, ''));
     }
     var pathToReleaseConfig = path.join(
       module.exports.getUserHome(), '.meteor', 'releases', release + '.release.json');
@@ -84,3 +84,9 @@ module.exports = {
   },
 
 };
+
+// since 0.9.0, the format is METEOR@x.x.x
+function parseRelease(release) {
+  return release.split('@')[1] || release;
+}
+

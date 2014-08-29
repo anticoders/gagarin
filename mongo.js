@@ -27,6 +27,10 @@ module.exports = {
     var mongoUrl = 'mongodb://127.0.0.1:' + port;
     var pathToGitIgnore = tools.getPathToGitIgnore(options.pathToApp);
 
+    if (!fs.existsSync(mongoPath)) {
+      return Promise.reject(new Error('file ' + mongoPath + ' does not exists'));
+    }
+
     mongoServerPromise = new Promise(function (resolve, reject) {
       var configure = dbPath ? new Promise(function (resolve, reject) {
         mkdirp(dbPath, either(reject).or(resolve));

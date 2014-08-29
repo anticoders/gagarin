@@ -1,6 +1,6 @@
 {
   "packages": {
-    "gagarin": {
+    "anti:gagarin": {
       "path": "../.."
     }
   }
