@@ -34,16 +34,16 @@ module.exports = {
     mongoServerPromise = new Promise(function (resolve, reject) {
       var configure = dbPath ? new Promise(function (resolve, reject) {
         mkdirp(dbPath, either(reject).or(resolve));
+        // TODO: this requires more thinking
+        //if (!fs.existsSync(pathToGitIgnore)) {
+        //  fs.writeFileSync(pathToGitIgnore, 'local');
+        //}
       }) : Promise.resolve('');
       //--------------------------
       configure.then(function () {
         var mongod;
         var args = [ '--port', port, '--smallfiles', '--nojournal', '--noprealloc' ];
-        // XXX ensure .gitignore exists
-        if (!fs.existsSync(pathToGitIgnore)) {
-          fs.writeFileSync(pathToGitIgnore, 'local');
-        }
-        // ---------------------------------------------------
+        // --------------------------------------------------------------------------
         dbPath && args.push('--dbpath', path.resolve(dbPath));
         mongod = spawn(mongoPath || 'mongod', args);
         mongod.port = port;

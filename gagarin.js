@@ -43,7 +43,6 @@ function Gagarin (options) {
     buildAsPromise(options.pathToApp), mongoServerPromise
   ]).then(function (all) {
     var pathToMain = all[0];
-
     env.MONGO_URL = all[1] + '/' + options.dbName;
 
     return new Promise(function (resolve, reject) {
@@ -86,6 +85,7 @@ function Gagarin (options) {
               meteor = spawn(nodePath, [ pathToMain ], { env: env });
 
               meteor.stdout.on('data', function (data) {
+                //process.stdout.write(data);
                 var match = /Gagarin listening at port (\d+)/.exec(data.toString());
                 if (match) {
                   // make sure we won't kill this process by accident
