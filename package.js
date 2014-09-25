@@ -2,7 +2,7 @@
 Package.describe({
   summary:  "Gagarin bindings for Meteor",
   name:     "anti:gagarin",
-  version:  "0.1.2",
+  version:  "0.1.3",
   git:      "https://github.com/anticoders/gagarin.git",
 });
 
