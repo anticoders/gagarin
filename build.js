@@ -28,7 +28,7 @@ module.exports = function BuildAsPromise (pathToApp, timeout) {
     myBuildPromise = tools.smartPackagesAsPromise(pathToApp).then(function () {
       return MongoServerAsPromise({ pathToApp: pathToApp }).then(function (mongoUrl) {
         return BuildPromise(pathToApp, mongoUrl);
-      })
+      });
     });
   } else {
     myBuildPromise = MongoServerAsPromise({ pathToApp: pathToApp }).then(function (mongoUrl) {

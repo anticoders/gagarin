@@ -19,15 +19,17 @@ module.exports = {
   getReleaseConfig: function (pathToApp) {
     var pathToRelease = path.join(pathToApp, '.meteor', 'release'), release = 'latest';
     if (fs.existsSync(pathToRelease)) {
-      release = fs.readFileSync(pathToRelease).toString('utf8').replace(/\s/g, '');
+      release = parseRelease(fs.readFileSync(pathToRelease).toString('utf8').replace(/\s/g, ''));
     }
     var pathToReleaseConfig = path.join(
       module.exports.getUserHome(), '.meteor', 'releases', release + '.release.json');
     //--------------------------------------------------------------------------------
+    var config = { tools: 'latest' };
     if (fs.existsSync(pathToReleaseConfig)) {
-      return JSON.parse(fs.readFileSync(pathToReleaseConfig).toString('utf8'));
+      config = JSON.parse(fs.readFileSync(pathToReleaseConfig).toString('utf8'));
     }
-    return { tools: 'latest' };
+    config.release = release;
+    return config;
   },
 
   getUserHome: function () {
@@ -35,13 +37,29 @@ module.exports = {
   },
 
   getMongoPath: function (pathToApp) {
-    var release = module.exports.getReleaseConfig(pathToApp);
-    return path.join(module.exports.getUserHome(), '.meteor', 'tools', release.tools, 'mongodb', 'bin', 'mongod');
+    var config = module.exports.getReleaseConfig(pathToApp);
+    var home = module.exports.getUserHome();
+    if (config.release < "0.9.0") {
+      return path.join(home, '.meteor', 'tools', config.tools, 'mongodb', 'bin', 'mongod');
+    }
+    var pathToMeteor = path.join(home, '.meteor');
+    var meteorSymLink = path.join(pathToMeteor, fs.readlinkSync(path.join(pathToMeteor, 'meteor')));
+    return '/' + path.join.apply(path, initial(meteorSymLink.split(path.sep)).concat([
+      'dev_bundle', 'mongodb', 'bin', 'mongod'
+    ]));
   },
 
   getNodePath: function (pathToApp) {
-    var release = module.exports.getReleaseConfig(pathToApp);
-    return path.join(module.exports.getUserHome(), '.meteor', 'tools', release.tools, 'bin', 'node');
+    var config = module.exports.getReleaseConfig(pathToApp);
+    var home = module.exports.getUserHome();
+    if (config.release < "0.9.0") {
+      return path.join(home, '.meteor', 'tools', config.tools, 'bin', 'node');
+    }
+    var pathToMeteor = path.join(home, '.meteor');
+    var meteorSymLink = path.join(pathToMeteor, fs.readlinkSync(path.join(pathToMeteor, 'meteor')));
+    return '/' + path.join.apply(path, initial(meteorSymLink.split(path.sep)).concat([
+      'dev_bundle', 'bin', 'node'
+    ]));
   },
 
   getPathToDB: function (pathToApp) {
@@ -84,3 +102,13 @@ module.exports = {
   },
 
 };
+
+// since 0.9.0, the format is METEOR@x.x.x
+function parseRelease(release) {
+  return release.split('@')[1] || release;
+}
+
+function initial(array) {
+  return array.slice(0, array.length - 1);
+}
+

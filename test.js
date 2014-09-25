@@ -37,4 +37,8 @@ BuildAsPromise(pathToApp).then(function () {
     process.exit(0);
   });
 
+}, function (err) {
+   clearInterval(handle);
+   console.error(err.toString());
+   process.exit(1);
 });
