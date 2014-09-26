@@ -124,7 +124,7 @@ function BuildPromise(pathToApp, mongoUrl, timeout) {
 
     setTimeout(function () {
       meteor.once('exit', function () {
-        reject(new Error('Failed to start meteor.'));
+        reject(new Error('Timeout while wating for meteor to start.'));
       });
       meteor.kill('SIGINT')
     }, timeout || 60000);
