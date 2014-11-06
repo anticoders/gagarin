@@ -7,11 +7,14 @@ var tools = require('./tools');
 var path = require('path');
 var buildAsPromise = require('./build');
 var GagarinTransponder = require('./transponder');
+var either = tools.either;
 
 var defaults = tools.getConfig();
 var mongoServerPromise = null;
 
 module.exports = Gagarin;
+module.exports.BuildAsPromise = require('./build');
+module.exports.MongoAsPromise = mongo.MongoServerAsPromise;
 
 function Gagarin (options) {
 
@@ -31,26 +34,20 @@ function Gagarin (options) {
   
   if (!mongoServerPromise) {
     if (!defaults.mongoPath) {
-      defaults.mongoPath =
-        path.join(tools.getUserHome(), '.meteor', 'tools',
-          release.tools, 'mongodb', 'bin', 'mongod');
+      defaults.mongoPath = tools.getMongoPath(options.pathToApp);
     }
-    mongoServerPromise = new mongo.Server(defaults);
+    mongoServerPromise = new mongo.MongoServerAsPromise(defaults);
   }
 
   var gagarinAsPromise = new GagarinAsPromise(options, Promise.all([
-
     buildAsPromise(options.pathToApp), mongoServerPromise
-
   ]).then(function (all) {
-
     var pathToMain = all[0];
-
-    env.MONGO_URL = 'mongodb://localhost:' + all[1].port + '/' + options.dbName;
+    env.MONGO_URL = all[1] + '/' + options.dbName;
 
     return new Promise(function (resolve, reject) {
       
-      var nodePath = path.join(tools.getUserHome(), '.meteor', 'tools',  release.tools, 'bin', 'node');
+      var nodePath = tools.getNodePath(options.pathToApp);
       var meteor = null;
       var meteorPromise = null;
       var meteorSafetyTimeout = null;
@@ -68,7 +65,6 @@ function Gagarin (options) {
       }
 
       function meteorAsPromise (meteorNeedRestart, meteorRestartTimeout) {
-
         if (!meteorNeedRestart && meteorPromise) {
           return meteorPromise;
         }
@@ -89,6 +85,7 @@ function Gagarin (options) {
               meteor = spawn(nodePath, [ pathToMain ], { env: env });
 
               meteor.stdout.on('data', function (data) {
+                //process.stdout.write(data);
                 var match = /Gagarin listening at port (\d+)/.exec(data.toString());
                 if (match) {
                   // make sure we won't kill this process by accident
@@ -126,8 +123,10 @@ function Gagarin (options) {
 
       resolve(new GagarinTransponder(meteorAsPromise, {
         cleanUp: function () {
-          return mongo.connect(mongoServerPromise, options.dbName).then(function (db) {
-            return db.drop();
+          return mongo.connectToDB(mongoServerPromise, options.dbName).then(function (db) {
+            return new Promise(function (resolve, reject) {
+              db.dropDatabase(either(reject).or(resolve));
+            });
           });
         }
       }));

@@ -23,10 +23,11 @@ describe('Benchmark test suite', function () {
     return gagarin.exit();
   });
 
-  it('should be able to find the release config', function () {
+  // this testdoes not make sense after all
+  it.skip('should be able to find the release config', function () {
     var config = tools.getReleaseConfig(pathToApp);
     expect(config.tools).to.be.ok;
-    expect(config.packages).not.to.be.empty;
+    expect(config.tools).not.to.be.equal('latest');
   });
 
   it('should be able to build app', function () {

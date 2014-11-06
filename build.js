@@ -4,10 +4,11 @@ var fs = require('fs');
 var colors = require('colors');
 var spawn = require('child_process').spawn;
 var tools = require('./tools');
+var MongoServerAsPromise = require('./mongo').MongoServerAsPromise;
 
 var myBuildPromise = null;
 
-module.exports = function buildAsPromise (pathToApp, timeout) {
+module.exports = function BuildAsPromise (pathToApp, timeout) {
 
   var pathToSmartJson = path.join(pathToApp, 'smart.json');
   var pathToMongoLock = path.join(pathToApp, '.meteor', 'local', 'db', 'mongod.lock');
@@ -23,14 +24,34 @@ module.exports = function buildAsPromise (pathToApp, timeout) {
 
   if (myBuildPromise) return myBuildPromise;
 
+  if (fs.existsSync(pathToSmartJson)) {
+    myBuildPromise = tools.smartPackagesAsPromise(pathToApp).then(function () {
+      return MongoServerAsPromise({ pathToApp: pathToApp }).then(function (mongoUrl) {
+        return BuildPromise(pathToApp, mongoUrl);
+      });
+    });
+  } else {
+    myBuildPromise = MongoServerAsPromise({ pathToApp: pathToApp }).then(function (mongoUrl) {
+      return BuildPromise(pathToApp, mongoUrl);
+    });
+  }
+
+  return myBuildPromise;
+};
+
+// PRIVATE BUILD PROMISE IMPLEMENTATION
+
+function BuildPromise(pathToApp, mongoUrl, timeout) {
+  // XXX this is redundant but we don't want to depend on the outer scope
+  var pathToMain = path.join(pathToApp, '.meteor', 'local', 'build', 'main.js');
   var env = Object.create(process.env);
   var port = 4000 + Math.floor(Math.random() * 1000);
 
-  // we don't want to have a real database here, just want the build process to finish
-  env.MONGO_URL = 'mongodb://localhost:' + port + '/there_should_be_no_database_on_this_port';
+  // TODO: eventually drop this database
+  env.MONGO_URL = mongoUrl + '/' + 'gagarin_build';
 
-  function buildPromiseFuncion(resolve, reject) {
-    
+  return new Promise(function (resolve, reject) {
+
     var meteor = spawn('meteor', [
       '--production',
       '--port', port
@@ -103,20 +124,13 @@ module.exports = function buildAsPromise (pathToApp, timeout) {
 
     setTimeout(function () {
       meteor.once('exit', function () {
-        reject(new Error('Failed to start meteor.'));
+        reject(new Error('Timeout while wating for meteor to start.'));
       });
       meteor.kill('SIGINT')
     }, timeout || 60000);
 
-  }
+  }); // new Promise
+} // BuildPromise
 
-  if (fs.existsSync(pathToSmartJson)) {
-    myBuildPromise = tools.smartPackagesAsPromise(pathToApp).then(function () {
-      return new Promise(buildPromiseFuncion);
-    });
-  } else {
-    myBuildPromise = new Promise(buildPromiseFuncion);
-  }
 
-  return myBuildPromise;
-};
+
