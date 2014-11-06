@@ -35,9 +35,9 @@ module.exports = {
       var configure = dbPath ? new Promise(function (resolve, reject) {
         mkdirp(dbPath, either(reject).or(resolve));
         // TODO: this requires more thinking
-        //if (!fs.existsSync(pathToGitIgnore)) {
-        //  fs.writeFileSync(pathToGitIgnore, 'local');
-        //}
+        if (!fs.existsSync(pathToGitIgnore)) {
+          fs.writeFileSync(pathToGitIgnore, 'local');
+        }
       }) : Promise.resolve('');
       //--------------------------
       configure.then(function () {
