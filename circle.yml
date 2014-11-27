@@ -1,5 +1,6 @@
 machine:
   pre:
     - curl https://install.meteor.com | sh
+    - npm install -g meteorite
 #  node:
 #    version: v0.10.32
