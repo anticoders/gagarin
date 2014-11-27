@@ -1,4 +1,4 @@
-# gagarin [![Build Status](https://travis-ci.org/anticoders/gagarin.svg?branch=master)](https://travis-ci.org/anticoders/gagarin)
+# gagarin [![Circle CI](https://circleci.com/gh/anticoders/gagarin/tree/devel.svg?style=svg)](https://circleci.com/gh/anticoders/gagarin/tree/devel)
 
 Gagarin is a tool which you can use in your tests to run Meteor app in a sandboxed environment.
 
