@@ -1,5 +1,5 @@
 machine:
   pre:
-    - curl https://install.meteor.com
+    - curl https://install.meteor.com | sh
 #  node:
 #    version: v0.10.32
