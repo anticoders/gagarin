@@ -49,7 +49,7 @@ describe('Tests with phantomjs browser', function () {
   describe('Database insertions', function () {
     before(function () {
       return browser1
-        .setAsyncScriptTimeout(100)
+        .setAsyncScriptTimeout(1000)
         .executeAsync(
           "var cb = arguments[arguments.length-1];\n" +
           "Items.insert({_id: " + JSON.stringify(id) + "}, function (err, res) { cb(res) });"
