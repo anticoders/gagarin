@@ -33,7 +33,7 @@ program.pathToApp = path.resolve('.');
 
 var gagarin = new Gagarin(program);
 
-var pathToTests = program.args[0] || path.join(program.pathToApp, 'tests');
+var pathToTests = program.args[0] || path.join(program.pathToApp, 'tests', 'gagarin');
 
 if (!fs.existsSync(pathToTests)) {
   console.warn('path does not exist');
