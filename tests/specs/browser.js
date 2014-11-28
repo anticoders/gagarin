@@ -3,7 +3,7 @@ var Promise = require('es6-promise').Promise;
 var expect = require('chai').expect;
 var path = require('path');
 
-describe('Tests with phantomjs browser', function () {
+describe('Tests with browser', function () {
 
   var server = meteor({});
 
