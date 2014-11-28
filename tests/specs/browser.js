@@ -1,5 +1,5 @@
 var Promise = require('es6-promise').Promise;
-var Gagarin = require('../../gagarin');
+var Gagarin = require('../../lib/gagarin');
 var path = require('path');
 var expect = require('chai').expect;
 var wd = require('wd');

@@ -1,9 +1,9 @@
 var Promise = require('es6-promise').Promise;
-var Gagarin = require('../../gagarin');
-var tools = require('../../tools');
+var Gagarin = require('../../lib/gagarin');
+var tools = require('../../lib/tools');
 var path = require('path');
 var expect = require('chai').expect;
-var buildAsPromise = require('../../build');
+var buildAsPromise = require('../../lib/build');
 
 describe('Benchmark test suite', function () {
 
