@@ -1,79 +1,77 @@
 var MongoClient = require('mongodb').MongoClient;
+var debounce = require('debounce');
 var Promise = require('es6-promise').Promise;
 var mkdirp = require('mkdirp');
 var spawn = require('child_process').spawn;
 var path = require('path');
 var tools = require('./tools');
 var either = tools.either;
-var debounce = require('debounce');
 var fs = require('fs');
 
 var mongoServerPromise = null;
 
-module.exports = {
+module.exports = function MongoServerAsPromise (options) {
 
-  MongoServerAsPromise: function (options) {
+  if (mongoServerPromise) {
+    // XXX there can be only one mongo process using the given database path
+    return Promise.resolve(mongoServerPromise);
+  }
 
-    // TODO: we only want to start one mongo server per app,
-    //       but theoretically there may be multiple apps
-    if (mongoServerPromise) {
-      return Promise.resolve(mongoServerPromise);
+  var pathToGitIgnore = tools.getPathToGitIgnore(options.pathToApp);
+  var mongoPort       = options.dbPort || 27018 + Math.floor(Math.random() * 1000);
+  var mongoPath       = tools.getMongoPath(options.pathToApp);
+  var pathToDB        = options.dbPath || tools.getPathToDB(options.pathToApp);
+  var mongoUrl        = 'mongodb://127.0.0.1:' + mongoPort;
+  
+  if (!fs.existsSync(mongoPath)) {
+    return Promise.reject(new Error('file ' + mongoPath + ' does not exists'));
+  }
+
+  //-----------------------------------------------------------
+  mongoServerPromise = new Promise(function (resolve, reject) {
+    var mongoArgs = [ '--port', mongoPort, '--smallfiles', '--nojournal', '--noprealloc' ];
+
+    try {
+      if (!fs.existsSync(pathToGitIgnore)) {
+        // make sure the directory exists
+        mkdirp.sync(path.dirname(pathToGitIgnore));
+        // make sure "local" directory is ignored by git
+        fs.writeFileSync(pathToGitIgnore, 'local');
+      }
+      mkdirp.sync(pathToDB);
+    } catch (err) {
+
+      return reject(err);
     }
 
-    var port = 27018 + Math.floor(Math.random() * 1000);
-    
-    var mongoPath = options.mongoPath || tools.getMongoPath(options.pathToApp);
-    var dbPath = options.dbPath || tools.getPathToDB(options.pathToApp);
-    var mongoUrl = 'mongodb://127.0.0.1:' + port;
-    var pathToGitIgnore = tools.getPathToGitIgnore(options.pathToApp);
+    pathToDB && mongoArgs.push('--dbpath', path.resolve(pathToDB));
 
-    if (!fs.existsSync(mongoPath)) {
-      return Promise.reject(new Error('file ' + mongoPath + ' does not exists'));
-    }
+    var mongoProcess = spawn(mongoPath || 'mongod', mongoArgs);
 
-    mongoServerPromise = new Promise(function (resolve, reject) {
-      var configure = dbPath ? new Promise(function (resolve, reject) {
-        mkdirp(dbPath, either(reject).or(resolve));
-        // TODO: this requires more thinking
-        if (!fs.existsSync(pathToGitIgnore)) {
-          fs.writeFileSync(pathToGitIgnore, 'local');
-        }
-      }) : Promise.resolve('');
-      //--------------------------
-      configure.then(function () {
-        var mongod;
-        var args = [ '--port', port, '--smallfiles', '--nojournal', '--noprealloc' ];
-        // --------------------------------------------------------------------------
-        dbPath && args.push('--dbpath', path.resolve(dbPath));
-        mongod = spawn(mongoPath || 'mongod', args);
-        mongod.port = port;
-        // use debounce to give the process some time in case it exits prematurely
-        mongod.stdout.on('data', debounce(function (data) {
-          //process.stdout.write(data);
-          resolve(mongoUrl);
-        }, 100));
-        // on premature exit, reject the promise
-        mongod.on('exit', function (code) {
-          code && reject(new Error("mongo eixted with code: " + code));
-        });
-        // make sure mongod is killed as well if the parent process exits
-        process.on('exit', function () {
-          mongod.kill();
-        });
-      }, reject);
+    // use debounce to give the process some time in case it exits prematurely
+    mongoProcess.stdout.on('data', debounce(function (data) {
+      resolve(mongoUrl);
+    }, 100));
+
+    // on premature exit, reject the promise
+    mongoProcess.on('exit', function (code) {
+      code && reject(new Error("mongo exited with code: " + code));
     });
 
-    return mongoServerPromise;
-  },
+    // make sure mongoProcess is killed if the parent process exits
+    process.on('exit', function () {
+      mongoProcess.kill();
+    });
 
-  connectToDB: function (mongoServerPromise, dbName) {
+  });
+
+  mongoServerPromise.connectToDB = function (dbName) {
     return mongoServerPromise.then(function (mongoUrl) {
       return new Promise(function (resolve, reject) {
-        MongoClient.connect(mongoUrl + '/' + dbName, either(reject).or(function (db) {
-          resolve(db);
-        }));
+        MongoClient.connect(mongoUrl + '/' + dbName, either(reject).or(resolve));
       });
     });
-  },
+  };
 
+  return mongoServerPromise;
 };

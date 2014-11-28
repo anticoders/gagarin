@@ -4,7 +4,7 @@ var fs = require('fs');
 var colors = require('colors');
 var spawn = require('child_process').spawn;
 var tools = require('./tools');
-var MongoServerAsPromise = require('./mongo').MongoServerAsPromise;
+var MongoServerAsPromise = require('./mongo');
 
 var myBuildPromise = null;
 

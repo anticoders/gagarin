@@ -1,20 +1,20 @@
 
-var Promise = require('es6-promise').Promise;
-var spawn = require('child_process').spawn;
-var fs = require('fs');
-var mongo = require('./mongo');
-var tools = require('./tools');
-var path = require('path');
-var buildAsPromise = require('./build');
-var GagarinTransponder = require('./transponder');
-var either = tools.either;
+var MongoServerAsPromise = require('./mongo');
+var GagarinTransponder   = require('./transponder');
+var BuildAsPromise       = require('./build');
+var Promise              = require('es6-promise').Promise;
+var either               = require('./tools').either;
+var spawn                = require('child_process').spawn;
+var tools                = require('./tools');
+var path                 = require('path');
+var fs                   = require('fs');
 
 var defaults = tools.getConfig();
 var mongoServerPromise = null;
 
-module.exports = Gagarin;
-module.exports.BuildAsPromise = require('./build');
-module.exports.MongoAsPromise = mongo.MongoServerAsPromise;
+module.exports                = Gagarin;
+module.exports.BuildAsPromise = BuildAsPromise;
+module.exports.MongoAsPromise = MongoServerAsPromise;
 
 function Gagarin (options) {
 
@@ -27,22 +27,21 @@ function Gagarin (options) {
   //\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 
   var release = tools.getReleaseConfig(options.pathToApp);
-  var env = Object.create(process.env);
+  var env     = Object.create(process.env);
 
   env.ROOT_URL = options.location;
-  env.PORT = options.port;
-  
+  env.PORT     = options.port;
+
   if (!mongoServerPromise) {
-    if (!defaults.mongoPath) {
-      defaults.mongoPath = tools.getMongoPath(options.pathToApp);
-    }
-    mongoServerPromise = new mongo.MongoServerAsPromise(defaults);
+    // XXX there can be only one mongo process using the given database path
+    mongoServerPromise = new MongoServerAsPromise(options);
   }
 
   var gagarinAsPromise = new GagarinAsPromise(options, Promise.all([
-    buildAsPromise(options.pathToApp), mongoServerPromise
+    BuildAsPromise(options.pathToApp), mongoServerPromise
   ]).then(function (all) {
     var pathToMain = all[0];
+
     env.MONGO_URL = all[1] + '/' + options.dbName;
 
     return new Promise(function (resolve, reject) {
@@ -123,7 +122,7 @@ function Gagarin (options) {
 
       resolve(new GagarinTransponder(meteorAsPromise, {
         cleanUp: function () {
-          return mongo.connectToDB(mongoServerPromise, options.dbName).then(function (db) {
+          return mongoServerPromise.connectToDB(options.dbName).then(function (db) {
             return new Promise(function (resolve, reject) {
               db.dropDatabase(either(reject).or(resolve));
             });
