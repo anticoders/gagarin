@@ -11,7 +11,7 @@ Package.onUse(function (api) {
   api.use('mrt:altimeter@0.0.2', 'server');
 
   api.addFiles([
-    'meteor_hooks.js'
+    'backdoor.js'
   ], 'server');
 
   api.export('Gagarin');
