@@ -1,38 +1,14 @@
+
 var Promise = require('es6-promise').Promise;
-var Meteor = require('../../lib/meteor');
-var path = require('path');
 var expect = require('chai').expect;
-var wd = require('wd');
+var path = require('path');
 
 describe('Tests with phantomjs browser', function () {
 
-  var browser1 = wd.promiseChainRemote('http://localhost:9515');
-  var browser2 = wd.promiseChainRemote('http://localhost:9515');
+  var server = meteor({});
 
-  var meteor = new Meteor({
-    pathToApp: path.resolve('./tests/example')
-  });
-
-  before(function () {
-    // the sleep is not required but
-    // lets demonstrate that it works :)
-    return meteor.start().sleep(500);
-  });
+  var browser1 = browser(server.location);
   
-  before(function () {
-    return browser1
-      .init()
-      .get(meteor.location);
-  });
-
-  after(function () {
-    return Promise.all([
-      browser1.close().quit(),
-      browser2.close().quit(),
-      meteor.exit(),
-    ]);
-  });
-
   it('should be ok', function () {
     return Promise.resolve('should be ok');
   });
@@ -70,7 +46,7 @@ describe('Tests with phantomjs browser', function () {
     });
     
     it('the same element should be present on server', function () {
-      return meteor.execute(function (id) {
+      return server.execute(function (id) {
           // TODO: wait?
           return Items.findOne({_id: id});
         }, id)
@@ -84,16 +60,18 @@ describe('Tests with phantomjs browser', function () {
 
   describe('Restarting server', function () {
 
+    var browser2 = browser(server.location);
+
     before(function () {
-      return browser2.init().setAsyncScriptTimeout(10000).get(meteor.location);
+      return browser2.setAsyncScriptTimeout(10000);
     });
 
     before(function () {
-      return meteor.restart(2000);
+      return server.restart(2000);
     });
 
     it ('should be all right', function () {
-      return meteor.execute(function ()  {
+      return server.execute(function ()  {
           return Meteor.release;
         })
         .then(function (release) {
@@ -111,7 +89,7 @@ describe('Tests with phantomjs browser', function () {
     });
 
     it ('another restart shoud work as well', function () {
-      return meteor.restart().execute(function ()  {
+      return server.restart().execute(function ()  {
           return Meteor.release;
         })
         .then(function (release) {

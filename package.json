@@ -25,15 +25,15 @@
   },
   "homepage": "https://github.com/anticoders/gagarin",
   "devDependencies": {
-    "chai": "^1.9.1",
-    "mocha": "^1.20.1",
-    "wd": "^0.3.11"
+    "chai": "^1.9.1"
   },
   "dependencies": {
-    "colors": "^0.6.2",
+    "chalk": "^0.5.1",
     "debounce": "^1.0.0",
     "es6-promise": "^1.0.0",
     "mkdirp": "^0.5.0",
-    "mongodb": "^1.4.7"
+    "mocha": "^1.20.1",
+    "mongodb": "^1.4.7",
+    "wd": "^0.3.11"
   }
 }
