@@ -34,7 +34,7 @@ function GagarinTransponder(meteorAsPromise, options) {
   }
 
   self.promise = factory('promise');
-  self.eval    = factory('evaluate');
+  self.execute = factory('execute');
 
   self.start = function () {
     return meteorAsPromise();

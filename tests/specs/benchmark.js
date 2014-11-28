@@ -34,8 +34,8 @@ describe('Benchmark test suite', function () {
     return buildAsPromise(pathToApp);
   });
 
-  it('eval should work', function () {
-    return gagarin.eval(function () {
+  it('execute should work', function () {
+    return gagarin.execute(function () {
       return Meteor.release;
     })
     .then(function (value) {
@@ -44,7 +44,7 @@ describe('Benchmark test suite', function () {
   });
 
   it('db insert should work', function () {
-    return gagarin.eval(function () {
+    return gagarin.execute(function () {
       return Items.insert({vostok: Random.id()});
     })
     .then(function (value) {
@@ -64,7 +64,7 @@ describe('Benchmark test suite', function () {
   });
 
   it('should throw a descriptive error', function () {
-    return gagarin.eval(function () {
+    return gagarin.execute(function () {
       undefined[0];
     }).expectError(function (err) {
       expect(err.toString()).to.contain('property');

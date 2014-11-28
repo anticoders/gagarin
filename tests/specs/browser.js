@@ -37,7 +37,7 @@ describe('Tests with phantomjs browser', function () {
     return Promise.resolve('should be ok');
   });
 
-  it('eval should work in browser', function () {
+  it('execute should work in browser', function () {
     return browser1.execute("return Meteor.release;")
       .then(function (value) {
         expect(value).not.to.be.empty;
@@ -70,7 +70,7 @@ describe('Tests with phantomjs browser', function () {
     });
     
     it('the same element should be present on server', function () {
-      return gagarin.eval(function (id) {
+      return gagarin.execute(function (id) {
           // TODO: wait?
           return Items.findOne({_id: id});
         }, id)
@@ -93,7 +93,7 @@ describe('Tests with phantomjs browser', function () {
     });
 
     it ('should be all right', function () {
-      return gagarin.eval(function ()  {
+      return gagarin.execute(function ()  {
           return Meteor.release;
         })
         .then(function (release) {
@@ -111,7 +111,7 @@ describe('Tests with phantomjs browser', function () {
     });
 
     it ('another restart shoud work as well', function () {
-      return gagarin.restart().eval(function ()  {
+      return gagarin.restart().execute(function ()  {
           return Meteor.release;
         })
         .then(function (release) {

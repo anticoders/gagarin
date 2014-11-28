@@ -179,7 +179,7 @@ GagarinAsPromise.prototype.expectError = function (callback) {
 
 // proxies for transponder methods
 
-[ 'eval', 'promise', 'exit', 'start', 'restart' ].forEach(function (name) {
+[ 'execute', 'promise', 'exit', 'start', 'restart' ].forEach(function (name) {
   GagarinAsPromise.prototype[name] = function () {
     var args = Array.prototype.slice.call(arguments, 0);
     var self = this;
