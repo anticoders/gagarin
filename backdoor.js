@@ -20,6 +20,9 @@ if (Meteor.isDevelopment) {
             } else if (data.mode === 'execute') {
               evaluate(data.name, data.code, data.args, socket);
 
+            } else if (data.mode === 'wait') {
+              evaluateAsWait(data.name, data.time, data.mesg, data.code, data.args, socket);
+
             } else {
               socket.write(JSON.stringify({
                 error : 'evaluation mode ' + JSON.stringify(data.mode) + ' is not supported',
@@ -82,6 +85,53 @@ function evaluateAsPromise(name, code, args, socket) {
       });
 
       context.value.apply(null, args || []);
+
+    }).run();
+  }
+
+}
+
+function evaluateAsWait(name, timeout, message, code, args, socket) {
+  // maybe we could avoid creating it multiple times?
+  var context = vm.createContext(global);
+
+  vm.runInContext("value = " + code, context);
+
+  if (typeof context.value === 'function') {
+    Fibers(function () {
+
+      function reject (err) {
+        socket.write(JSON.stringify({
+          error : err.toString(),
+          name  : name,
+        }));
+      }
+
+      function resolve (result) {
+        socket.write(JSON.stringify({
+          result : result,
+          name   : name,
+        }));
+      }
+
+      (function test() {
+        var result;
+        try {
+          result = context.value.apply(null, args || []);
+          if (result) {
+            resolve(result);
+          } else {
+            handle = setTimeout(Meteor.bindEnvironment(test), 50); // repeat after 1/20 sec.
+          }
+        } catch (err) {
+          reject(err);
+        }
+      }());
+
+      setTimeout(function () {
+        clearTimeout(handle);
+        reject('I have been waiting for ' + timeout + ' ms ' + message + ', but it did not happen.')
+      }, timeout);
 
     }).run();
   }
