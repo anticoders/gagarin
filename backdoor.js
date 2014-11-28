@@ -17,13 +17,13 @@ if (Meteor.isDevelopment) {
             if (data.mode === 'promise') {
               evaluateAsPromise(data.name, data.code, data.args, socket);
 
-            } else if (data.mode === 'evaluate') {
+            } else if (data.mode === 'execute') {
               evaluate(data.name, data.code, data.args, socket);
 
             } else {
               socket.write(JSON.stringify({
                 error : 'evaluation mode ' + JSON.stringify(data.mode) + ' is not supported',
-                name : data.name,
+                name  : data.name,
               }));
             }
           }

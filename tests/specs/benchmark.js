@@ -1,26 +1,26 @@
 var Promise = require('es6-promise').Promise;
-var Gagarin = require('../../gagarin');
-var tools = require('../../tools');
+var Meteor = require('../../lib/meteor');
+var tools = require('../../lib/tools');
 var path = require('path');
 var expect = require('chai').expect;
-var buildAsPromise = require('../../build');
+var buildAsPromise = require('../../lib/build');
 
 describe('Benchmark test suite', function () {
 
   var pathToApp = path.resolve('./tests/example');
 
-  var gagarin = new Gagarin({
+  var meteor = new Meteor({
     pathToApp: path.resolve('./tests/example')
   });
 
   before(function () {
     // the sleep is not required but
     // lets demonstrate that it works :)
-    return gagarin.start().sleep(500);
+    return meteor.start().sleep(500);
   });
 
   after(function () {
-    return gagarin.exit();
+    return meteor.exit();
   });
 
   // this testdoes not make sense after all
@@ -34,8 +34,8 @@ describe('Benchmark test suite', function () {
     return buildAsPromise(pathToApp);
   });
 
-  it('eval should work', function () {
-    return gagarin.eval(function () {
+  it('execute should work', function () {
+    return meteor.execute(function () {
       return Meteor.release;
     })
     .then(function (value) {
@@ -44,7 +44,7 @@ describe('Benchmark test suite', function () {
   });
 
   it('db insert should work', function () {
-    return gagarin.eval(function () {
+    return meteor.execute(function () {
       return Items.insert({vostok: Random.id()});
     })
     .then(function (value) {
@@ -53,7 +53,7 @@ describe('Benchmark test suite', function () {
   });
 
   it('promise should work', function () {
-    return gagarin.promise(function (resolve, reject) {
+    return meteor.promise(function (resolve, reject) {
       Meteor.setTimeout(function () {
         resolve(Meteor.release);
       }, 100);
@@ -64,7 +64,7 @@ describe('Benchmark test suite', function () {
   });
 
   it('should throw a descriptive error', function () {
-    return gagarin.eval(function () {
+    return meteor.execute(function () {
       undefined[0];
     }).expectError(function (err) {
       expect(err.toString()).to.contain('property');

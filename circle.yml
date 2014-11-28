@@ -1,0 +1,8 @@
+machine:
+  pre:
+    - curl https://install.meteor.com | sh
+    - npm install -g meteorite
+    - chromedriver --port=9515:
+        background: true
+#  node:
+#    version: v0.10.32
