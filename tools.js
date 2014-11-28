@@ -5,16 +5,6 @@ var colors = require('colors');
 var spawn = require('child_process').spawn;
 
 module.exports = {
-  
-  getConfig: function () {
-    var data;
-    var path = './.gagarin/gagarin.json';
-    if (fs.existsSync(path)) {
-      data = fs.readFileSync(path);
-      data = JSON.parse(data);
-    }
-    return data || {};
-  },
 
   getReleaseConfig: function (pathToApp) {
     var pathToRelease = path.join(pathToApp, '.meteor', 'release'), release = 'latest';
@@ -90,7 +80,14 @@ module.exports = {
 
   smartPackagesAsPromise: function (pathToApp) {
     return new Promise(function (resolve, reject) {
-      var meteorite = spawn('mrt', [ 'install' ], { cwd: pathToApp });
+      var meteorite;
+
+      try {
+        meteorite = spawn('mrt', [ 'install' ], { cwd: pathToApp });
+      } catch (err) {
+
+        return reject(err);
+      }
 
       meteorite.on('exit', module.exports.either(function (code) {
         reject(new Error('Bad luck, meteorite exited with code: ' + code));

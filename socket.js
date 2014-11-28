@@ -9,6 +9,7 @@ module.exports = function makeSocketFactory (emitter, meteorAsPromise) {
   var socketPromise = null;
 
   return function socketAsPromise () {
+    
     return meteorAsPromise().then(function (meteor) {
 
       if (socketPort === meteor.gagarinPort && socketPromise) {
@@ -37,6 +38,7 @@ module.exports = function makeSocketFactory (emitter, meteorAsPromise) {
                 emitter.emit('error', new Error(data.error));
               }
             } else {
+              // XXX note that the first argument must be an error
               data.name && emitter.emit(data.name, null, data.result);
             }
           } catch (err) { // parse error?

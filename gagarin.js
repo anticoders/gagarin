@@ -9,14 +9,13 @@ var tools                = require('./tools');
 var path                 = require('path');
 var fs                   = require('fs');
 
-var defaults = tools.getConfig();
-var mongoServerPromise = null;
-
 module.exports                = Gagarin;
 module.exports.BuildAsPromise = BuildAsPromise;
 module.exports.MongoAsPromise = MongoServerAsPromise;
 
 function Gagarin (options) {
+
+  var mongoServerPromise = null;
 
   //\/\/\/\/\/\/\/\/\/\/\/\ DEFAULT OPTIONS \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
   options = options || {};
@@ -32,10 +31,7 @@ function Gagarin (options) {
   env.ROOT_URL = options.location;
   env.PORT     = options.port;
 
-  if (!mongoServerPromise) {
-    // XXX there can be only one mongo process using the given database path
-    mongoServerPromise = new MongoServerAsPromise(options);
-  }
+  mongoServerPromise = new MongoServerAsPromise(options);
 
   var gagarinAsPromise = new GagarinAsPromise(options, Promise.all([
     BuildAsPromise(options.pathToApp), mongoServerPromise
@@ -138,12 +134,6 @@ function Gagarin (options) {
   
   return gagarinAsPromise;
 }
-
-Gagarin.config = function (options) {
-  Object.keys(options).forEach(function (key) {
-    defaults[key] = options[key];
-  });
-};
 
 // GAGARIN AS PROMISE
 
