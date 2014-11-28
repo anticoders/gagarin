@@ -27,8 +27,8 @@ describe('Tests with phantomjs browser', function () {
 
   after(function () {
     return Promise.all([
-      browser1.quit(),
-      browser2.quit(),
+      browser1.close().quit(),
+      browser2.close().quit(),
       gagarin.exit(),
     ]);
   });
