@@ -3,7 +3,7 @@
 var Mocha = require('mocha');
 var path = require('path');
 var fs = require('fs');
-var BuildAsPromise = require('./lib/gagarin').BuildAsPromise;
+var BuildAsPromise = require('./lib/meteor').BuildAsPromise;
 var colors = require('colors');
 var pathToApp = path.resolve('./tests/example');
 

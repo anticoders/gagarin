@@ -1,5 +1,5 @@
 var Promise = require('es6-promise').Promise;
-var Gagarin = require('../../lib/gagarin');
+var Meteor = require('../../lib/meteor');
 var path = require('path');
 var expect = require('chai').expect;
 var wd = require('wd');
@@ -9,27 +9,27 @@ describe('Tests with phantomjs browser', function () {
   var browser1 = wd.promiseChainRemote('http://localhost:9515');
   var browser2 = wd.promiseChainRemote('http://localhost:9515');
 
-  var gagarin = new Gagarin({
+  var meteor = new Meteor({
     pathToApp: path.resolve('./tests/example')
   });
 
   before(function () {
     // the sleep is not required but
     // lets demonstrate that it works :)
-    return gagarin.start().sleep(500);
+    return meteor.start().sleep(500);
   });
   
   before(function () {
     return browser1
       .init()
-      .get(gagarin.location);
+      .get(meteor.location);
   });
 
   after(function () {
     return Promise.all([
       browser1.close().quit(),
       browser2.close().quit(),
-      gagarin.exit(),
+      meteor.exit(),
     ]);
   });
 
@@ -70,7 +70,7 @@ describe('Tests with phantomjs browser', function () {
     });
     
     it('the same element should be present on server', function () {
-      return gagarin.execute(function (id) {
+      return meteor.execute(function (id) {
           // TODO: wait?
           return Items.findOne({_id: id});
         }, id)
@@ -85,15 +85,15 @@ describe('Tests with phantomjs browser', function () {
   describe('Restarting server', function () {
 
     before(function () {
-      return browser2.init().setAsyncScriptTimeout(10000).get(gagarin.location);
+      return browser2.init().setAsyncScriptTimeout(10000).get(meteor.location);
     });
 
     before(function () {
-      return gagarin.restart(2000);
+      return meteor.restart(2000);
     });
 
     it ('should be all right', function () {
-      return gagarin.execute(function ()  {
+      return meteor.execute(function ()  {
           return Meteor.release;
         })
         .then(function (release) {
@@ -111,7 +111,7 @@ describe('Tests with phantomjs browser', function () {
     });
 
     it ('another restart shoud work as well', function () {
-      return gagarin.restart().execute(function ()  {
+      return meteor.restart().execute(function ()  {
           return Meteor.release;
         })
         .then(function (release) {
