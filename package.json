@@ -15,6 +15,9 @@
     "mocha",
     "laika"
   ],
+  "bin": {
+    "gagarin": "./bin/gagarin"
+  },
   "scripts": {
     "test": "./test.js"
   },
@@ -29,6 +32,7 @@
   },
   "dependencies": {
     "chalk": "^0.5.1",
+    "commander": "^2.5.0",
     "debounce": "^1.0.0",
     "es6-promise": "^1.0.0",
     "mkdirp": "^0.5.0",
