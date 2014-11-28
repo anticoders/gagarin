@@ -1,6 +1,8 @@
 # gagarin [![Circle CI](https://circleci.com/gh/anticoders/gagarin/tree/devel.svg?style=svg)](https://circleci.com/gh/anticoders/gagarin/tree/devel)
 
-Gagarin is a tool which you can use in your tests to run Meteor app in a sandboxed environment.
+Gagarin is a tool you can use in your tests to run Meteor apps in a sandboxed environment.
+
+For more information on the official testing framework for Meteor, see [Velocity](http://velocity.meteor.com/).
 
 ## Instalation
 
