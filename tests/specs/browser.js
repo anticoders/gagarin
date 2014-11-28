@@ -14,9 +14,11 @@ describe('Tests with phantomjs browser', function () {
   });
 
   it('execute should work in browser', function () {
-    return browser1.execute("return Meteor.release;")
+    return browser1.execute(function (value) {
+        return value;
+      }, [ 'someValue' ])
       .then(function (value) {
-        expect(value).not.to.be.empty;
+        expect(value).to.equal('someValue');
       });
   });
       
@@ -26,10 +28,9 @@ describe('Tests with phantomjs browser', function () {
     before(function () {
       return browser1
         .setAsyncScriptTimeout(1000)
-        .executeAsync(
-          "var cb = arguments[arguments.length-1];\n" +
-          "Items.insert({_id: " + JSON.stringify(id) + "}, function (err, res) { cb(res) });"
-        )
+        .executeAsync(function (id, cb) {
+          Items.insert({_id: id}, function (err, res) { cb(res) });
+        }, [ id ])
         .then(function (value) {
           expect(value).to.equal(id);
         });
