@@ -24,15 +24,14 @@ if (Meteor.isDevelopment) {
               evaluateAsWait(data.name, data.time, data.mesg, data.code, data.args, socket);
 
             } else {
-              socket.write(JSON.stringify({
-                error : 'evaluation mode ' + JSON.stringify(data.mode) + ' is not supported',
-                name  : data.name,
-              }));
+              writeToSocket(socket, data.name, {
+                error : 'evaluation mode ' + JSON.stringify(data.mode) + ' is not supported'
+              });
             }
           }
 
         } catch (err) {
-          socket.write(JSON.stringify({ error: err.message }));
+          writeToSocket(socket, null, { error: err });
         }
       });
     }).listen(0, function () {
@@ -47,10 +46,7 @@ function evaluate(name, code, args, socket) {
   var context = vm.createContext(global);
 
   function reportError(err) {
-    socket.write(JSON.stringify({
-      error : typeof err === 'object' ? (err && err.message) : err.toString(),
-      name  : name,
-    }));
+    writeToSocket(socket, name, { error: err });
   }
 
   try {
@@ -67,7 +63,7 @@ function evaluate(name, code, args, socket) {
       } catch (err) {
         data.error = err.message;
       }
-      socket.write(JSON.stringify(data));
+      writeToSocket(socket, name, data);
     }).run();
   }
 }
@@ -77,10 +73,7 @@ function evaluateAsPromise(name, code, args, socket) {
   var context = vm.createContext(global);
 
   function reportError(err) {
-    socket.write(JSON.stringify({
-      error : typeof err === 'object' ? (err && err.message) : err.toString(),
-      name  : name,
-    }));
+    writeToSocket(socket, name, { error: err });
   }
 
   try {
@@ -95,10 +88,7 @@ function evaluateAsPromise(name, code, args, socket) {
       args.unshift(reportError); // reject
 
       args.unshift(function (result) { // resolve
-        socket.write(JSON.stringify({
-          result : result,
-          name   : name,
-        }));
+        writeToSocket(socket, name, { result: result });
       });
 
       try {
@@ -117,10 +107,7 @@ function evaluateAsWait(name, timeout, message, code, args, socket) {
   var context = vm.createContext(global);
 
   function reportError(err) {
-    socket.write(JSON.stringify({
-      error : typeof err === 'object' ? (err && err.message) : err.toString(),
-      name  : name,
-    }));
+    writeToSocket(socket, name, { error: err });
   }
 
   try {
@@ -133,10 +120,7 @@ function evaluateAsWait(name, timeout, message, code, args, socket) {
     Fibers(function () {
 
       function resolve (result) {
-        socket.write(JSON.stringify({
-          result : result,
-          name   : name,
-        }));
+        writeToSocket(socket, name, { result: result });
       }
 
       (function test() {
@@ -161,4 +145,17 @@ function evaluateAsWait(name, timeout, message, code, args, socket) {
     }).run();
   }
 
+}
+
+// HELPERS
+
+function writeToSocket(socket, name, data) {
+  if (data.error) {
+    data.error = (typeof data.error === 'object') ? (data.error && data.error.message) : data.error.toString();
+  }
+  if (name) {
+    data.name = name;
+  }
+  //----------------------------------------
+  socket.write(JSON.stringify(data) + '\n');
 }
