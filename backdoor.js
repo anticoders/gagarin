@@ -46,7 +46,18 @@ function evaluate(name, code, args, socket) {
   // maybe we could avoid creating it multiple times?
   var context = vm.createContext(global);
 
-  vm.runInContext("value = " + code, context);
+  function reportError(err) {
+    socket.write(JSON.stringify({
+      error : typeof err === 'object' ? (err && err.message) : err.toString(),
+      name  : name,
+    }));
+  }
+
+  try {
+    vm.runInContext("value = " + code, context);
+  } catch (err) {
+    return reportError(err);
+  }
 
   if (typeof context.value === 'function') {
     Fibers(function () {
@@ -65,17 +76,23 @@ function evaluateAsPromise(name, code, args, socket) {
   // maybe we could avoid creating it multiple times?
   var context = vm.createContext(global);
 
-  vm.runInContext("value = " + code, context);
+  function reportError(err) {
+    socket.write(JSON.stringify({
+      error : typeof err === 'object' ? (err && err.message) : err.toString(),
+      name  : name,
+    }));
+  }
+
+  try {
+    vm.runInContext("value = " + code, context);
+  } catch (err) {
+    return reportError(err);
+  }
 
   if (typeof context.value === 'function') {
     Fibers(function () {
 
-      args.unshift(function (err) { // reject
-        socket.write(JSON.stringify({
-          error : err.toString(),
-          name  : name,
-        }));
-      });
+      args.unshift(reportError); // reject
 
       args.unshift(function (result) { // resolve
         socket.write(JSON.stringify({
@@ -84,7 +101,11 @@ function evaluateAsPromise(name, code, args, socket) {
         }));
       });
 
-      context.value.apply(null, args || []);
+      try {
+        context.value.apply(null, args || []);
+      } catch (err) {
+        reportError(err);
+      }
 
     }).run();
   }
@@ -95,17 +116,21 @@ function evaluateAsWait(name, timeout, message, code, args, socket) {
   // maybe we could avoid creating it multiple times?
   var context = vm.createContext(global);
 
-  vm.runInContext("value = " + code, context);
+  function reportError(err) {
+    socket.write(JSON.stringify({
+      error : typeof err === 'object' ? (err && err.message) : err.toString(),
+      name  : name,
+    }));
+  }
+
+  try {
+    vm.runInContext("value = " + code, context);
+  } catch (err) {
+    return reportError(err);
+  }
 
   if (typeof context.value === 'function') {
     Fibers(function () {
-
-      function reject (err) {
-        socket.write(JSON.stringify({
-          error : err.toString(),
-          name  : name,
-        }));
-      }
 
       function resolve (result) {
         socket.write(JSON.stringify({
@@ -124,13 +149,13 @@ function evaluateAsWait(name, timeout, message, code, args, socket) {
             handle = setTimeout(Meteor.bindEnvironment(test), 50); // repeat after 1/20 sec.
           }
         } catch (err) {
-          reject(err);
+          reportError(err);
         }
       }());
 
       setTimeout(function () {
         clearTimeout(handle);
-        reject('I have been waiting for ' + timeout + ' ms ' + message + ', but it did not happen.')
+        reportError('I have been waiting for ' + timeout + ' ms ' + message + ', but it did not happen.')
       }, timeout);
 
     }).run();
