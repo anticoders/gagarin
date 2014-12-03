@@ -10,29 +10,43 @@ if (Meteor.isDevelopment) {
 
   Meteor.startup(function () {
     server = net.createServer(function (socket) {
-      socket.on('data', function (data) {
-        try {
-          data = JSON.parse(data);
-          if (data.name && data.code) {
-            if (data.mode === 'promise') {
-              evaluateAsPromise(data.name, data.code, data.args, socket);
 
-            } else if (data.mode === 'execute') {
-              evaluate(data.name, data.code, data.args, socket);
+      socket.setEncoding('utf8');
+      socket.on('data', function (chunk) {
+        // TODO: it's also possible that the JSON object is splited into several chunks
 
-            } else if (data.mode === 'wait') {
-              evaluateAsWait(data.name, data.time, data.mesg, data.code, data.args, socket);
+        chunk.split('\n').forEach(function (line) {
+          var data;
 
-            } else {
-              writeToSocket(socket, data.name, {
-                error : 'evaluation mode ' + JSON.stringify(data.mode) + ' is not supported'
-              });
-            }
+          if (line === "" || line === "\r") {
+            return;
           }
 
-        } catch (err) {
-          writeToSocket(socket, null, { error: err });
-        }
+          try {
+            data = JSON.parse(line);
+            if (data.name && data.code) {
+              if (data.mode === 'promise') {
+                evaluateAsPromise(data.name, data.code, data.args, socket);
+
+              } else if (data.mode === 'execute') {
+                evaluate(data.name, data.code, data.args, socket);
+
+              } else if (data.mode === 'wait') {
+                evaluateAsWait(data.name, data.time, data.mesg, data.code, data.args, socket);
+
+              } else {
+                writeToSocket(socket, data.name, {
+                  error : 'evaluation mode ' + JSON.stringify(data.mode) + ' is not supported'
+                });
+              }
+            }
+
+          } catch (err) {
+            writeToSocket(socket, null, { error: err });
+          }
+
+        });
+
       });
     }).listen(0, function () {
       console.log('Gagarin listening at port ' + server.address().port);
