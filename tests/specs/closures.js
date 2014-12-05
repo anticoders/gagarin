@@ -47,8 +47,6 @@ describe('Closures.', function () {
           var value = Math.random();
           Meteor.setTimeout(function () {
             $sync({ a: value });
-            // XXX it's not implemented yet
-            //$sync.stop();
           });
           return value;
         }).then(function (value) {
@@ -97,20 +95,29 @@ describe('Closures.', function () {
     describe('When using server.wait', function () {
 
       before(function () {
-        a = 10;
+        c = 10;
       });
 
       it('should be able to access a closure variable', function () {
-        return server.wait(1000, 'until a equals 10', function () {
-          return a == 10;
+        return server.wait(1000, 'until c equals 10', function () {
+          return c == 10;
         });
       });
 
       it('should be able to alter a closure variable', function () {
         return server.wait(1000, 'until a is negative', function () {
-          return (a -= 1) < 0;
+          return (c -= 1) < 0;
         }).then(function () {
-          expect(a).to.be.negative;
+          expect(c).to.be.negative;
+        });
+      });
+
+      it('should be able to use asynchronous closure update', function () {
+        var interval = setInterval(function () { c -= 0.1 }, 10);
+        return server.wait(1000, 'until c is negative', function () {
+          return $sync() && c < 0;
+        }).then(function () {
+          clearInterval(interval);
         });
       });
 

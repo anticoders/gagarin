@@ -75,13 +75,13 @@ if (Meteor.isDevelopment) {
 function evaluate(name, code, args, closure, socket) {
   // maybe we could avoid creating it multiple times?
   var context = vm.createContext(global);
-  var fiber;
+  var myFiber = null;
 
   context.Fiber = Fiber;
   
   function __closure__(values) {
-    fiber = Fiber.current;
-    if (!fiber) {
+    myFiber = Fiber.current;
+    if (!myFiber) {
       throw new Error('you can only call $sync inside a fiber');
     }
     if (arguments.length > 0) {
@@ -116,7 +116,7 @@ function evaluate(name, code, args, closure, socket) {
   }
 
   return function (values) {
-    fiber && fiber.run(values);
+    myFiber && myFiber.run(values);
   };
 }
 
@@ -177,10 +177,22 @@ function evaluateAsPromise(name, code, args, closure, socket) {
 function evaluateAsWait(name, timeout, message, code, args, closure, socket) {
   // maybe we could avoid creating it multiple times?
   var context = vm.createContext(global);
-  var updates = null;
   var myFiber = null;
 
   context.Fiber = Fiber;
+  
+  function __closure__(values) {
+    myFiber = Fiber.current;
+    if (!myFiber) {
+      throw new Error('you can only call $sync inside a fiber');
+    }
+    if (arguments.length > 0) {
+      writeToSocket(socket, name, { ping: true, closure: values });
+    } else {
+      writeToSocket(socket, name, { ping: true });
+    }
+    return Fiber.yield();
+  }
 
   function reportError(err) {
     writeToSocket(socket, name, { error: err });
@@ -202,7 +214,7 @@ function evaluateAsWait(name, timeout, message, code, args, closure, socket) {
       (function test() {
         var data;
         try {
-          data = context.value.apply(null, values(closure));
+          data = context.value.apply(null, values(closure, __closure__));
           if (data.result) {
             resolve(data);
           } else {
@@ -231,8 +243,8 @@ function evaluateAsWait(name, timeout, message, code, args, closure, socket) {
     }).run();
   }
 
-  return function (_updates) {
-    updates = _updates;
+  return function (values) {
+    myFiber && myFiber.run(values);
   };
 }
 
