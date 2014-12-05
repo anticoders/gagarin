@@ -8,6 +8,8 @@ describe('Reporting Exceptions.', function () {
 
     // TODO: check if the process is properly killed
 
+    this.timeout(20000);
+
     var message = "";
 
     var server = new Meteor({

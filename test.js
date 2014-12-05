@@ -14,7 +14,7 @@ program.parse(process.argv);
 var gagarin = new Gagarin({
   pathToApp : pathToApp,
   reporter  : 'spec',
-  timeout   : 20000,
+  timeout   : 5000,
   grep      : program.grep
 });
 
