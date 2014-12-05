@@ -1,8 +1,9 @@
 
 var vm = Npm.require('vm');
 var net = Npm.require('net');
-var Fibers = Npm.require('fibers');
+var Fiber = Npm.require('fibers');
 var server;
+var waiting = {};
 
 Gagarin = {};
 
@@ -35,19 +36,26 @@ if (Meteor.isDevelopment) {
 
             if (data.name && data.code) {
               if (data.mode === 'promise') {
-                evaluateAsPromise(data.name, data.code, data.args, data.closure, socket);
+                waiting[data.name] = evaluateAsPromise(data.name, data.code, data.args, data.closure, socket);
 
               } else if (data.mode === 'execute') {
-                evaluate(data.name, data.code, data.args, data.closure, socket);
+                waiting[data.name] = evaluate(data.name, data.code, data.args, data.closure, socket);
 
               } else if (data.mode === 'wait') {
-                evaluateAsWait(data.name, data.time, data.mesg, data.code, data.args, data.closure, socket);
+                waiting[data.name] = evaluateAsWait(
+                  data.name, data.time, data.mesg, data.code, data.args, data.closure, socket
+                );
 
               } else {
                 writeToSocket(socket, data.name, {
                   error : 'evaluation mode ' + JSON.stringify(data.mode) + ' is not supported'
                 });
               }
+            } else if (data.name && data.mode === 'pong') {
+                waiting[data.name] && waiting[data.name](data.closure);
+
+            } else {
+              throw new Error('invalid payload => ' + JSON.stringify(data));
             }
 
           } catch (err) {
@@ -67,6 +75,22 @@ if (Meteor.isDevelopment) {
 function evaluate(name, code, args, closure, socket) {
   // maybe we could avoid creating it multiple times?
   var context = vm.createContext(global);
+  var fiber;
+
+  context.Fiber = Fiber;
+  
+  function __closure__(values) {
+    fiber = Fiber.current;
+    if (!fiber) {
+      throw new Error('you can only call $sync inside a fiber');
+    }
+    if (arguments.length > 0) {
+      writeToSocket(socket, name, { ping: true, closure: values });
+    } else {
+      writeToSocket(socket, name, { ping: true });
+    }
+    return Fiber.yield();
+  }
 
   function reportError(err) {
     writeToSocket(socket, name, { error: err });
@@ -79,10 +103,10 @@ function evaluate(name, code, args, closure, socket) {
   }
 
   if (typeof context.value === 'function') {
-    Fibers(function () {
+    Fiber(function () {
       var data;
       try {
-        data = context.value.apply(null, values(closure));
+        data = context.value.apply(null, values(closure, __closure__));
       } catch (err) {
         data = { error: err.message };
       }
@@ -90,11 +114,17 @@ function evaluate(name, code, args, closure, socket) {
       writeToSocket(socket, name, data);
     }).run();
   }
+
+  return function (values) {
+    fiber && fiber.run(values);
+  };
 }
 
 function evaluateAsPromise(name, code, args, closure, socket) {
   // maybe we could avoid creating it multiple times?
   var context = vm.createContext(global);
+
+  context.Fiber = Fiber;
 
   function reportError(err) {
     writeToSocket(socket, name, { error: err });
@@ -129,7 +159,7 @@ function evaluateAsPromise(name, code, args, closure, socket) {
   }
 
   if (typeof context.value === 'function') {
-    Fibers(function () {
+    Fiber(function () {
 
       try {
         context.value(function (data) {
@@ -147,6 +177,10 @@ function evaluateAsPromise(name, code, args, closure, socket) {
 function evaluateAsWait(name, timeout, message, code, args, closure, socket) {
   // maybe we could avoid creating it multiple times?
   var context = vm.createContext(global);
+  var updates = null;
+  var myFiber = null;
+
+  context.Fiber = Fiber;
 
   function reportError(err) {
     writeToSocket(socket, name, { error: err });
@@ -159,7 +193,7 @@ function evaluateAsWait(name, timeout, message, code, args, closure, socket) {
   }
 
   if (typeof context.value === 'function') {
-    Fibers(function () {
+    Fiber(function () {
 
       function resolve (data) {
         writeToSocket(socket, name, data);
@@ -175,7 +209,14 @@ function evaluateAsWait(name, timeout, message, code, args, closure, socket) {
             handle = setTimeout(Meteor.bindEnvironment(test), 50); // repeat after 1/20 sec.
           }
           if (data.closure) {
+            //writeToSocket(socket, name, { closure: data.closure, needSync: true });
             closure = data.closure;
+          }
+          if (updates) {
+            Object.keys(updates).forEach(function (key) {
+              closure[key] = updates[key];
+            });
+            updates = null;
           }
         } catch (err) {
           reportError(err);
@@ -190,14 +231,39 @@ function evaluateAsWait(name, timeout, message, code, args, closure, socket) {
     }).run();
   }
 
+  return function (_updates) {
+    updates = _updates;
+  };
 }
 
 // HELPERS
+
+// TODO: make a note that users cannot use __closure__ variable for syncing
 
 function wrapSourceCode(code, args, closure) {
   var chunks = [];
 
   chunks.push("function (" + Object.keys(closure).join(', ') + ") {");
+
+  chunks.push(
+
+    "  var $sync = (function (__closure__) {",
+    "    return function () {",
+    "      __closure__ = __closure__.apply(this, arguments);"
+  );
+
+  Object.keys(closure).forEach(function (key) {
+    chunks.push("      " + key + " = __closure__.hasOwnProperty(" + JSON.stringify(key) + ") ? __closure__[" + JSON.stringify(key) + "] : " + key );
+  });
+
+  chunks.push(
+    "      return __closure__;",
+    "    }",
+    "  })(arguments[arguments.length-1]);",
+
+    // TODO: implement this feature
+    "  $sync.stop = function () {};"
+  );
 
   chunks.push(
     "  return (function (result) {",
@@ -220,10 +286,14 @@ function wrapSourceCode(code, args, closure) {
   return chunks.join('\n');
 }
 
-function values(closure) {
-  return Object.keys(closure).map(function (key) {
-    return closure[key]
+function values(closure, more) {
+  var values = Object.keys(closure).map(function (key) {
+    return closure[key];
   });
+  if (arguments.length > 1) {
+    return values.concat(more);
+  }
+  return values;
 }
 
 function stringify(value) {

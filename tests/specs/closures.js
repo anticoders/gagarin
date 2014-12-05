@@ -32,6 +32,32 @@ describe('Closures.', function () {
         });
       });
 
+      it('should be able to update closure with sync routine', function () {
+        return server.execute(function () {
+          var value = Math.random();
+          $sync({ a: value });
+          return value;
+        }).then(function (value) {
+          expect(a).to.equal(value);
+        });
+      });
+
+      it('should be able to update closure asynchronously with sync routine', function () {
+        return server.execute(function () {
+          var value = Math.random();
+          Meteor.setTimeout(function () {
+            $sync({ a: value });
+            // XXX it's not implemented yet
+            //$sync.stop();
+          });
+          return value;
+        }).then(function (value) {
+          return wait(1000, 'until value is updated', function () {
+            return a === value;
+          });
+        });
+      });
+
     });
 
     describe('When using server.promise', function () {
