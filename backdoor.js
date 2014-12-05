@@ -30,7 +30,9 @@ if (Meteor.isDevelopment) {
             // make sure undefined fields are also there
             if (data.closure && data.closureKeys) {
               data.closureKeys.forEach(function (key) {
-                data.closure[key] = data.closure[key] || undefined;
+                if (!data.closure.hasOwnProperty(key)) {
+                  data.closure[key] = undefined;
+                }
               });
             }
 
@@ -123,60 +125,6 @@ function evaluate(name, code, args, closure, socket) {
 function evaluateAsPromise(name, code, args, closure, socket) {
   // maybe we could avoid creating it multiple times?
   var context = vm.createContext(global);
-
-  context.Fiber = Fiber;
-
-  function reportError(err) {
-    writeToSocket(socket, name, { error: err });
-  }
-
-  var chunks = [];
-
-  var keys = Object.keys(closure).map(function (key) {
-    return stringify(key) + ": " + key;
-  }).join(',');
-
-  args = args.map(stringify);
-
-  args.unshift("(function (cb) { return function (err) { cb({ error  : err, closure: {" + keys + "}}) } })(arguments[0])");
-  args.unshift("(function (cb) { return function (res) { cb({ result : res, closure: {" + keys + "}}) } })(arguments[0])");
-
-  chunks.push("function () {");
-
-  Object.keys(closure).forEach(function (key) {
-    chunks.push("  var " + key + " = " + stringify(closure[key]) + ';');
-  });
-
-  chunks.push(
-    "  (" + code + ")(" + args.join(',') + ");",
-    "}"
-  );
-
-  try {
-    vm.runInContext("value = " + chunks.join('\n'), context);
-  } catch (err) {
-    return reportError(err);
-  }
-
-  if (typeof context.value === 'function') {
-    Fiber(function () {
-
-      try {
-        context.value(function (data) {
-          writeToSocket(socket, name, data);
-        });
-      } catch (err) {
-        reportError(err);
-      }
-
-    }).run();
-  }
-
-}
-
-function evaluateAsWait(name, timeout, message, code, args, closure, socket) {
-  // maybe we could avoid creating it multiple times?
-  var context = vm.createContext(global);
   var myFiber = null;
 
   context.Fiber = Fiber;
@@ -198,6 +146,80 @@ function evaluateAsWait(name, timeout, message, code, args, closure, socket) {
     writeToSocket(socket, name, { error: err });
   }
 
+  var chunks = [];
+
+  var keys = Object.keys(closure).map(function (key) {
+    return stringify(key) + ": " + key;
+  }).join(',');
+
+  args = args.map(stringify);
+
+  args.unshift("(function (cb) { return function (err) { cb({ error  : err, closure: {" + keys + "}}) } })(arguments[arguments.length-1])");
+  args.unshift("(function (cb) { return function (res) { cb({ result : res, closure: {" + keys + "}}) } })(arguments[arguments.length-1])");
+
+  chunks.push("function (" + Object.keys(closure).join(', ') + ") {");
+
+  addSyncChunks(chunks, closure, "arguments[arguments.length-2]");
+
+  chunks.push(
+    "  (" + code + ")(" + args.join(', ') + ");",
+    "}"
+  );
+
+  try {
+    vm.runInContext("value = " + chunks.join('\n'), context);
+  } catch (err) {
+    return reportError(err);
+  }
+
+  if (typeof context.value === 'function') {
+    Fiber(function () {
+
+      try {
+        context.value.apply(null, values(closure, __closure__, function (data) {
+          writeToSocket(socket, name, data);
+        }));
+      } catch (err) {
+        reportError(err);
+      }
+
+    }).run();
+  }
+
+  return function (values) {
+    myFiber && myFiber.run(values);
+  };
+}
+
+function evaluateAsWait(name, timeout, message, code, args, closure, socket) {
+  "use strict";
+
+  // maybe we could avoid creating it multiple times?
+  var context = vm.createContext(global);
+  var myFiber = null;
+  var handle  = null;
+  var handle2 = null;
+
+  context.Fiber = Fiber;
+  
+  function __closure__(values) {
+    myFiber = Fiber.current;
+    if (!myFiber) {
+      throw new Error('you can only call $sync inside a fiber');
+    }
+    if (arguments.length > 0) {
+      writeToSocket(socket, name, { ping: true, closure: values });
+    } else {
+      writeToSocket(socket, name, { ping: true });
+    }
+    return Fiber.yield();
+  }
+
+  function reportError(err) {
+    clearTimeout(handle2);
+    writeToSocket(socket, name, { error: err });
+  }
+
   try {
     vm.runInContext("value = " + wrapSourceCode(code, args, closure), context);
   } catch (err) {
@@ -208,6 +230,7 @@ function evaluateAsWait(name, timeout, message, code, args, closure, socket) {
     Fiber(function () {
 
       function resolve (data) {
+        clearTimeout(handle2);
         writeToSocket(socket, name, data);
       }
 
@@ -216,26 +239,23 @@ function evaluateAsWait(name, timeout, message, code, args, closure, socket) {
         try {
           data = context.value.apply(null, values(closure, __closure__));
           if (data.result) {
-            resolve(data);
-          } else {
-            handle = setTimeout(Meteor.bindEnvironment(test), 50); // repeat after 1/20 sec.
+            return resolve(data);
           }
+          
+          handle = setTimeout(Meteor.bindEnvironment(test), 50); // repeat after 1/20 sec.
+          
           if (data.closure) {
-            //writeToSocket(socket, name, { closure: data.closure, needSync: true });
             closure = data.closure;
           }
-          if (updates) {
-            Object.keys(updates).forEach(function (key) {
-              closure[key] = updates[key];
-            });
-            updates = null;
-          }
+
+          console.log("DATA IS", data);
+
         } catch (err) {
           reportError(err);
         }
       }());
 
-      setTimeout(function () {
+      handle2 = setTimeout(function () {
         clearTimeout(handle);
         reportError('I have been waiting for ' + timeout + ' ms ' + message + ', but it did not happen.')
       }, timeout);
@@ -252,30 +272,40 @@ function evaluateAsWait(name, timeout, message, code, args, closure, socket) {
 
 // TODO: make a note that users cannot use __closure__ variable for syncing
 
-function wrapSourceCode(code, args, closure) {
-  var chunks = [];
+function addSyncChunks(chunks, closure, accessor) {
 
-  chunks.push("function (" + Object.keys(closure).join(', ') + ") {");
+  accessor = accessor || "arguments[arguments.length-1]";
 
   chunks.push(
 
     "  var $sync = (function (__closure__) {",
     "    return function () {",
-    "      __closure__ = __closure__.apply(this, arguments);"
+    "      return (function (__closure__) {",
+    "        console.log('==============================', c);"
   );
 
   Object.keys(closure).forEach(function (key) {
-    chunks.push("      " + key + " = __closure__.hasOwnProperty(" + JSON.stringify(key) + ") ? __closure__[" + JSON.stringify(key) + "] : " + key );
+    chunks.push("      " + key + " = __closure__.hasOwnProperty(" + JSON.stringify(key) + ") ? __closure__[" + JSON.stringify(key) + "] : " + key + ";");
   });
 
   chunks.push(
-    "      return __closure__;",
+    "        console.log('==============================', c);",
+    "        return __closure__;",
+    "      })(__closure__.apply(this, arguments));",
     "    }",
-    "  })(arguments[arguments.length-1]);",
+    "  })(" + accessor + ");",
 
     // TODO: implement this feature
     "  $sync.stop = function () {};"
   );
+}
+
+function wrapSourceCode(code, args, closure, accessor) {
+  var chunks = [];
+
+  chunks.push("function (" + Object.keys(closure).join(', ') + ") {");
+
+  addSyncChunks(chunks, closure, accessor);
 
   chunks.push(
     "  return (function (result) {",
@@ -298,12 +328,12 @@ function wrapSourceCode(code, args, closure) {
   return chunks.join('\n');
 }
 
-function values(closure, more) {
+function values(closure) {
   var values = Object.keys(closure).map(function (key) {
     return closure[key];
   });
   if (arguments.length > 1) {
-    return values.concat(more);
+    values.push.apply(values, Array.prototype.slice.call(arguments, 1));
   }
   return values;
 }
