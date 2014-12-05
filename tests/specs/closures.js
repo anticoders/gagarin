@@ -3,31 +3,89 @@ describe('Closures.', function () {
   var server = meteor();
   //var client = browser(server.location);
 
-  var a = Math.random().toString();
-  var b = Math.random().toString();
-  var c = Math.random().toString();
-  var d = Math.random().toString();
+  var a = Math.random();
+  var b = Math.random();
+  var c = Math.random();
+  var d = Math.random();
 
   closure(['a', 'b', 'c', 'd'], function (key, value) {
     return eval(key + (arguments.length > 1 ? '=' + JSON.stringify(value) : ''));
   });
 
-  describe('Using closure in server tests', function () {
+  describe('Closure variables in server scripts', function () {
 
-    it('should be able to access closure variable on server', function () {
-      return server.execute(function () {
-        return a;
-      }).then(function (value) {
-        expect(value).to.equal(a);
+    describe('When using server.execute', function () {
+
+      it('should be able to access a closure variable', function () {
+        return server.execute(function () {
+          return a;
+        }).then(function (value) {
+          expect(value).to.equal(a);
+        });
       });
+
+      it('should be able to alter a closure variable', function () {
+        return server.execute(function () {
+          return a = Math.random();
+        }).then(function (value) {
+          expect(a).to.equal(value);
+        });
+      });
+
     });
 
-    it('should be able to alter closure variable on server', function () {
-      return server.execute(function () {
-        return a = Math.random().toString();
-      }).then(function (value) {
-        expect(a).to.equal(value);
+    describe('When using server.promise', function () {
+
+      it('should be able to access a closure variable', function () {
+        return server.promise(function (resolve) {
+          setTimeout(function () {
+            resolve(b);
+          }, 100);
+        }).then(function (value) {
+          expect(value).to.equal(b);
+        });
       });
+
+      it('should be able to alter a closure variable', function () {
+        return server.promise(function (resolve) {
+          setTimeout(function () {
+            resolve(b = Math.random());
+          }, 100);
+        }).then(function (value) {
+          expect(value).to.equal(b);
+        });
+      });
+
+      it('even if the promise is rejected', function () {
+        return server.promise(function (resolve, reject) {
+          setTimeout(function () {
+            reject(b = Math.random());
+          }, 100);
+        }).catch(function (err) {
+          expect(err.toString()).to.contain(b);
+        });
+      });
+
+    });
+
+    describe.skip('When using server.wait', function () {
+
+      it('should be able to access a closure variable', function () {
+        return server.execute(function () {
+          return a;
+        }).then(function (value) {
+          expect(value).to.equal(a);
+        });
+      });
+
+      it('should be able to alter a closure variable', function () {
+        return server.execute(function () {
+          return a = Math.random();
+        }).then(function (value) {
+          expect(a).to.equal(value);
+        });
+      });
+
     });
 
   });
