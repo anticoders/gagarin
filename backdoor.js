@@ -23,13 +23,21 @@ if (Meteor.isDevelopment) {
           }
 
           try {
+            
             data = JSON.parse(line);
+
+            if (data.closure && data.closureKeys) {
+              data.closureKeys.forEach(function (key) {
+                data.closure[key] = data.closure[key] || undefined;
+              });
+            }
+
             if (data.name && data.code) {
               if (data.mode === 'promise') {
                 evaluateAsPromise(data.name, data.code, data.args, socket);
 
               } else if (data.mode === 'execute') {
-                evaluate(data.name, data.code, data.args, socket);
+                evaluate(data.name, data.code, data.args, data.closure, socket);
 
               } else if (data.mode === 'wait') {
                 evaluateAsWait(data.name, data.time, data.mesg, data.code, data.args, socket);
@@ -55,7 +63,7 @@ if (Meteor.isDevelopment) {
 
 }
 
-function evaluate(name, code, args, socket) {
+function evaluate(name, code, args, closure, socket) {
   // maybe we could avoid creating it multiple times?
   var context = vm.createContext(global);
 
@@ -63,20 +71,47 @@ function evaluate(name, code, args, socket) {
     writeToSocket(socket, name, { error: err });
   }
 
+  var chunks = [];
+
+  chunks.push("function () {");
+
+  Object.keys(closure).forEach(function (key) {
+    chunks.push("  var " + key + " = " + stringify(closure[key]) + ';');
+  });
+
+  chunks.push(
+    "  return (function (result) {",
+    "    return {",
+    "      closure: {"
+  );
+
+  Object.keys(closure).forEach(function (key) {
+    chunks.push("        " + stringify(key) + ": " + key + ",");
+  });
+
+  chunks.push(
+    "      },",
+    "      result: result,",
+    "    };",
+    "  })( (" + code + ")(" + args.map(stringify).join(',') + ") );",
+    "}"
+  );
+
   try {
-    vm.runInContext("value = " + code, context);
+    vm.runInContext("value = " + chunks.join('\n'), context);
   } catch (err) {
     return reportError(err);
   }
 
   if (typeof context.value === 'function') {
     Fibers(function () {
-      var data = { name: name };
+      var data;
       try {
-        data.result = context.value.apply(null, args || []);
+        data = context.value();
       } catch (err) {
-        data.error = err.message;
+        data = { error: err.message };
       }
+      data.name = name;
       writeToSocket(socket, name, data);
     }).run();
   }
@@ -162,6 +197,10 @@ function evaluateAsWait(name, timeout, message, code, args, socket) {
 }
 
 // HELPERS
+
+function stringify(value) {
+  return value !== undefined ? JSON.stringify(value) : "undefined";
+}
 
 function writeToSocket(socket, name, data) {
   if (data.error) {
