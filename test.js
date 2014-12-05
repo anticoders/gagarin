@@ -4,11 +4,18 @@ var Gagarin = require('./lib/gagarin');
 var path = require('path');
 var fs = require('fs');
 var pathToApp = path.resolve('./tests/example');
+var program = require('commander');
+
+program
+  .option('-g, --grep <pattern>', 'only run tests matching <pattern>')
+
+program.parse(process.argv);
 
 var gagarin = new Gagarin({
   pathToApp : pathToApp,
   reporter  : 'spec',
   timeout   : 20000,
+  grep      : program.grep
 });
 
 fs.readdirSync(path.join(__dirname, 'tests', 'specs')).forEach(function (file) {
