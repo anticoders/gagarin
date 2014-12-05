@@ -82,7 +82,7 @@ function evaluate(name, code, args, closure, socket) {
     Fibers(function () {
       var data;
       try {
-        data = context.value.apply(null, Object.keys(closure).map(function (key) { return closure[key] }));
+        data = context.value.apply(null, values(closure));
       } catch (err) {
         data = { error: err.message };
       }
@@ -168,11 +168,14 @@ function evaluateAsWait(name, timeout, message, code, args, closure, socket) {
       (function test() {
         var data;
         try {
-          data = context.value();
+          data = context.value.apply(null, values(closure));
           if (data.result) {
             resolve(data);
           } else {
             handle = setTimeout(Meteor.bindEnvironment(test), 50); // repeat after 1/20 sec.
+          }
+          if (data.closure) {
+            closure = data.closure;
           }
         } catch (err) {
           reportError(err);
@@ -217,6 +220,11 @@ function wrapSourceCode(code, args, closure) {
   return chunks.join('\n');
 }
 
+function values(closure) {
+  return Object.keys(closure).map(function (key) {
+    return closure[key]
+  });
+}
 
 function stringify(value) {
   if (typeof value === 'function') {

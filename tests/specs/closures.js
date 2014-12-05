@@ -68,21 +68,23 @@ describe('Closures.', function () {
 
     });
 
-    describe.skip('When using server.wait', function () {
+    describe('When using server.wait', function () {
+
+      before(function () {
+        a = 10;
+      });
 
       it('should be able to access a closure variable', function () {
-        return server.execute(function () {
-          return a;
-        }).then(function (value) {
-          expect(value).to.equal(a);
+        return server.wait(1000, 'until a equals 10', function () {
+          return a == 10;
         });
       });
 
       it('should be able to alter a closure variable', function () {
-        return server.execute(function () {
-          return a = Math.random();
-        }).then(function (value) {
-          expect(a).to.equal(value);
+        return server.wait(1000, 'until a is negative', function () {
+          return (a -= 1) < 0;
+        }).then(function () {
+          expect(a).to.be.negative;
         });
       });
 
