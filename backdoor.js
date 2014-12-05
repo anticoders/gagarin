@@ -72,34 +72,8 @@ function evaluate(name, code, args, closure, socket) {
     writeToSocket(socket, name, { error: err });
   }
 
-  var chunks = [];
-
-  chunks.push("function () {");
-
-  Object.keys(closure).forEach(function (key) {
-    chunks.push("  var " + key + " = " + stringify(closure[key]) + ';');
-  });
-
-  chunks.push(
-    "  return (function (result) {",
-    "    return {",
-    "      closure: {"
-  );
-
-  Object.keys(closure).forEach(function (key) {
-    chunks.push("        " + stringify(key) + ": " + key + ",");
-  });
-
-  chunks.push(
-    "      },",
-    "      result: result,",
-    "    };",
-    "  })( (" + code + ")(" + args.map(stringify).join(',') + ") );",
-    "}"
-  );
-
   try {
-    vm.runInContext("value = " + chunks.join('\n'), context);
+    vm.runInContext("value = " + wrapSourceCode(code, args, closure), context);
   } catch (err) {
     return reportError(err);
   }
@@ -108,7 +82,7 @@ function evaluate(name, code, args, closure, socket) {
     Fibers(function () {
       var data;
       try {
-        data = context.value();
+        data = context.value.apply(null, Object.keys(closure).map(function (key) { return closure[key] }));
       } catch (err) {
         data = { error: err.message };
       }
@@ -179,7 +153,7 @@ function evaluateAsWait(name, timeout, message, code, args, closure, socket) {
   }
 
   try {
-    vm.runInContext("value = " + code, context);
+    vm.runInContext("value = " + wrapSourceCode(code, args, closure), context);
   } catch (err) {
     return reportError(err);
   }
@@ -187,16 +161,16 @@ function evaluateAsWait(name, timeout, message, code, args, closure, socket) {
   if (typeof context.value === 'function') {
     Fibers(function () {
 
-      function resolve (result) {
-        writeToSocket(socket, name, { result: result });
+      function resolve (data) {
+        writeToSocket(socket, name, data);
       }
 
       (function test() {
-        var result;
+        var data;
         try {
-          result = context.value.apply(null, args || []);
-          if (result) {
-            resolve(result);
+          data = context.value();
+          if (data.result) {
+            resolve(data);
           } else {
             handle = setTimeout(Meteor.bindEnvironment(test), 50); // repeat after 1/20 sec.
           }
@@ -216,6 +190,33 @@ function evaluateAsWait(name, timeout, message, code, args, closure, socket) {
 }
 
 // HELPERS
+
+function wrapSourceCode(code, args, closure) {
+  var chunks = [];
+
+  chunks.push("function (" + Object.keys(closure).join(', ') + ") {");
+
+  chunks.push(
+    "  return (function (result) {",
+    "    return {",
+    "      closure: {"
+  );
+
+  Object.keys(closure).forEach(function (key) {
+    chunks.push("        " + stringify(key) + ": " + key + ",");
+  });
+
+  chunks.push(
+    "      },",
+    "      result: result,",
+    "    };",
+    "  })( (" + code + ")(" + args.map(stringify).join(',') + ") );",
+    "}"
+  );
+
+  return chunks.join('\n');
+}
+
 
 function stringify(value) {
   if (typeof value === 'function') {
