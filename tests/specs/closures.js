@@ -72,7 +72,7 @@ describe('Closures.', function () {
 
     });
 
-    describe.only('When using server.promise', function () {
+    describe('When using server.promise', function () {
 
       beforeEach(function () {
         b = 10;
