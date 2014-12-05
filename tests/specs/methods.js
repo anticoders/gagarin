@@ -44,23 +44,20 @@ describe('Gagarin methods', function () {
     }, []);
 
     return server
-      .wait(1000, 'until something happens', function () {
+      .wait(2000, 'until something happens', function () {
         return !!Meteor.someRandomProperty;
       }, []);
 
   });
 
-
   it('should be able to wait on client', function () {
 
-    client.execute(function () {
-      setTimeout(function () {
-        Meteor.someRandomProperty = Math.random();
-      }, 500)
-    }, []);
-
-    return client
-      .wait(1000, 'until something happens', function () {
+    return client.execute(function () {
+        setTimeout(function () {
+          Meteor.someRandomProperty = Math.random();
+        }, 500)
+      }, [])
+      .wait(2000, 'until something happens', function () {
         return !!Meteor.someRandomProperty;
       }, []);
 
