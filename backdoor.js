@@ -1,3 +1,4 @@
+"use strict";
 
 var vm = Npm.require('vm');
 var net = Npm.require('net');
