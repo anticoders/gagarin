@@ -247,7 +247,7 @@ describe('Closures.', function () {
 
     });
 
-    describe.skip('When using client.promise', function () {
+    describe('When using client.promise', function () {
 
       beforeEach(function () {
         b = 10;
