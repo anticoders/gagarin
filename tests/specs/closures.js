@@ -101,7 +101,10 @@ describe('Closures.', function () {
       it('even if the promise is rejected', function () {
         return server.promise(function (resolve, reject) {
           setTimeout(function () {
-            reject(b = Math.random());
+            // it's funny but if we don't convert to string we may get some
+            // discrepancy resulting from floating point limited precision
+            // it's probably worth investigating
+            reject(b = Math.random().toString());
           }, 100);
         }).catch(function (err) {
           expect(err.toString()).to.contain(b);
