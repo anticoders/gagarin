@@ -2,15 +2,22 @@ Items = new Meteor.Collection('items');
 reset = 0;
 
 if (Meteor.isClient) {
+
+  Session.set('counter', 0);
+
   Template.hello.greeting = function () {
     return "Welcome to example.";
   };
 
+  Template.hello.helpers({
+    counter: function () {
+      return Session.get('counter');
+    }
+  });
+
   Template.hello.events({
     'click input': function () {
-      // template data, if any, is available in 'this'
-      if (typeof console !== 'undefined')
-        console.log("You pressed the button");
+      Session.set('counter', Session.get('counter') + 1);
     }
   });
 
