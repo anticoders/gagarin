@@ -5,6 +5,7 @@ var path = require('path');
 var fs = require('fs');
 var pathToApp = path.resolve('./tests/example');
 var program = require('commander');
+var helpers = require('./lib/helpers');
 
 program
   .option('-g, --grep <pattern>', 'only run tests matching <pattern>')
@@ -12,10 +13,11 @@ program
 program.parse(process.argv);
 
 var gagarin = new Gagarin({
-  pathToApp : pathToApp,
-  reporter  : 'spec',
-  timeout   : 5000,
-  grep      : program.grep
+  pathToApp     : pathToApp,
+  reporter      : 'spec',
+  timeout       : 5000,
+  grep          : program.grep,
+  clientHelpers : helpers.client,
 });
 
 fs.readdirSync(path.join(__dirname, 'tests', 'specs')).forEach(function (file) {
