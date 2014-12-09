@@ -1,4 +1,4 @@
-describe('Closures.', function () {
+describe('Closures', function () {
 
   var server = meteor();
   //var client = browser(server.location);
@@ -101,9 +101,6 @@ describe('Closures.', function () {
       it('even if the promise is rejected', function () {
         return server.promise(function (resolve, reject) {
           setTimeout(function () {
-            // it's funny but if we don't convert to string we may get some
-            // discrepancy resulting from floating point limited precision
-            // it's probably worth investigating
             reject(b = Math.random().toString());
           }, 100);
         }).catch(function (err) {
@@ -132,6 +129,8 @@ describe('Closures.', function () {
     describe('When using server.wait', function () {
 
       beforeEach(function () {
+        a = 10;
+        b = 10;
         c = 10;
         d = 10;
       });
@@ -146,7 +145,7 @@ describe('Closures.', function () {
         return server.wait(1000, 'until c is negative', function () {
           return (c -= 1) < 0;
         }).then(function () {
-          expect(c).to.be.negative;
+          expect(c).to.be.below(0);
         });
       });
 
@@ -154,7 +153,24 @@ describe('Closures.', function () {
         return server.wait(1000, 'until d is negative', function () {
           return (d -= 1) < 0;
         }).then(function () {
-          expect(d).to.be.negative;
+          expect(d).to.be.below(0);
+        });
+      });
+
+      it('should update variable even if wait fails due to timeout', function () {
+        return server.wait(200, 'until d is negative', function () {
+          return (a -= 5) && false;
+        }).catch(function () {
+          expect(a).to.be.below(0);
+        });
+      });
+
+      it('should update variable even if wait fails due to exception', function () {
+        return server.wait(200, 'until d is negative', function () {
+          if (b < 0) { throw new Error('done') }
+          return (b -= 5) && false;
+        }).catch(function (err) {
+          expect(b).to.be.below(0);
         });
       });
 
@@ -179,7 +195,7 @@ describe('Closures.', function () {
           .wait(1000, 'until c < 0 && a === 1003', function () {
             return $sync({ c: c - 1 }) && c < 0 && a === 1003;
           }).then(function () {
-            expect(c).to.be.negative;
+            expect(c).to.be.below(0);
             expect(a).to.equal(1003);
           });
       });
@@ -206,7 +222,7 @@ describe('Closures.', function () {
 
     });
 
-    describe('When using server.execute', function () {
+    describe('When using client.execute', function () {
 
       it('should be able to access a closure variable', function () {
         return client.execute(function () {
@@ -279,7 +295,10 @@ describe('Closures.', function () {
       it('even if the promise is rejected', function () {
         return client.promise(function (resolve, reject) {
           setTimeout(function () {
-            reject(b = Math.random());
+            // it's funny but if we don't convert to string we may get some
+            // discrepancy resulting from floating point limited precision
+            // it's probably worth investigating
+            reject(b = Math.random().toString());
           }, 100);
         }).catch(function (err) {
           expect(err.toString()).to.contain(b);
@@ -304,9 +323,11 @@ describe('Closures.', function () {
 
     });
 
-    describe.skip('When using client.wait', function () {
+    describe('When using client.wait', function () {
 
       beforeEach(function () {
+        a = 10;
+        b = 10;
         c = 10;
         d = 10;
       });
@@ -321,7 +342,7 @@ describe('Closures.', function () {
         return client.wait(1000, 'until c is negative', function () {
           return (c -= 1) < 0;
         }).then(function () {
-          expect(c).to.be.negative;
+          expect(c).to.be.below(0);
         });
       });
 
@@ -329,7 +350,24 @@ describe('Closures.', function () {
         return client.wait(1000, 'until d is negative', function () {
           return (d -= 1) < 0;
         }).then(function () {
-          expect(d).to.be.negative;
+          expect(d).to.be.below(0);
+        });
+      });
+
+      it('should update variable even if wait fails due to timeout', function () {
+        return client.wait(200, 'until d is negative', function () {
+          return (a -= 5) && false;
+        }).catch(function () {
+          expect(a).to.be.below(0);
+        });
+      });
+
+      it('should update variable even if wait fails due to exception', function () {
+        return client.wait(200, 'until d is negative', function () {
+          if (b < 0) { throw new Error('done') }
+          return (b -= 5) && false;
+        }).catch(function (err) {
+          expect(b).to.be.below(0);
         });
       });
 
@@ -354,7 +392,7 @@ describe('Closures.', function () {
           .wait(1000, 'until c < 0 && a === 1003', function () {
             return $sync({ c: c - 1 }) && c < 0 && a === 1003;
           }).then(function () {
-            expect(c).to.be.negative;
+            expect(c).to.be.below(0);
             expect(a).to.equal(1003);
           });
       });
