@@ -46,7 +46,7 @@ describe('Closures.', function () {
         });
       });
 
-      it('should be able to update closure with sync routine', function () {
+      it.skip('should be able to update closure with sync routine', function () {
         return server.execute(function () {
           var value = Math.random();
           $sync({ a: value });
@@ -56,7 +56,7 @@ describe('Closures.', function () {
         });
       });
 
-      it('should be able to update closure asynchronously with sync routine', function () {
+      it.skip('should be able to update closure asynchronously with sync routine', function () {
         return server.execute(function () {
           var value = Math.random();
           Meteor.setTimeout(function () {
@@ -108,7 +108,7 @@ describe('Closures.', function () {
         });
       });
 
-      it('should be able to use sync with promises', function () {
+      it.skip('should be able to use sync with promises', function () {
         var handle = setInterval(function () { b -= 1 }, 10);
         return server.promise(function (resolve, reject) {
           var handle2 = Meteor.setInterval(function () {
@@ -155,7 +155,7 @@ describe('Closures.', function () {
         });
       });
 
-      it('should be able to update closure asynchronously', function () {
+      it.skip('should be able to update closure asynchronously', function () {
         var interval = setInterval(function () { c -= 1 }, 10);
         return server.wait(1000, 'until c is negative', function () {
           return $sync() && c < 0;
@@ -164,7 +164,7 @@ describe('Closures.', function () {
         });
       });
 
-      it('should be able to alter closure asynchronously', function () {
+      it.skip('should be able to alter closure asynchronously', function () {
 
         wait(1000, 'until c is negative', function () {
           return c < 0;

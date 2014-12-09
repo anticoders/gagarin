@@ -275,6 +275,9 @@ function evaluateAsWait(name, timeout, message, code, args, closure, socket) {
 
 function addSyncChunks(chunks, closure, accessor) {
 
+  // we don't want this "$sync" for now
+  return;
+
   accessor = accessor || "arguments[arguments.length-1]";
 
   chunks.push(
