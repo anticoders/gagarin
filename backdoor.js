@@ -216,24 +216,23 @@ function evaluateAsWait(name, timeout, message, code, args, closure, socket) {
     return Fiber.yield();
   }
 
-  function reportError(err) {
+  function resolve (data) {
+    if (!data.closure) {
+      data.closure = closure;
+    }
+    writeToSocket(socket, name, data);
+    //--------------------------------
     clearTimeout(handle2);
-    writeToSocket(socket, name, { error: err });
   }
 
   try {
     vm.runInContext("value = " + wrapSourceCode(code, args, closure), context);
   } catch (err) {
-    return reportError(err);
+    return resolve({ error: err });
   }
 
   if (typeof context.value === 'function') {
     Fiber(function () {
-
-      function resolve (data) {
-        clearTimeout(handle2);
-        writeToSocket(socket, name, data);
-      }
 
       (function test() {
         var data;
@@ -249,16 +248,16 @@ function evaluateAsWait(name, timeout, message, code, args, closure, socket) {
             closure = data.closure;
           }
 
-          console.log("DATA IS", data);
+          //console.log("DATA IS", data);
 
         } catch (err) {
-          reportError(err);
+          resolve({ error: err });
         }
       }());
 
       handle2 = setTimeout(function () {
         clearTimeout(handle);
-        reportError('I have been waiting for ' + timeout + ' ms ' + message + ', but it did not happen.')
+        resolve({ error: 'I have been waiting for ' + timeout + ' ms ' + message + ', but it did not happen.' });
       }, timeout);
 
     }).run();
