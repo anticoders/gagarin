@@ -158,7 +158,19 @@ function evaluateAsPromise(name, code, args, closure, socket) {
   args.unshift("(function (cb) { return function (err) { cb({ error  : err, closure: {" + keys + "}}) } })(arguments[arguments.length-1])");
   args.unshift("(function (cb) { return function (res) { cb({ result : res, closure: {" + keys + "}}) } })(arguments[arguments.length-1])");
 
-  chunks.push("function (" + Object.keys(closure).join(', ') + ") {");
+  chunks.push(
+    "function (" + Object.keys(closure).join(', ') + ") {",
+    "  'use strict';",
+    "  var either = function (first) {",
+    "    return {",
+    "      or: function (second) {",
+    "        return function (arg1, arg2) {",
+    "          return arg1 ? first(arg1) : second(arg2);",
+    "        };",
+    "      }",
+    "    };",
+    "  };"
+  );
 
   addSyncChunks(chunks, closure, "arguments[arguments.length-2]");
 
@@ -216,24 +228,23 @@ function evaluateAsWait(name, timeout, message, code, args, closure, socket) {
     return Fiber.yield();
   }
 
-  function reportError(err) {
+  function resolve (data) {
+    if (!data.closure) {
+      data.closure = closure;
+    }
+    writeToSocket(socket, name, data);
+    //--------------------------------
     clearTimeout(handle2);
-    writeToSocket(socket, name, { error: err });
   }
 
   try {
     vm.runInContext("value = " + wrapSourceCode(code, args, closure), context);
   } catch (err) {
-    return reportError(err);
+    return resolve({ error: err });
   }
 
   if (typeof context.value === 'function') {
     Fiber(function () {
-
-      function resolve (data) {
-        clearTimeout(handle2);
-        writeToSocket(socket, name, data);
-      }
 
       (function test() {
         var data;
@@ -249,16 +260,16 @@ function evaluateAsWait(name, timeout, message, code, args, closure, socket) {
             closure = data.closure;
           }
 
-          console.log("DATA IS", data);
+          //console.log("DATA IS", data);
 
         } catch (err) {
-          reportError(err);
+          resolve({ error: err });
         }
       }());
 
       handle2 = setTimeout(function () {
         clearTimeout(handle);
-        reportError('I have been waiting for ' + timeout + ' ms ' + message + ', but it did not happen.')
+        resolve({ error: 'I have been waiting for ' + timeout + ' ms ' + message + ', but it did not happen.' });
       }, timeout);
 
     }).run();
@@ -274,6 +285,9 @@ function evaluateAsWait(name, timeout, message, code, args, closure, socket) {
 // TODO: make a note that users cannot use __closure__ variable for syncing
 
 function addSyncChunks(chunks, closure, accessor) {
+
+  // we don't want this "$sync" for now
+  return;
 
   accessor = accessor || "arguments[arguments.length-1]";
 
