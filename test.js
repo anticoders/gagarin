@@ -17,7 +17,6 @@ var gagarin = new Gagarin({
   reporter      : 'spec',
   timeout       : 5000,
   grep          : program.grep,
-  clientHelpers : helpers.client,
 });
 
 fs.readdirSync(path.join(__dirname, 'tests', 'specs')).forEach(function (file) {
