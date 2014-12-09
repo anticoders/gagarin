@@ -158,7 +158,19 @@ function evaluateAsPromise(name, code, args, closure, socket) {
   args.unshift("(function (cb) { return function (err) { cb({ error  : err, closure: {" + keys + "}}) } })(arguments[arguments.length-1])");
   args.unshift("(function (cb) { return function (res) { cb({ result : res, closure: {" + keys + "}}) } })(arguments[arguments.length-1])");
 
-  chunks.push("function (" + Object.keys(closure).join(', ') + ") {");
+  chunks.push(
+    "function (" + Object.keys(closure).join(', ') + ") {",
+    "  'use strict';",
+    "  var either = function (first) {",
+    "    return {",
+    "      or: function (second) {",
+    "        return function (arg1, arg2) {",
+    "          return arg1 ? first(arg1) : second(arg2);",
+    "        };",
+    "      }",
+    "    };",
+    "  };"
+  );
 
   addSyncChunks(chunks, closure, "arguments[arguments.length-2]");
 

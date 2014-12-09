@@ -28,8 +28,8 @@ describe('Tests with browser', function () {
     before(function () {
       return browser1
         .setAsyncScriptTimeout(1000)
-        .executeAsync(function (id, cb) {
-          Items.insert({_id: id}, function (err, res) { cb(res) });
+        .promise(function (resolve, reject, id) {
+          Items.insert({_id: id}, either(reject).or(resolve));
         }, [ id ])
         .then(function (value) {
           expect(value).to.equal(id);
