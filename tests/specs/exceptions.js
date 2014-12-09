@@ -2,7 +2,7 @@ var expect = require('chai').expect;
 var Meteor = require('../../lib/meteor');
 var path   = require('path');
 
-describe('Reporting Exceptions.', function () {
+describe('Reporting Exceptions', function () {
 
   describe('Given the app does not built properly,', function () {
 
@@ -216,52 +216,129 @@ describe('Reporting Exceptions.', function () {
 
     // CLIENT SIDE ERRORS
 
-    describe.skip('Client-side exceptions.', function () {
+    describe('Client-side exceptions', function () {
+
+      var message = "";
+      var client = browser(server2.location);
+
+      describe('If there is a syntax error in client-side injected script', function () {
+
+        it('should be properly reported', function () {
+          return client
+            .execute("function () { : }")
+            .expectError(function (err) {
+              message = err.message;
+            });
+        });
+
+        it('the error message should contain useful information', function () {
+          expect(message).to.contain('Unexpected token :');
+        });
+
+      });
+
+      describe('If there is a syntax error in client-side promise', function () {
+
+        it('should be properly reported', function () {
+          return client
+            .promise("function () { : }")
+            .expectError(function (err) {
+              message = err.message;
+            });
+        });
+
+        it('the error message should contain useful information', function () {
+          expect(message).to.contain('Unexpected token :');
+        });
+
+      });
+
+      describe('If there is a syntax error in client-side wait', function () {
+
+        it('should be properly reported', function () {
+          return client
+            .wait(1000, "until syntax error is thrown", "function () { : }")
+            .expectError(function (err) {
+              message = err.message;
+            });
+        });
+
+        it('the error message should contain useful information', function () {
+          expect(message).to.contain('Unexpected token :');
+        });
+
+      });
 
       describe('If the client-side injected script throws an error', function () {
 
         it('should be properly reported', function () {
-          expect(false).to.be.true;
+          return client
+            .execute(function () {
+              throw new Error('this is a fake error');
+            })
+            .expectError(function (err) {
+              message = err.message;
+            });
         });
 
         it('the error message should contain useful information', function () {
-          expect(false).to.be.true;
+          expect(message).to.contain('this is a fake error');
         });
 
       });
 
       describe('If the client-side promise is rejected', function () {
 
+
         it('should be properly reported', function () {
-          expect(false).to.be.true;
+          return client
+            .promise(function (resolve, reject) {
+              reject(new Error('this is a fake error'));
+            })
+            .expectError(function (err) {
+              message = err.message;
+            });
         });
 
         it('the error message should contain useful information', function () {
-          expect(false).to.be.true;
+          expect(message).to.contain('this is a fake error');
         });
 
       });
 
       describe('If the client-side wait fails due to some error', function () {
-
+      
         it('should be properly reported', function () {
-          expect(false).to.be.true;
+          return client
+            .wait(1000, 'until error is thrown', function () {
+              throw new Error('this is a fake error');
+            })
+            .expectError(function (err) {
+              message = err.message;
+            });
         });
 
         it('the error message should contain useful information', function () {
-          expect(false).to.be.true;
+          expect(message).to.contain('this is a fake error');
         });
 
       });
 
       describe('If the client-side wait fails due to timeout', function () {
-
+    
         it('should be properly reported', function () {
-          expect(false).to.be.true;
+          return client
+            .wait(100, 'until error is thrown', function () {
+              // nothing here ...
+            })
+            .expectError(function (err) {
+              message = err.message;
+            });
         });
 
         it('the error message should contain useful information', function () {
-          expect(false).to.be.true;
+          expect(message).to.contain('until error is thrown');
+          expect(message).to.contain('but it did not happen');
         });
 
       });
