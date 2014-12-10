@@ -8,7 +8,7 @@ var waiting = {};
 
 Gagarin = {};
 
-if (Meteor.isDevelopment) {
+if (Meteor.isDevelopment && process.env.GAGARIN_SETTINGS) {
 
   Meteor.startup(function () {
     server = net.createServer(function (socket) {
