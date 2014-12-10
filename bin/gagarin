@@ -17,13 +17,15 @@ program
   .option('-b, --bail', "bail after first test failure")
   .option('-d, --debug', "enable node's debugger, synonym for node --debug")
   .option('-g, --grep <pattern>', 'only run tests matching <pattern>')
-  .option('-gc', '--expose-gc', 'expose gc extension')
+  //.option('-gc', '--expose-gc', 'expose gc extension')
   .option('-i, --invert', 'inverts --grep matches')
   .option('-s, --slow <ms>', '"slow" test threshold in milliseconds [75]')
   .option('-t, --timeout <ms>', 'set test-case timeout in milliseconds [2000]')
-  .option('-u, --ui <name>', 'specify user-interface (bdd|tdd|exports)', 'bdd')
-  .option('-V, --verbose', 'run with verbose mode with logs from client/server', false)
-  .option('-w, --webdriver <url>', 'webdriver url [default: http://127.0.0.1:9515]', 'http://127.0.0.1:9515');
+  //.option('-u, --ui <name>', 'specify user-interface (bdd|tdd|exports)', 'bdd')
+  //.option('-V, --verbose', 'run with verbose mode with logs from client/server', false)
+  .option('-w, --webdriver <url>', 'webdriver url [default: http://127.0.0.1:9515]', 'http://127.0.0.1:9515')
+  .option('-M, --dont-wait-for-meteor', 'do not wait until meteor is loaded')
+  .option('-m, --meteor-load-timeout <ms>', 'meteor load timeout [2000]', 2000)
 
 program.name = 'gagarin';
 
@@ -36,7 +38,7 @@ var gagarin = new Gagarin(program);
 var pathToTests = program.args[0] || path.join(program.pathToApp, 'tests', 'gagarin');
 
 if (!fs.existsSync(pathToTests)) {
-  console.warn('path does not exist');
+  console.warn('looking for tests in ' + pathToTests + ' but this path does not exist');
   process.exit(1);
 }
 
