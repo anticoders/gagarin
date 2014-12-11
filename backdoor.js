@@ -1,207 +1,164 @@
 "use strict";
 
 var vm = Npm.require('vm');
-var net = Npm.require('net');
 var Fiber = Npm.require('fibers');
-var server;
+var Future = Npm.require('fibers/future');
 var waiting = {};
 
 Gagarin = {};
 
-if (Meteor.isDevelopment && process.env.GAGARIN_SETTINGS) {
+if (process.env.GAGARIN_SETTINGS) {
 
-  Meteor.startup(function () {
-    server = net.createServer(function (socket) {
+  Meteor.methods({
+    '/gagarin/execute': function (code, args, closure) {
+      // maybe we could avoid creating it multiple times?
+      var context = vm.createContext(global);
+      context.Fiber = Fiber;
+      try {
+        vm.runInContext("value = " + wrapSourceCode(code, args, closure), context);
+      } catch (err) {
+        throw new Meteor.Error(400, err);
+      }
+      if (typeof context.value === 'function') {
+        var feedback;
+        try {
+          feedback = context.value.apply(null, values(closure));
+        } catch (err) {
+          feedback = { error: err.message };
+        }
+        return feedback;
+      }
+    },
 
-      socket.setEncoding('utf8');
-      socket.on('data', function (chunk) {
-        // TODO: it's also possible that the JSON object is splited into several chunks
+    '/gagarin/promise': function (code, args, closure) {
+      var future = new Future();
+      var context = vm.createContext(global);
 
-        chunk.split('\n').forEach(function (line) {
-          var data;
+      context.Fiber = Fiber;
 
-          if (line === "" || line === "\r") {
-            return;
-          }
+      var chunks = [];
 
-          try {
-            
-            data = JSON.parse(line);
+      var keys = Object.keys(closure).map(function (key) {
+        return stringify(key) + ": " + key;
+      }).join(',');
 
-            // make sure undefined fields are also there
-            if (data.closure && data.closureKeys) {
-              data.closureKeys.forEach(function (key) {
-                if (!data.closure.hasOwnProperty(key)) {
-                  data.closure[key] = undefined;
-                }
-              });
+      args = args.map(stringify);
+
+      args.unshift("(function (cb) { return function (err) { cb({ error  : err, closure: {" + keys + "}}) } })(arguments[arguments.length-1])");
+      args.unshift("(function (cb) { return function (res) { cb({ result : res, closure: {" + keys + "}}) } })(arguments[arguments.length-1])");
+
+      chunks.push(
+        "function (" + Object.keys(closure).join(', ') + ") {",
+        "  'use strict';",
+        "  var either = function (first) {",
+        "    return {",
+        "      or: function (second) {",
+        "        return function (arg1, arg2) {",
+        "          return arg1 ? first(arg1) : second(arg2);",
+        "        };",
+        "      }",
+        "    };",
+        "  };"
+      );
+
+      chunks.push(
+        "  (" + code + ")(" + args.join(', ') + ");",
+        "}"
+      );
+
+      try {
+        vm.runInContext("value = " + chunks.join('\n'), context);
+      } catch (err) {
+        throw new Meteor.Error(err);
+      }
+
+      if (typeof context.value === 'function') {
+        try {
+          context.value.apply(null, values(closure, function (feedback) {
+            if (feedback.error && typeof feedback.error === 'object') {
+              feedback.error = feedback.error.message;
             }
+            future['return'](feedback);
+          }));
+        } catch (err) {
+          throw new Meteor.Error(err);
+        }
+        return future.wait();
+      }
+    },
 
-            if (data.name && data.code) {
-              if (data.mode === 'promise') {
-                waiting[data.name] = evaluateAsPromise(data.name, data.code, data.args, data.closure, socket);
+    '/gagarin/wait': function (timeout, message, code, args, closure) {
 
-              } else if (data.mode === 'execute') {
-                waiting[data.name] = evaluate(data.name, data.code, data.args, data.closure, socket);
+      var future  = new Future();
+      var done    = false;
+      var handle  = null;
+      var handle2 = null;
+      var context = vm.createContext(global);
 
-              } else if (data.mode === 'wait') {
-                waiting[data.name] = evaluateAsWait(
-                  data.name, data.time, data.mesg, data.code, data.args, data.closure, socket
-                );
+      context.Fiber = Fiber;
 
-              } else {
-                writeToSocket(socket, data.name, {
-                  error : 'evaluation mode ' + JSON.stringify(data.mode) + ' is not supported'
-                });
-              }
-            } else if (data.name && data.mode === 'pong') {
-                waiting[data.name] && waiting[data.name](data.closure);
+      function resolve (feedback) {
+        // TODO: why do we need this sentinel?
+        if (done) {
+          return;
+        }
+        done = true;
+        if (!feedback.closure) {
+          feedback.closure = closure;
+        }
+        if (feedback.error && typeof feedback.error === 'object') {
+          feedback.error = feedback.error.message;
+        }
+        future['return'](feedback);
+        //-------------------------
+        clearTimeout(handle2);
+      }
 
-            } else {
-              throw new Error('invalid payload => ' + JSON.stringify(data));
+      try {
+        vm.runInContext("value = " + wrapSourceCode(code, args, closure), context);
+      } catch (err) {
+        resolve({ error: err });
+      }
+
+      if (!done && typeof context.value === 'function') {
+
+        (function test() {
+          var feedback;
+          try {
+            feedback = context.value.apply(null, values(closure));
+            if (feedback.result) {
+              resolve(feedback);
+            }
+            
+            handle = setTimeout(Meteor.bindEnvironment(test), 50); // repeat after 1/20 sec.
+            
+            if (feedback.closure) {
+              closure = feedback.closure;
             }
 
           } catch (err) {
-            writeToSocket(socket, null, { error: err });
+            resolve({ error: err });
           }
+        }());
 
-        });
+        handle2 = setTimeout(function () {
+          clearTimeout(handle);
+          resolve({ error: 'I have been waiting for ' + timeout + ' ms ' + message + ', but it did not happen.' });
+        }, timeout);
+      } else {
+        resolve({ err: 'code has to be a function' })
+      }
 
-      });
-    }).listen(0, function () {
-      console.log('Gagarin listening at port ' + server.address().port);
-    });
+      return future.wait();
+    },
+
   });
 
-}
+  Meteor.startup(function () {
+    // this is a fake, we won't need it anymore
+    console.log('Gagarin ready ...');
+  });
 
-function evaluate(name, code, args, closure, socket) {
-  // maybe we could avoid creating it multiple times?
-  var context = vm.createContext(global);
-  var myFiber = null;
-
-  context.Fiber = Fiber;
-  
-  function __closure__(values) {
-    myFiber = Fiber.current;
-    if (!myFiber) {
-      throw new Error('you can only call $sync inside a fiber');
-    }
-    if (arguments.length > 0) {
-      writeToSocket(socket, name, { ping: true, closure: values });
-    } else {
-      writeToSocket(socket, name, { ping: true });
-    }
-    return Fiber.yield();
-  }
-
-  function reportError(err) {
-    writeToSocket(socket, name, { error: err });
-  }
-
-  try {
-    vm.runInContext("value = " + wrapSourceCode(code, args, closure), context);
-  } catch (err) {
-    return reportError(err);
-  }
-
-  if (typeof context.value === 'function') {
-    Fiber(function () {
-      var data;
-      try {
-        data = context.value.apply(null, values(closure, __closure__));
-      } catch (err) {
-        data = { error: err.message };
-      }
-      data.name = name;
-      writeToSocket(socket, name, data);
-    }).run();
-  }
-
-  return function (values) {
-    myFiber && myFiber.run(values);
-  };
-}
-
-function evaluateAsPromise(name, code, args, closure, socket) {
-  // maybe we could avoid creating it multiple times?
-  var context = vm.createContext(global);
-  var myFiber = null;
-
-  context.Fiber = Fiber;
-  
-  function __closure__(values) {
-    myFiber = Fiber.current;
-    if (!myFiber) {
-      throw new Error('you can only call $sync inside a fiber');
-    }
-    if (arguments.length > 0) {
-      writeToSocket(socket, name, { ping: true, closure: values });
-    } else {
-      writeToSocket(socket, name, { ping: true });
-    }
-    return Fiber.yield();
-  }
-
-  function reportError(err) {
-    writeToSocket(socket, name, { error: err });
-  }
-
-  var chunks = [];
-
-  var keys = Object.keys(closure).map(function (key) {
-    return stringify(key) + ": " + key;
-  }).join(',');
-
-  args = args.map(stringify);
-
-  args.unshift("(function (cb) { return function (err) { cb({ error  : err, closure: {" + keys + "}}) } })(arguments[arguments.length-1])");
-  args.unshift("(function (cb) { return function (res) { cb({ result : res, closure: {" + keys + "}}) } })(arguments[arguments.length-1])");
-
-  chunks.push(
-    "function (" + Object.keys(closure).join(', ') + ") {",
-    "  'use strict';",
-    "  var either = function (first) {",
-    "    return {",
-    "      or: function (second) {",
-    "        return function (arg1, arg2) {",
-    "          return arg1 ? first(arg1) : second(arg2);",
-    "        };",
-    "      }",
-    "    };",
-    "  };"
-  );
-
-  addSyncChunks(chunks, closure, "arguments[arguments.length-2]");
-
-  chunks.push(
-    "  (" + code + ")(" + args.join(', ') + ");",
-    "}"
-  );
-
-  try {
-    vm.runInContext("value = " + chunks.join('\n'), context);
-  } catch (err) {
-    return reportError(err);
-  }
-
-  if (typeof context.value === 'function') {
-    Fiber(function () {
-
-      try {
-        context.value.apply(null, values(closure, __closure__, function (data) {
-          writeToSocket(socket, name, data);
-        }));
-      } catch (err) {
-        reportError(err);
-      }
-
-    }).run();
-  }
-
-  return function (values) {
-    myFiber && myFiber.run(values);
-  };
 }
 
 function evaluateAsWait(name, timeout, message, code, args, closure, socket) {
@@ -368,5 +325,5 @@ function writeToSocket(socket, name, data) {
     data.name = name;
   }
   //----------------------------------------
-  socket.write(JSON.stringify(data) + '\n');
+  socket.write(data);
 }
