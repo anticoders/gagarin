@@ -12,8 +12,10 @@ if (process.env.GAGARIN_SETTINGS) {
   //       note that required data my be provided with GAGARIN_SETTINGS
 
   Meteor.methods({
-    '/gagarin/execute': function (code, args, closure) {
+    '/gagarin/execute': function (closure, code, args) {
       "use strict";
+
+      args = args || [];
 
       check(code, String);
       check(args, Array);
@@ -37,8 +39,10 @@ if (process.env.GAGARIN_SETTINGS) {
       }
     },
 
-    '/gagarin/promise': function (code, args, closure) {
+    '/gagarin/promise': function (closure, code, args) {
       "use strict";
+
+      args = args || [];
 
       check(code, String);
       check(args, Array);
@@ -100,8 +104,10 @@ if (process.env.GAGARIN_SETTINGS) {
       }
     },
 
-    '/gagarin/wait': function (timeout, message, code, args, closure) {
+    '/gagarin/wait': function (closure, timeout, message, code, args) {
       "use strict";
+
+      args = args || [];
 
       check(timeout, Number);
       check(message, String);
