@@ -180,9 +180,15 @@ if (process.env.GAGARIN_SETTINGS) {
 
 }
 
-// HELPERS
-
-function wrapSourceCode(code, args, closure, accessor) {
+/**
+ * Creates a source code of another function, providing the given
+ * arguments and injecting the given closure variables.
+ *
+ * @param {String} code
+ * @param {Array} args
+ * @param {Object} closure
+ */
+function wrapSourceCode(code, args, closure) {
   "use strict";
 
   var chunks = [];
@@ -213,11 +219,17 @@ function wrapSourceCode(code, args, closure, accessor) {
   return chunks.join('\n');
 }
 
-function values(closure) {
+/**
+ * Returns all values of the object, sorted
+ * alphabetically by corresponding keys.
+ *
+ * @param {Object}
+ */
+function values(object) {
   "use strict";
 
-  var values = Object.keys(closure).map(function (key) {
-    return closure[key];
+  var values = Object.keys(object).map(function (key) {
+    return object[key];
   });
   if (arguments.length > 1) {
     values.push.apply(values, Array.prototype.slice.call(arguments, 1));
@@ -225,6 +237,14 @@ function values(closure) {
   return values;
 }
 
+/**
+ * A thin wrapper around JSON.stringify:
+ *
+ *  - `undefined` gets evaluated to "undefined"
+ *  - a function gets evaluated to source code
+ *
+ * @param {Object} value
+ */
 function stringify(value) {
   "use strict";
 
