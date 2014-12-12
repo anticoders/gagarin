@@ -20,7 +20,7 @@ describe('Benchmark test suite', function () {
   });
 
   after(function () {
-    return meteor.exit();
+    return meteor.stop();
   });
 
   // this testdoes not make sense after all
