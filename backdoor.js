@@ -8,6 +8,9 @@ Gagarin = {};
 
 if (process.env.GAGARIN_SETTINGS) {
 
+  // TODO: also protect these methods with some authentication (user/password/token?)
+  //       note that required data my be provided with GAGARIN_SETTINGS
+
   Meteor.methods({
     '/gagarin/execute': function (code, args, closure) {
       "use strict";
@@ -180,9 +183,14 @@ if (process.env.GAGARIN_SETTINGS) {
 // HELPERS
 
 function wrapSourceCode(code, args, closure, accessor) {
+  "use strict";
+
   var chunks = [];
 
-  chunks.push("function (" + Object.keys(closure).join(', ') + ") {");
+  chunks.push(
+    "function (" + Object.keys(closure).join(', ') + ") {",
+    "  'use strict';"
+  );
 
   chunks.push(
     "  return (function (result) {",
@@ -206,6 +214,8 @@ function wrapSourceCode(code, args, closure, accessor) {
 }
 
 function values(closure) {
+  "use strict";
+
   var values = Object.keys(closure).map(function (key) {
     return closure[key];
   });
@@ -216,6 +226,8 @@ function values(closure) {
 }
 
 function stringify(value) {
+  "use strict";
+
   if (typeof value === 'function') {
     return value.toString();
   }
