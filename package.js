@@ -2,7 +2,7 @@
 Package.describe({
   summary:  "Gagarin, a Meteor testing framework",
   name:     "anti:gagarin",
-  version:  "0.3.0-pre6",
+  version:  "0.3.0-pre7",
   git:      "https://github.com/anticoders/gagarin.git",
 });
 
