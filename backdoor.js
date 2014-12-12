@@ -3,7 +3,6 @@
 var vm = Npm.require('vm');
 var Fiber = Npm.require('fibers');
 var Future = Npm.require('fibers/future');
-var waiting = {};
 
 Gagarin = {};
 
@@ -11,7 +10,12 @@ if (process.env.GAGARIN_SETTINGS) {
 
   Meteor.methods({
     '/gagarin/execute': function (code, args, closure) {
-      // maybe we could avoid creating it multiple times?
+      "use strict";
+
+      check(code, String);
+      check(args, Array);
+      check(closure, Object);
+
       var context = vm.createContext(global);
       context.Fiber = Fiber;
       try {
@@ -31,6 +35,12 @@ if (process.env.GAGARIN_SETTINGS) {
     },
 
     '/gagarin/promise': function (code, args, closure) {
+      "use strict";
+
+      check(code, String);
+      check(args, Array);
+      check(closure, Object);
+
       var future = new Future();
       var context = vm.createContext(global);
 
@@ -88,17 +98,24 @@ if (process.env.GAGARIN_SETTINGS) {
     },
 
     '/gagarin/wait': function (timeout, message, code, args, closure) {
+      "use strict";
+
+      check(timeout, Number);
+      check(message, String);
+      check(code, String);
+      check(args, Array);
+      check(closure, Object);
 
       var future  = new Future();
       var done    = false;
-      var handle  = null;
+      var handle1 = null;
       var handle2 = null;
       var context = vm.createContext(global);
 
       context.Fiber = Fiber;
 
       function resolve (feedback) {
-        // TODO: why do we need this sentinel?
+        // TODO: can we do away with this sentinel?
         if (done) {
           return;
         }
@@ -111,6 +128,7 @@ if (process.env.GAGARIN_SETTINGS) {
         }
         future['return'](feedback);
         //-------------------------
+        clearTimeout(handle1);
         clearTimeout(handle2);
       }
 
@@ -130,7 +148,7 @@ if (process.env.GAGARIN_SETTINGS) {
               resolve(feedback);
             }
             
-            handle = setTimeout(Meteor.bindEnvironment(test), 50); // repeat after 1/20 sec.
+            handle1 = setTimeout(Meteor.bindEnvironment(test), 50); // repeat after 1/20 sec.
             
             if (feedback.closure) {
               closure = feedback.closure;
@@ -142,7 +160,6 @@ if (process.env.GAGARIN_SETTINGS) {
         }());
 
         handle2 = setTimeout(function () {
-          clearTimeout(handle);
           resolve({ error: 'I have been waiting for ' + timeout + ' ms ' + message + ', but it did not happen.' });
         }, timeout);
       } else {
@@ -155,129 +172,17 @@ if (process.env.GAGARIN_SETTINGS) {
   });
 
   Meteor.startup(function () {
-    // this is a fake, we won't need it anymore
-    console.log('Gagarin ready ...');
+    console.log('Поехали!'); // Let's ride! (Gagarin, during the Vostok 1 launch)
   });
 
-}
-
-function evaluateAsWait(name, timeout, message, code, args, closure, socket) {
-  "use strict";
-
-  // maybe we could avoid creating it multiple times?
-  var context = vm.createContext(global);
-  var myFiber = null;
-  var handle  = null;
-  var handle2 = null;
-
-  context.Fiber = Fiber;
-  
-  function __closure__(values) {
-    myFiber = Fiber.current;
-    if (!myFiber) {
-      throw new Error('you can only call $sync inside a fiber');
-    }
-    if (arguments.length > 0) {
-      writeToSocket(socket, name, { ping: true, closure: values });
-    } else {
-      writeToSocket(socket, name, { ping: true });
-    }
-    return Fiber.yield();
-  }
-
-  function resolve (data) {
-    if (!data.closure) {
-      data.closure = closure;
-    }
-    writeToSocket(socket, name, data);
-    //--------------------------------
-    clearTimeout(handle2);
-  }
-
-  try {
-    vm.runInContext("value = " + wrapSourceCode(code, args, closure), context);
-  } catch (err) {
-    return resolve({ error: err });
-  }
-
-  if (typeof context.value === 'function') {
-    Fiber(function () {
-
-      (function test() {
-        var data;
-        try {
-          data = context.value.apply(null, values(closure, __closure__));
-          if (data.result) {
-            return resolve(data);
-          }
-          
-          handle = setTimeout(Meteor.bindEnvironment(test), 50); // repeat after 1/20 sec.
-          
-          if (data.closure) {
-            closure = data.closure;
-          }
-
-          //console.log("DATA IS", data);
-
-        } catch (err) {
-          resolve({ error: err });
-        }
-      }());
-
-      handle2 = setTimeout(function () {
-        clearTimeout(handle);
-        resolve({ error: 'I have been waiting for ' + timeout + ' ms ' + message + ', but it did not happen.' });
-      }, timeout);
-
-    }).run();
-  }
-
-  return function (values) {
-    myFiber && myFiber.run(values);
-  };
 }
 
 // HELPERS
-
-// TODO: make a note that users cannot use __closure__ variable for syncing
-
-function addSyncChunks(chunks, closure, accessor) {
-
-  // we don't want this "$sync" for now
-  return;
-
-  accessor = accessor || "arguments[arguments.length-1]";
-
-  chunks.push(
-
-    "  var $sync = (function (__closure__) {",
-    "    return function () {",
-    "      return (function (__closure__) {",
-    "        console.log('==============================', c);"
-  );
-
-  Object.keys(closure).forEach(function (key) {
-    chunks.push("      " + key + " = __closure__.hasOwnProperty(" + JSON.stringify(key) + ") ? __closure__[" + JSON.stringify(key) + "] : " + key + ";");
-  });
-
-  chunks.push(
-    "        console.log('==============================', c);",
-    "        return __closure__;",
-    "      })(__closure__.apply(this, arguments));",
-    "    }",
-    "  })(" + accessor + ");",
-
-    // TODO: implement this feature
-    "  $sync.stop = function () {};"
-  );
-}
 
 function wrapSourceCode(code, args, closure, accessor) {
   var chunks = [];
 
   chunks.push("function (" + Object.keys(closure).join(', ') + ") {");
-
-  addSyncChunks(chunks, closure, accessor);
 
   chunks.push(
     "  return (function (result) {",
@@ -317,13 +222,3 @@ function stringify(value) {
   return value !== undefined ? JSON.stringify(value) : "undefined";
 }
 
-function writeToSocket(socket, name, data) {
-  if (data.error) {
-    data.error = (typeof data.error === 'object') ? (data.error && data.error.message) : data.error.toString();
-  }
-  if (name) {
-    data.name = name;
-  }
-  //----------------------------------------
-  socket.write(data);
-}
