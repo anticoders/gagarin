@@ -97,12 +97,13 @@ describe('Tests with browser', function () {
     });
 
     it ('another restart shoud work as well', function () {
-      return server.restart().execute(function ()  {
-          return Meteor.release;
-        })
-        .then(function (release) {
-          expect(release).to.be.ok;
-        });
+      return server.restart().then(function () {
+        return browser2.waitForConditionInBrowser("reset > 1", 5000)
+          .execute("return reset;")
+          .then(function (numberOfResets) {
+            expect(numberOfResets).to.equal(2);
+          });        
+      });
     });
 
   });
