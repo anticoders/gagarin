@@ -8,7 +8,7 @@ Package.describe({
 
 Package.onUse(function (api) {
 
-  api.use('mrt:altimeter@0.0.2', 'server');
+  api.use('livedata', 'server');
 
   api.addFiles([
     'backdoor.js'
