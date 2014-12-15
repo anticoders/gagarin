@@ -108,6 +108,18 @@ describe('Closures', function () {
         });
       });
 
+      it('should be able to alter a closure variable right after calling "resolve"', function () {
+        return server.promise(function (resolve) {
+          setTimeout(function () {
+            var value = Math.random();
+            resolve(value);
+            b = value;
+          }, 100);
+        }).then(function (value) {
+          expect(value).to.equal(b);
+        });
+      });
+
       it.skip('should be able to use sync with promises', function () {
         var handle = setInterval(function () { b -= 1 }, 10);
         return server.promise(function (resolve, reject) {
@@ -302,6 +314,18 @@ describe('Closures', function () {
           }, 100);
         }).catch(function (err) {
           expect(err.toString()).to.contain(b);
+        });
+      });
+
+      it('should be able to alter a closure variable right after calling "resolve"', function () {
+        return client.promise(function (resolve) {
+          setTimeout(function () {
+            var value = Math.random();
+            resolve(value);
+            b = value;
+          }, 100);
+        }).then(function (value) {
+          expect(value).to.equal(b);
         });
       });
 

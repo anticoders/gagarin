@@ -61,8 +61,8 @@ if (process.env.GAGARIN_SETTINGS) {
 
       args = args.map(stringify);
 
-      args.unshift("(function (cb) { return function (err) { cb({ error  : err, closure: {" + keys + "}}) } })(arguments[arguments.length-1])");
-      args.unshift("(function (cb) { return function (res) { cb({ result : res, closure: {" + keys + "}}) } })(arguments[arguments.length-1])");
+      args.unshift("(function (cb) {\n    return function ($) {\n      setTimeout(function () { cb({ error : $, closure: {" + keys + "}}); });\n    };\n  })(arguments[arguments.length-1])");
+      args.unshift("(function (cb) {\n    return function ($) {\n      setTimeout(function () { cb({ value : $, closure: {" + keys + "}}); });\n    };\n  })(arguments[arguments.length-1])");
 
       chunks.push(
         "function (" + Object.keys(closure).join(', ') + ") {",
@@ -79,9 +79,12 @@ if (process.env.GAGARIN_SETTINGS) {
       );
 
       chunks.push(
-        "  (" + code + ")(" + args.join(', ') + ");",
+        "  (" + code + ")(",
+        "  " + args.join(', ') + ");",
         "}"
       );
+
+      //console.log(chunks.join('\n'));
 
       try {
         vm.runInContext("value = " + chunks.join('\n'), context);
@@ -153,7 +156,7 @@ if (process.env.GAGARIN_SETTINGS) {
           var feedback;
           try {
             feedback = context.value.apply(null, values(closure));
-            if (feedback.result) {
+            if (feedback.value) {
               resolve(feedback);
             }
             
@@ -172,7 +175,7 @@ if (process.env.GAGARIN_SETTINGS) {
           resolve({ error: 'I have been waiting for ' + timeout + ' ms ' + message + ', but it did not happen.' });
         }, timeout);
       } else {
-        resolve({ err: 'code has to be a function' })
+        resolve({ error: 'code has to be a function' })
       }
 
       return future.wait();
@@ -205,7 +208,7 @@ function wrapSourceCode(code, args, closure) {
   );
 
   chunks.push(
-    "  return (function (result) {",
+    "  return (function ($) {",
     "    return {",
     "      closure: {"
   );
@@ -216,7 +219,7 @@ function wrapSourceCode(code, args, closure) {
 
   chunks.push(
     "      },",
-    "      result: result,",
+    "      value: $,",
     "    };",
     "  })( (" + code + ")(" + args.map(stringify).join(',') + ") );",
     "}"
