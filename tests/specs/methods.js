@@ -88,7 +88,6 @@ describe('Gagarin methods', function () {
 
     it('should be able to call promise on the client', function () {
       return client
-        .setAsyncScriptTimeout(500)
         .promise(function (resolve) {
           setTimeout(resolve, 100);
         });
@@ -96,7 +95,6 @@ describe('Gagarin methods', function () {
 
     it('should be able to pass arguments to client promise', function () {
       return client
-        .setAsyncScriptTimeout(500)
         .promise(function (resolve, reject, a, b) {
           setTimeout(function () { resolve(a * b); }, 100);
         }, [ 3, 5 ])
