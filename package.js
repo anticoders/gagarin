@@ -11,9 +11,13 @@ Package.onUse(function (api) {
   api.versionsFrom('METEOR@1.0');
   
   api.use('livedata', 'server');
+  api.use('accounts-password', 'server', { weak: true });
 
   api.addFiles([
-    'backdoor.js'
+    
+    'settings.js',
+    'backdoor.js',
+
   ], 'server');
 
   api.export('Gagarin');
