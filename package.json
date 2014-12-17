@@ -29,6 +29,7 @@
   "homepage": "https://github.com/anticoders/gagarin",
   "devDependencies": {},
   "dependencies": {
+    "portscanner" : "1.0.0",
     "chai": "^1.10.0",
     "chalk": "^0.5.1",
     "commander": "^2.5.0",
