@@ -44,7 +44,14 @@ if (!fs.existsSync(pathToTests)) {
 
 if (fs.lstatSync(pathToTests).isDirectory()) {
   fs.readdirSync(pathToTests).forEach(function (file) {
-    gagarin.addFile(path.join(pathToTests, file));
+    var pathToFile = path.join(pathToTests, file);
+    if (path.extname(file) !== '.js') {
+      return;
+    }
+    if (fs.lstatSync(pathToFile).isDirectory()) {
+      return;
+    }
+    gagarin.addFile(pathToFile);
   });
 } else {
   gagarin.addFile(pathToTests);
