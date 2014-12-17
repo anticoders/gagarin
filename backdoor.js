@@ -4,14 +4,13 @@ var vm = Npm.require('vm');
 var Fiber = Npm.require('fibers');
 var Future = Npm.require('fibers/future');
 
-Gagarin = {};
-
-if (process.env.GAGARIN_SETTINGS) {
+if (Gagarin.isActive) {
 
   // TODO: also protect these methods with some authentication (user/password/token?)
   //       note that required data my be provided with GAGARIN_SETTINGS
 
   Meteor.methods({
+
     '/gagarin/execute': function (closure, code, args) {
       "use strict";
 

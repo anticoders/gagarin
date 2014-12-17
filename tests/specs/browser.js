@@ -69,6 +69,8 @@ describe('Tests with browser', function () {
 
     var browser2 = browser(server.location);
 
+    this.timeout(10000);
+
     before(function () {
       return server.restart(2000);
     });
