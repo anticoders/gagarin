@@ -5,6 +5,12 @@ var Gagarin = require('../lib/gagarin');
 var path = require('path');
 var fs = require('fs');
 
+//TODO check why we can simply pass parseInt as argument ?
+
+var intParse = function(v){
+  return parseInt(v);
+};
+
 program
   .version(require('../package.json').version)
   .usage('[debug] [options] [files]')
@@ -64,5 +70,3 @@ gagarin.run(function (failedCount) {
   }
   process.exit(0);
 });
-
-
