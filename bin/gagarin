@@ -27,12 +27,12 @@ program
   .option('-w, --webdriver <url>', 'webdriver url [default: http://127.0.0.1:9515]', 'http://127.0.0.1:9515')
   .option('-M, --dont-wait-for-meteor', 'do not wait until meteor is loaded')
   .option('-m, --meteor-load-timeout <ms>', 'meteor load timeout [2000]', 2000)
+  .option('-p, --path-to-app <path>', 'path to a meteor application', path.resolve('.'))
+  .option('-r, --remote-server <url>', 'run tests on a remote server')
 
 program.name = 'gagarin';
 
 program.parse(process.argv);
-
-program.pathToApp = path.resolve('.');
 
 var gagarin = new Gagarin(program);
 
