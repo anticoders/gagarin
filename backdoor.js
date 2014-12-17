@@ -151,6 +151,13 @@ if (Gagarin.isActive) {
 
       if (!done && typeof context.value === 'function') {
 
+        // XXX this should be defined prior to the fist call to test, because
+        //     the latter can return immediatelly
+        
+        handle2 = setTimeout(function () {
+          resolve({ error: 'I have been waiting for ' + timeout + ' ms ' + message + ', but it did not happen.' });
+        }, timeout);
+
         (function test() {
           var feedback;
           try {
@@ -170,9 +177,6 @@ if (Gagarin.isActive) {
           }
         }());
 
-        handle2 = setTimeout(function () {
-          resolve({ error: 'I have been waiting for ' + timeout + ' ms ' + message + ', but it did not happen.' });
-        }, timeout);
       } else {
         resolve({ error: 'code has to be a function' })
       }
