@@ -1,19 +1,30 @@
 
-var settings;
-
-Gagarin = {};
-
-if (process.env.GAGARIN_SETTINGS) {
+if (!Meteor.settings.gagarin && process.env.GAGARIN_SETTINGS) {
   try {
-    settings = JSON.parse(process.env.GAGARIN_SETTINGS);
+    Meteor.settings.gagarin = JSON.parse(process.env.GAGARIN_SETTINGS);
   } catch (err) {
     console.warn('invalid Gagarin settings\n', err);
   }
 }
 
-settings = settings || Meteor.settings.gagarin;
+var settings = Meteor.settings.gagarin;
+
+Gagarin = {};
 
 Gagarin.isActive = !!settings;
+
+if (Gagarin.isActive) {
+  Gagarin.settings = settings;
+}
+
+Meteor.startup(function () {
+
+  if (!Gagarin.isActive) {
+    return;
+  }
+
+  maybeCreateUser(settings);
+});
 
 Meteor.startup(function () {
 
