@@ -1,6 +1,8 @@
 
 describe('Running code on a remote server', function () {
 
+  this.timeout(10000);
+
   var server = meteor({
     remoteServer: 'https://vostok-1.meteor.com'
   });
