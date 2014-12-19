@@ -23,6 +23,8 @@ program
   .option('-S, --settings <path>', 'use meteor settings from the given file')
   .option('-t, --timeout <ms>', 'set test-case timeout in milliseconds [2000]')
   //.option('-u, --ui <name>', 'specify user-interface (bdd|tdd|exports)', 'bdd')
+  .option('-B, --skip-build', 'do not build, just run the tests')
+  .option('-o, --build-only', 'just build, do not run the tests')
   .option('-V, --verbose', 'run with verbose mode with logs from client/server', false)
   .option('-w, --webdriver <url>', 'webdriver url [default: http://127.0.0.1:9515]', 'http://127.0.0.1:9515')
   .option('-M, --dont-wait-for-meteor', 'do not wait until meteor is loaded')
