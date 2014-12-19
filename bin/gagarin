@@ -50,6 +50,7 @@ if (!fs.existsSync(pathToTests)) {
 }
 
 if (fs.lstatSync(pathToTests).isDirectory()) {
+
   fs.readdirSync(pathToTests).forEach(function (file) {
     var pathToFile = path.join(pathToTests, file);
     if (path.extname(file) !== '.js') {
