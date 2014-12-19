@@ -30,6 +30,58 @@ describe('Reporting Exceptions', function () {
 
   });
 
+  describe('Given gagarin is not installed,', function () {
+
+    // TODO: check if the process is properly killed
+
+    this.timeout(20000);
+
+    var message = "";
+
+    var server = new Meteor({
+      pathToApp: path.resolve(__dirname, '..', 'no_gagarin')
+    });
+
+    it('should throw an error', function () {
+      return server
+        .start()
+        .expectError(function (err) {
+          message = err.message;
+        });
+    });
+
+    it('the error should contain useful information', function () {
+      expect(message).to.contain("anti:gagarin");
+    });
+
+  });
+
+  describe('Given gagarin is in incompatible version,', function () {
+
+    // TODO: check if the process is properly killed
+
+    this.timeout(20000);
+
+    var message = "";
+
+    var server = new Meteor({
+      pathToApp: path.resolve(__dirname, '..', 'incompatible')
+    });
+
+    it('should throw an error', function () {
+      return server
+        .start()
+        .expectError(function (err) {
+          message = err.message;
+        });
+    });
+
+    it('the error should contain useful information', function () {
+      expect(message).to.contain("please update");
+    });
+
+  });
+
   describe('Given the app is properly built,', function () {
 
     // SERVER SIDE ERRORS
