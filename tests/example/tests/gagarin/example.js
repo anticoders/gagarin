@@ -19,14 +19,4 @@ describe('An example Gagarin test suite', function () {
     });
   });
 
-  it("should be able to do work asynchronously", function () {
-    return server.promise(function (resolve) {
-      setTimeout(function () {
-        resolve(1234);
-      }, 1000);
-    }).then(function (value) {
-      expect(value).to.equal(1234);
-    });
-  });
-
 });
