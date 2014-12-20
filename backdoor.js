@@ -74,12 +74,16 @@ if (Gagarin.isActive) {
         "        };",
         "      }",
         "    };",
-        "  };"
-      );
-
-      chunks.push(
-        "  (" + code + ")(",
-        "  " + args.join(', ') + ");",
+        "  };",
+        "  try {",
+        "    (" + code + ")(",
+        "    " + args.join(', ') + ");",
+        "  } catch ($) {",
+        "    arguments[arguments.length-1]({",
+        "      error   : $.message,",
+        "      closure : { " + keys + " }",
+        "    });",
+        "  }",
         "}"
       );
 
@@ -162,7 +166,8 @@ if (Gagarin.isActive) {
           var feedback;
           try {
             feedback = context.value.apply(null, values(closure));
-            if (feedback.value) {
+
+            if (feedback.value || feedback.error) {
               resolve(feedback);
             }
             
@@ -211,7 +216,22 @@ function wrapSourceCode(code, args, closure) {
   );
 
   chunks.push(
-    "  return (function ($) {",
+    "  try {",
+    "    return (function ($) {",
+    "      return {",
+    "        closure: {"
+  );
+
+  Object.keys(closure).forEach(function (key) {
+    chunks.push("          " + stringify(key) + ": " + key + ",");
+  });
+
+  chunks.push(
+    "        },",
+    "        value: $,",
+    "      };",
+    "    })( (" + code + ")(" + args.map(stringify).join(',') + ") );",
+    "  } catch (err) {",
     "    return {",
     "      closure: {"
   );
@@ -222,9 +242,9 @@ function wrapSourceCode(code, args, closure) {
 
   chunks.push(
     "      },",
-    "      value: $,",
+    "      error: err.message",
     "    };",
-    "  })( (" + code + ")(" + args.map(stringify).join(',') + ") );",
+    "  }",
     "}"
   );
 
