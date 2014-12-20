@@ -13,6 +13,7 @@ program
   .option('-B, --skip-build', 'do not build, just run the tests')
   .option('-o, --build-only', 'just build, do not run the tests')
   .option('-V, --verbose', 'run with verbose mode with logs from client/server', false)
+  .option('-m, --mute-build', 'do not show build logs', false)
 
 program.parse(process.argv);
 
@@ -24,6 +25,7 @@ var gagarin = new Gagarin({
   grep          : program.grep,
   skipBuild     : program.skipBuild,
   buildOnly     : program.buildOnly,
+  muteBuild     : program.muteBuild,
   verbose       : program.verbose,
 });
 

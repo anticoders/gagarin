@@ -4,7 +4,7 @@ var path   = require('path');
 
 describe('Reporting Exceptions', function () {
 
-  describe('Given the app does not built properly,', function () {
+  describe('Given the app does not build properly,', function () {
 
     // TODO: check if the process is properly killed
 
