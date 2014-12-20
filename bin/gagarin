@@ -5,6 +5,12 @@ var Gagarin = require('../lib/gagarin');
 var path = require('path');
 var fs = require('fs');
 
+//TODO check why we can simply pass parseInt as argument ?
+
+var intParse = function(v){
+  return parseInt(v);
+};
+
 program
   .version(require('../package.json').version)
   .usage('[debug] [options] [files]')
@@ -28,7 +34,7 @@ program
   .option('-V, --verbose', 'run with verbose mode with logs from client/server', false)
   .option('-w, --webdriver <url>', 'webdriver url [default: http://127.0.0.1:9515]', 'http://127.0.0.1:9515')
   .option('-M, --dont-wait-for-meteor', 'do not wait until meteor is loaded')
-  .option('-m, --meteor-load-timeout <ms>', 'meteor load timeout [2000]', 2000)
+  .option('-m, --meteor-load-timeout <ms>', 'meteor load timeout [2000]',intParse, 2000)
   .option('-p, --path-to-app <path>', 'path to a meteor application', path.resolve('.'))
   .option('-r, --remote-server <url>', 'run tests on a remote server')
 
@@ -46,6 +52,7 @@ if (!fs.existsSync(pathToTests)) {
 }
 
 if (fs.lstatSync(pathToTests).isDirectory()) {
+
   fs.readdirSync(pathToTests).forEach(function (file) {
     var pathToFile = path.join(pathToTests, file);
     if (path.extname(file) !== '.js') {
@@ -66,5 +73,3 @@ gagarin.run(function (failedCount) {
   }
   process.exit(0);
 });
-
-
