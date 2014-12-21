@@ -5,6 +5,8 @@ var Gagarin = require('../lib/gagarin');
 var path = require('path');
 var fs = require('fs');
 
+//TODO check why we can simply pass parseInt as argument ?
+
 program
   .version(require('../package.json').version)
   .usage('[debug] [options] [files]')
@@ -20,18 +22,22 @@ program
   //.option('-gc', '--expose-gc', 'expose gc extension')
   .option('-i, --invert', 'inverts --grep matches')
   .option('-s, --slow <ms>', '"slow" test threshold in milliseconds [75]')
+  .option('-S, --settings <path>', 'use meteor settings from the given file')
   .option('-t, --timeout <ms>', 'set test-case timeout in milliseconds [2000]')
   //.option('-u, --ui <name>', 'specify user-interface (bdd|tdd|exports)', 'bdd')
-  //.option('-V, --verbose', 'run with verbose mode with logs from client/server', false)
+  .option('-B, --skip-build', 'do not build, just run the tests')
+  .option('-o, --build-only', 'just build, do not run the tests')
+  .option('-V, --verbose', 'run with verbose mode with logs from client/server', false)
   .option('-w, --webdriver <url>', 'webdriver url [default: http://127.0.0.1:9515]', 'http://127.0.0.1:9515')
   .option('-M, --dont-wait-for-meteor', 'do not wait until meteor is loaded')
-  .option('-m, --meteor-load-timeout <ms>', 'meteor load timeout [2000]', 2000)
+  .option('-l, --meteor-load-timeout <ms>', 'meteor load timeout [2000]', intParse, 2000)
+  .option('-p, --path-to-app <path>', 'path to a meteor application', path.resolve('.'))
+  .option('-r, --remote-server <url>', 'run tests on a remote server')
+  .option('-m, --mute-build', 'do not show build logs', false)
 
 program.name = 'gagarin';
 
 program.parse(process.argv);
-
-program.pathToApp = path.resolve('.');
 
 var gagarin = new Gagarin(program);
 
@@ -43,8 +49,16 @@ if (!fs.existsSync(pathToTests)) {
 }
 
 if (fs.lstatSync(pathToTests).isDirectory()) {
+
   fs.readdirSync(pathToTests).forEach(function (file) {
-    gagarin.addFile(path.join(pathToTests, file));
+    var pathToFile = path.join(pathToTests, file);
+    if (path.extname(file) !== '.js') {
+      return;
+    }
+    if (fs.lstatSync(pathToFile).isDirectory()) {
+      return;
+    }
+    gagarin.addFile(pathToFile);
   });
 } else {
   gagarin.addFile(pathToTests);
@@ -57,4 +71,7 @@ gagarin.run(function (failedCount) {
   process.exit(0);
 });
 
+function intParse(v) {
+  return parseInt(v);
+};
 

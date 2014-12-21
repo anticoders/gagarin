@@ -30,6 +30,10 @@ describe('Closures', function () {
 
     describe('When using server.execute', function () {
 
+      beforeEach(function () {
+        b = Math.random().toString();
+      });
+
       it('should be able to access a closure variable', function () {
         return server.execute(function () {
           return a;
@@ -43,6 +47,17 @@ describe('Closures', function () {
           return a = Math.random();
         }).then(function (value) {
           expect(a).to.equal(value);
+        });
+      });
+
+      it('even if the code throws', function () {
+        return server.execute(function () {
+          a = b;
+          throw new Error('another fake error')
+        }).expectError(function (err) {
+          expect(err.message).to.contain('another fake err');
+        }).then(function (value) {
+          expect(a).to.equal(b);
         });
       });
 
@@ -76,6 +91,7 @@ describe('Closures', function () {
 
       beforeEach(function () {
         b = 10;
+        c = Math.random().toString();
       });
 
       it('should be able to access a closure variable', function () {
@@ -105,6 +121,29 @@ describe('Closures', function () {
           }, 100);
         }).catch(function (err) {
           expect(err.toString()).to.contain(b);
+        });
+      });
+
+      it('and if the promise code throws', function () {
+        return server.promise(function () {
+          a = c;
+          throw new Error('another fake error')
+        }).expectError(function (err) {
+          expect(err.message).to.contain('another fake err');
+        }).then(function (value) {
+          expect(a).to.equal(c);
+        });
+      });
+
+      it('should be able to alter a closure variable right after calling "resolve"', function () {
+        return server.promise(function (resolve) {
+          setTimeout(function () {
+            var value = Math.random();
+            resolve(value);
+            b = value;
+          }, 100);
+        }).then(function (value) {
+          expect(value).to.equal(b);
         });
       });
 
@@ -210,6 +249,10 @@ describe('Closures', function () {
 
     var client = browser(server.location);
 
+    beforeEach(function () {
+      b = Math.random().toString();
+    });
+
     describe('Value persitance', function () {
 
       it('zero value should not be interpreted as undefined', function () {
@@ -237,6 +280,17 @@ describe('Closures', function () {
           return a = Math.random();
         }).then(function (value) {
           expect(a).to.equal(value);
+        });
+      });
+
+      it('even if the code throws', function () {
+        return client.execute(function () {
+          a = b;
+          throw new Error('another fake error')
+        }).expectError(function (err) {
+          expect(err.message).to.contain('another fake err');
+        }).then(function (value) {
+          expect(a).to.equal(b);
         });
       });
 
@@ -270,6 +324,7 @@ describe('Closures', function () {
 
       beforeEach(function () {
         b = 10;
+        c = Math.random().toString();
       });
 
       it('should be able to access a closure variable', function () {
@@ -302,6 +357,30 @@ describe('Closures', function () {
           }, 100);
         }).catch(function (err) {
           expect(err.toString()).to.contain(b);
+        });
+      });
+
+      it('and if the promise code throws', function () {
+        return client.promise(function () {
+          b = c;
+          throw new Error('another fake error')
+        }).expectError(function (err) {
+          expect(err.message).to.contain('another fake err');
+        }).then(function (value) {
+          expect(b).to.equal(c);
+        });
+      });
+
+
+      it('should be able to alter a closure variable right after calling "resolve"', function () {
+        return client.promise(function (resolve) {
+          setTimeout(function () {
+            var value = Math.random();
+            resolve(value);
+            b = value;
+          }, 100);
+        }).then(function (value) {
+          expect(value).to.equal(b);
         });
       });
 

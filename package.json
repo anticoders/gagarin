@@ -1,6 +1,6 @@
 {
   "name": "gagarin",
-  "version": "0.3.0-pre4",
+  "version": "0.3.0",
   "description": "another testing framework for your meteor apps",
   "main": "gagarin.js",
   "repository": {
@@ -32,11 +32,14 @@
     "chai": "^1.10.0",
     "chalk": "^0.5.1",
     "commander": "^2.5.0",
+    "ddp": "^0.9.2",
     "debounce": "^1.0.0",
     "es6-promise": "^1.0.0",
     "mkdirp": "^0.5.0",
     "mocha": "^1.20.1",
     "mongodb": "^1.4.7",
+    "portscanner": "1.0.0",
+    "pty.js": "git://github.com/chjj/pty.js",
     "wd": "^0.3.11"
   }
 }

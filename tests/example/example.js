@@ -28,6 +28,9 @@ if (Meteor.isClient) {
 }
 
 if (Meteor.isServer) {
+
+  console.log('settings are:', Meteor.settings);
+
   Meteor.startup(function () {
     // code to run on server at startup
   });
