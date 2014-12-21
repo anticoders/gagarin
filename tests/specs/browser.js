@@ -34,7 +34,6 @@ describe('Tests with browser', function () {
   describe('Database insertions', function () {
     before(function () {
       return browser1
-        .setAsyncScriptTimeout(1000)
         .promise(function (resolve, reject, id) {
           Items.insert({_id: id}, either(reject).or(resolve));
         }, [ id ])
@@ -70,9 +69,7 @@ describe('Tests with browser', function () {
 
     var browser2 = browser(server.location);
 
-    before(function () {
-      return browser2.setAsyncScriptTimeout(10000);
-    });
+    this.timeout(10000);
 
     before(function () {
       return server.restart(2000);
@@ -89,7 +86,7 @@ describe('Tests with browser', function () {
 
     it('should recognize that the server was restarted', function () {
       return browser2
-        .waitForConditionInBrowser("reset > 0", 5000)
+        .wait(5000, 'until reset event is detected', "return reset > 0")
         .execute("return reset;")
         .then(function (numberOfResets) {
           expect(numberOfResets).to.equal(1);
@@ -97,12 +94,14 @@ describe('Tests with browser', function () {
     });
 
     it ('another restart shoud work as well', function () {
-      return server.restart().execute(function ()  {
-          return Meteor.release;
-        })
-        .then(function (release) {
-          expect(release).to.be.ok;
-        });
+      return server.restart().then(function () {
+        return browser2
+          .wait(5000, 'until reset event is detected', "return reset > 1")
+          .execute("return reset;")
+          .then(function (numberOfResets) {
+            expect(numberOfResets).to.equal(2);
+          });
+      });
     });
 
   });

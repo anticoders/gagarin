@@ -1,4 +1,4 @@
-describe('Fibers.', function () {
+describe('Fibers', function () {
 
   var server = meteor();
 

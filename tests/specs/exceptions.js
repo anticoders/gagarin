@@ -4,7 +4,7 @@ var path   = require('path');
 
 describe('Reporting Exceptions', function () {
 
-  describe('Given the app does not built properly,', function () {
+  describe('Given the app does not build properly,', function () {
 
     // TODO: check if the process is properly killed
 
@@ -26,6 +26,58 @@ describe('Reporting Exceptions', function () {
 
     it('the error should contain useful information', function () {
       expect(message).to.contain("Unexpected token :");
+    });
+
+  });
+
+  describe('Given gagarin is not installed,', function () {
+
+    // TODO: check if the process is properly killed
+
+    this.timeout(20000);
+
+    var message = "";
+
+    var server = new Meteor({
+      pathToApp: path.resolve(__dirname, '..', 'no_gagarin')
+    });
+
+    it('should throw an error', function () {
+      return server
+        .start()
+        .expectError(function (err) {
+          message = err.message;
+        });
+    });
+
+    it('the error should contain useful information', function () {
+      expect(message).to.contain("anti:gagarin");
+    });
+
+  });
+
+  describe('Given gagarin is in incompatible version,', function () {
+
+    // TODO: check if the process is properly killed
+
+    this.timeout(20000);
+
+    var message = "";
+
+    var server = new Meteor({
+      pathToApp: path.resolve(__dirname, '..', 'incompatible')
+    });
+
+    it('should throw an error', function () {
+      return server
+        .start()
+        .expectError(function (err) {
+          message = err.message;
+        });
+    });
+
+    it('the error should contain useful information', function () {
+      expect(message).to.contain("please update");
     });
 
   });
