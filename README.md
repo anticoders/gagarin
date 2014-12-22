@@ -82,6 +82,22 @@ describe('You can also use browser in your tests', function () {
 });
 ```
 
+## Testing with Selenium WebDriver
+
+Lets assume that you have a copy of `selenium-server-standalone-*.jar` available at `/path/to/selenium.jar`. First start a selenium "hub" with the following command:
+```
+java -jar /path/to/selenium.jar -role hub
+```
+Selenium server should be listening on port `4444` by default. Then start a selenium "node" with
+```
+java -jar /path/to/selenium.jar -role node -hub http://localhost:4444
+```
+Finally run your Gagarin tests providing `--webdriver` option
+```
+gagarin --webdriver http://localhost:4444/wd/hub
+```
+We've been testing Gagarin with `chrome` (38) and `firefox` (34). At this moment we cannot guarantee it will work with other browsers.
+
 # Examples
 
 Since we don't have a comprehensive documentation yet, please consider the following set of simple examples as a current API reference. Note that this document will evolve in the nearest future.
