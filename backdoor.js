@@ -1,4 +1,3 @@
-"use strict";
 
 var vm = Npm.require('vm');
 var Fiber = Npm.require('fibers');
