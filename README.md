@@ -62,7 +62,7 @@ In the above example `meteor` is a global function provided by the framework, wh
 
 ## Testing with browser
 
-Gagarin makes it really easy to coordinate tests for client and server. This idea originated from Laika, but we decided to go for more promise-oriented API. Basically speaking, you can use the `browser` function to spawn as many clients as you want. The only requirement is that you have a webdriver running somewhere. By default, gagarin will try to find webdrive at port `9515` (chromedriver default). You can customize the webdriver url by providing the corresponding option for the cli tool:
+Gagarin makes it really easy to coordinate tests for client and server. This idea originated from Laika, but we decided to go for more promise-oriented API. Basically speaking, you can use the `browser` function to spawn as many clients as you want. The only requirement is that you have a webdriver running somewhere. By default, gagarin will try to find webdriver at port `9515` (chromedriver default). You can customize the webdriver url by providing the corresponding option for the cli tool:
 ```
 gagarin --webdriver http://localhost:9515
 ```
@@ -70,7 +70,7 @@ If you're testing locally, we recommend using **chromedriver** which can be down
 ```
 ./chromedriver --port=4444
 ```
-Other webdrivers can be used as well. However, if you plan to use [phantomjs](http://phantomjs.org/) and **GhostDriver** please note that due to [a BUG in GhostDriver](https://github.com/detro/ghostdriver/issues/90) all browser sessions will share the same cookie jar, which may be problematic in test scenarios when multiple concurent users need to be created.
+Other webdrivers can be used as well. However, if you plan to use [phantomjs](http://phantomjs.org/) and **GhostDriver** please note that due to [a BUG in GhostDriver](https://github.com/detro/ghostdriver/issues/90) all browser sessions will share the same cookie jar, which may be problematic in test scenarios when multiple concurrent users need to be created.
 
 A test suite using both server and client may look like this:
 ```javascript
@@ -217,6 +217,25 @@ it("should be able to wait on server", function () {
     expect(value._id).to.equal('someFakeId');
   });
 });
+```
+
+# For contributors
+
+To test the package locally make sure that a webdriver is listening on port `9515`, then simply run the tests with the following command
+```
+npm test
+```
+or just
+```
+./test.js [options]
+```
+in the project root directory. Additionally you can use
+```
+./test.js --help
+```
+to display information about all possible options. For example, to use a different webdriver location, you can specify it with
+```
+./test.js --webdriver http://localhost:4444
 ```
 
 ## Disclaimer
