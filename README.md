@@ -66,6 +66,12 @@ Gagarin makes it really easy to coordinate tests for client and server. This ide
 ```
 gagarin --webdriver http://localhost:9515
 ```
+If you're testing locally, we recommend using **chromedriver** which can be downloaded [from here](http://chromedriver.storage.googleapis.com/index.html). After unpacking the executable the only thing you need to do is to run it in the background. By default the process will listen on port `9515` by default. This can be altered by specifying the port explicitly
+```
+./chromedriver --port=4444
+```
+Other webdrivers can be used as well. However, if you plan to use [phantomjs](http://phantomjs.org/) and **GhostDriver** please note that due to [a BUG in GhostDriver](https://github.com/detro/ghostdriver/issues/90) all browser sessions will share the same cookie jar, which may be problematic in test scenarios when multiple concurent users need to be created.
+
 A test suite using both server and client may look like this:
 ```javascript
 describe('You can also use browser in your tests', function () {
