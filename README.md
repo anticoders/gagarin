@@ -1,3 +1,5 @@
+![gagarin](https://s3.amazonaws.com/gagarinjs/assets/gagarinLogo.svg)
+
 # gagarin [![Circle CI](https://circleci.com/gh/anticoders/gagarin/tree/devel.svg?style=svg)](https://circleci.com/gh/anticoders/gagarin/tree/devel)
 
 Gagarin is a tool you can use in your tests to run Meteor apps in a sandboxed environment. It's useful when you need more refined control over the meteor processes and test fancy things, e.g. the behavior of your app on server restarts or when you have multiple app instances writing to the same database. This is currently not achievable with the official Meteor testing framework.
