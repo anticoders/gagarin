@@ -34,6 +34,7 @@ program
   .option('-p, --path-to-app <path>', 'path to a meteor application', path.resolve('.'))
   .option('-r, --remote-server <url>', 'run tests on a remote server')
   .option('-m, --mute-build', 'do not show build logs', false)
+  .option('-f, --flavor', 'which flavor of api to use by default (promises, fiber)', 'promises')
 
 program.name = 'gagarin';
 
