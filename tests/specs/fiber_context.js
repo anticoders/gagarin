@@ -1,9 +1,9 @@
 describe('Fiber based context', function () {
-  var fiberServer = meteor({fiber: true});
-  var promiseServer = meteor();
+  var fiberServer = meteor({flavor: "fiber"});
+  var promiseServer = meteor({flavor: "promises"});
 
-  var fiberBrowser = browser({location: fiberServer.location, fiber: true});
-  var promiseBrowser = browser(promiseServer.location);
+  var fiberBrowser = browser({location: fiberServer.location, flavor: "fiber"});
+  var promiseBrowser = browser({location: promiseServer.location, flavor: "promises"});
 
   it('run inside a fiber', function () {
     expect(!!Fiber.current).to.be.equal(true);
