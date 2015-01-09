@@ -1,9 +1,9 @@
-describe('Fiber based context', function () {
+describe('Flavor', function () {
   var fiberServer = meteor({flavor: "fiber"});
-  var promiseServer = meteor({flavor: "promises"});
+  var promiseServer = meteor({flavor: "promise"});
 
   var fiberBrowser = browser({location: fiberServer.location, flavor: "fiber"});
-  var promiseBrowser = browser({location: promiseServer.location, flavor: "promises"});
+  var promiseBrowser = browser({location: promiseServer.location, flavor: "promise"});
 
   it('run inside a fiber', function () {
     expect(!!Fiber.current).to.be.equal(true);
