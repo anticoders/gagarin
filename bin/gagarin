@@ -50,17 +50,21 @@ if (!fs.existsSync(pathToTests)) {
 }
 
 if (fs.lstatSync(pathToTests).isDirectory()) {
+  addFiles(pathToTests);
 
-  fs.readdirSync(pathToTests).forEach(function (file) {
-    var pathToFile = path.join(pathToTests, file);
-    if (path.extname(file) !== '.js') {
-      return;
-    }
-    if (fs.lstatSync(pathToFile).isDirectory()) {
-      return;
-    }
-    gagarin.addFile(pathToFile);
-  });
+  function addFiles(pathToTests) {
+    fs.readdirSync(pathToTests).forEach(function (file) {
+      var pathToFile = path.join(pathToTests, file);
+      if (fs.lstatSync(pathToFile).isDirectory()) {
+        return addFiles(pathToFile);
+      }
+
+      if (path.extname(file) !== '.js') {
+        return;
+      }
+      gagarin.addFile(pathToFile);
+    });
+  }
 } else {
   gagarin.addFile(pathToTests);
 }
