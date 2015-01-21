@@ -31,6 +31,10 @@ describe('DDP client.', function () {
         });
       });
 
+      it('the "example" helper should be on the methods list', function () {
+        expect(client.methods).to.contain('example');
+      });
+
       it('should be able to call "example" method using helpers', function () {
         return client.example().then(function (value) {
           expect(value).to.equal(release);
