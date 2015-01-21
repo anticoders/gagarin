@@ -34,4 +34,17 @@ if (Meteor.isServer) {
   Meteor.startup(function () {
     // code to run on server at startup
   });
+
+  Meteor.methods({
+    'example': function () {
+      console.log('example method called');
+      return Meteor.release;
+    },
+    'private': function () {
+      if (!this.userId) {
+        throw new Meteor.Error('403', 'Access denied');
+      }
+      return this.userId;
+    },
+  });
 }
