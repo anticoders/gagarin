@@ -10,9 +10,7 @@ describe('Closures', function () {
 
   var zero = 0;
 
-  closure(['a', 'b', 'c', 'd', 'zero'], function (key, value) {
-    return eval(key + (arguments.length > 1 ? '=' + JSON.stringify(value) : ''));
-  });
+  closure(['a', 'b', 'c', 'd', 'zero'], function (expr) { return eval(expr); });
 
   describe('Closure variables in server scripts', function () {
 
