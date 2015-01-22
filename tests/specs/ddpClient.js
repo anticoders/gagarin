@@ -25,6 +25,12 @@ describe('DDP client.', function () {
         });
       });
 
+      it('should report meaningful error if "call" is used with wrong parameters', function () {
+        expect(function () {
+          client.call('example', 1);
+        }).to.throw(/array/);
+      });
+
       it('should be able to call "example" method', function () {
         return client.call('example', [ 'someArgumentsMayGoHere' ]).then(function (value) {
           expect(value).to.equal(release);
@@ -81,6 +87,20 @@ describe('DDP client.', function () {
 
     describe('Subscriptions.', function () {
 
+      it('should report meaningful error if "subscribe" is used with wrong parameters', function () {
+        expect(function () {
+          client.subscribe('', 1);
+        }).to.throw(/array/);
+      });
+
+      it('should report meaningful error if subscription does not exist', function () {
+        return client
+          .subscribe('thisShouldNotExist', [])
+          .expectError(function (err) {
+            expect(err.message).to.contain(404);
+          });
+      });
+
       describe('Given the client does not subscribe,', function () {
 
         var client2 = ddp(server);
@@ -102,22 +122,27 @@ describe('DDP client.', function () {
         var id      = null;
 
         before(function () {
-          return client3.subscribe('items').then(function (myId) {
-            expect(myId).to.be.ok;
-            id = myId;
-          });
-        });
-
-        it('the data may not arrive immediately ...', function () {
           return client3
-            .call('create', [ 'some test item' ])
-            .collection('items')
-            .then(function (listOfItems) {
-              expect(values(listOfItems)).not.to.contain.a.thing.with.property('name', 'some test item');
-            });
+            .subscribe('items').then(function (myId) {
+              expect(myId).to.be.ok;
+              id = myId;
+            })
+            .call('create', [ 'some test item' ]);
         });
 
-        it('... but eventually it should arrive', function () {
+        // XXX this test case often fails because data arrives too quickly
+        //     we don't want that ... (think about a workaround)
+        //
+        //it('the data may not arrive immediately ...', function () {
+        //  return client3
+        //    .call('create', [ 'some test item' ])
+        //    .collection('items')
+        //    .then(function (listOfItems) {
+        //      expect(values(listOfItems)).not.to.contain.a.thing.with.property('name', 'some test item');
+        //    });
+        //});
+
+        it('the data should eventually arrive', function () {
           return client3
             .waitForUpdates('items')
             .then(function (listOfItems) {
@@ -149,19 +174,6 @@ describe('DDP client.', function () {
             .expectError(function (err) {
               expect(err.message).to.contain(403);
             });
-        });
-
-        it('should not ignore the error if subscribeNoWait is used', function () {
-          return client
-            .subscribeNoWait('denied')
-            .expectError(function (err) {
-              expect(err.message).to.contain(403);
-            });
-        });
-
-        it('should give up if the subscription is not responsive', function () {
-          return client
-            .subscribeNoWait('nothing', [], { giveUpTimeout: 100 });
         });
 
       });
