@@ -65,4 +65,74 @@ describe('MongoDB.', function () {
 
   });
 
+  describe('Exceptions.', function () {
+    
+    var collection = db.collection('throwing errors');
+    var cursor     = collection.find();
+
+    it('should throw an error if methods are called with wrong arguments', function () {
+      
+      // TODO: add more test cases
+
+      expect(function () {
+        cursor.each();
+      }).to.throw(/function/);
+
+    });
+
+    it('should throw an error if a collection method is called in a wrong context', function () {
+      
+      expect(function () {
+        db.find();
+      }).to.throw(/collection/);
+
+      expect(function () {
+        db.insert();
+      }).to.throw(/collection/);
+
+      expect(function () {
+        db.update();
+      }).to.throw(/collection/);
+
+      expect(function () {
+        db.remove();
+      }).to.throw(/collection/);
+
+      expect(function () {
+        db.findOne();
+      }).to.throw(/collection/);
+
+    });
+
+    it('should throw an error if a cursor method is called in a wrong context', function () {
+      
+      expect(function () {
+        collection.limit();
+      }).to.throw(/cursor/);
+
+      expect(function () {
+        collection.skip();
+      }).to.throw(/cursor/);
+
+      expect(function () {
+        collection.sort();
+      }).to.throw(/cursor/);
+
+      expect(function () {
+        collection.toArray();
+      }).to.throw(/cursor/);
+
+      expect(function () {
+        collection.each();
+      }).to.throw(/cursor/);
+
+      expect(function () {
+        collection.nextObject();
+      }).to.throw(/cursor/);
+
+    });
+
+
+  });
+
 });
