@@ -5,6 +5,8 @@ if (Meteor.isClient) {
 
   Session.set('counter', 0);
 
+  Meteor.subscribe('items');
+
   Template.hello.greeting = function () {
     return "Welcome to example.";
   };
