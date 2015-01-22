@@ -123,6 +123,22 @@ describe('DDP client.', function () {
 
       });
 
+      describe('Given the client subscribes to a restricted data set,', function () {
+
+        it('should not be granted access', function () {
+          return client
+            .subscribe('denied')
+            .expectError(function (err) {
+              expect(err.message).to.contain(403);
+            });
+        });
+
+        it('should ignore the error if subscribeNoWait is used', function () {
+          return client.subscribeNoWait('denied');
+        });
+
+      });
+
     });
 
   });

@@ -42,6 +42,10 @@ if (Meteor.isServer) {
     return Items.find();
   });
 
+  Meteor.publish('denied', function () {
+    throw new Meteor.Error(403, 'Access denied.');
+  });
+
   Meteor.methods({
     'example': function () {
       console.log('example method called');
