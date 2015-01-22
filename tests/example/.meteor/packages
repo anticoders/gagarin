@@ -4,9 +4,9 @@
 # but you can also edit it by hand.
 
 standard-app-packages
-autopublish
 insecure
 anti:gagarin
 mystor:device-detection
 accounts-password
 
+accounts-base
