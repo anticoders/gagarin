@@ -1,3 +1,4 @@
+Fiber = null;
 Items = new Meteor.Collection('items');
 reset = 0;
 
@@ -31,6 +32,8 @@ if (Meteor.isClient) {
 
 if (Meteor.isServer) {
 
+  Fiber = Npm.require('fibers');
+
   console.log('settings are:', Meteor.settings);
 
   Meteor.startup(function () {
@@ -58,6 +61,13 @@ if (Meteor.isServer) {
       return this.userId;
     },
     'create': function (name) {
+      var fiber = Fiber.current;
+      // delay this method for better testing insight
+      Meteor.setTimeout(function () {
+        fiber.run();
+      }, 1000);
+      Fiber.yield();
+      //---------------------------
       Items.insert({ name: name });
     },
   });
