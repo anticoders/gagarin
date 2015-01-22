@@ -49,6 +49,9 @@ if (Meteor.isServer) {
     throw new Meteor.Error(403, 'Access denied.');
   });
 
+  Meteor.publish('nothing', function () {
+  });
+
   Meteor.methods({
     'example': function () {
       console.log('example method called');
