@@ -42,8 +42,8 @@ describe('MongoDB.', function () {
     var collection = db.collection('cursor_test');
 
     before(function () {
-      return Promise.all([0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(function (value) {
-        return collection.insert({ x: value }, { w: 1 });
+      return collection.insert([0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(function (value) {
+        return { x: value };
       }));
     });
 
