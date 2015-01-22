@@ -151,19 +151,6 @@ describe('DDP client.', function () {
             });
         });
 
-        it('should not ignore the error if subscribeNoWait is used', function () {
-          return client
-            .subscribeNoWait('denied')
-            .expectError(function (err) {
-              expect(err.message).to.contain(403);
-            });
-        });
-
-        it('should give up if the subscription is not responsive', function () {
-          return client
-            .subscribeNoWait('nothing', [], { giveUpTimeout: 100 });
-        });
-
       });
 
     });
