@@ -25,6 +25,12 @@ describe('DDP client.', function () {
         });
       });
 
+      it('should report meaningful error if "call" is used with wrong parameters', function () {
+        expect(function () {
+          client.call('example', 1);
+        }).to.throw(/array/);
+      });
+
       it('should be able to call "example" method', function () {
         return client.call('example', [ 'someArgumentsMayGoHere' ]).then(function (value) {
           expect(value).to.equal(release);
@@ -80,6 +86,20 @@ describe('DDP client.', function () {
     });
 
     describe('Subscriptions.', function () {
+
+      it('should report meaningful error if "subscribe" is used with wrong parameters', function () {
+        expect(function () {
+          client.subscribe('', 1);
+        }).to.throw(/array/);
+      });
+
+      it('should report meaningful error if subscription does not exist', function () {
+        return client
+          .subscribe('thisShouldNotExist', [])
+          .expectError(function (err) {
+            expect(err.message).to.contain(404);
+          });
+      });
 
       describe('Given the client does not subscribe,', function () {
 
