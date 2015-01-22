@@ -35,6 +35,11 @@ if (Meteor.isServer) {
     // code to run on server at startup
   });
 
+  Meteor.publish('items', function () {
+    console.log('subscribing');
+    return Items.find();
+  });
+
   Meteor.methods({
     'example': function () {
       console.log('example method called');
@@ -45,6 +50,9 @@ if (Meteor.isServer) {
         throw new Meteor.Error('403', 'Access denied');
       }
       return this.userId;
+    },
+    'create': function (name) {
+      Items.insert({ name: name });
     },
   });
 }

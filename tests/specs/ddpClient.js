@@ -79,6 +79,57 @@ describe('DDP client.', function () {
 
     });
 
+    describe('Subscriptions.', function () {
+
+      describe('Given the client does not subscribe,', function () {
+
+        var client2 = ddp(server);
+
+        it('the data should not arrive', function () {
+          return client2
+            .call('create')
+            .waitForUpdates('items')
+            .then(function (listOfItems) {
+              expect(listOfItems).to.be.undefined;
+            });
+        });
+
+      });
+
+      describe('Given the client does subscribe,', function () {
+
+        var client3 = ddp(server);
+
+        before(function () {
+          return client3.subscribe('items');
+        });
+
+        it('the data may not arrive immediately ...', function () {
+          return client3
+            .call('create', [ 'some test item' ])
+            .collection('items')
+            .then(function (listOfItems) {
+              expect(values(listOfItems)).not.to.contain.a.thing.with.property('name', 'some test item');
+            });
+        });
+
+        it('... but eventually it should arrive', function () {
+          return client3
+            .waitForUpdates('items')
+            .then(function (listOfItems) {
+              expect(values(listOfItems)).contain.a.thing.with.property('name', 'some test item');
+            });
+        });
+
+      });
+
+    });
+
   });
 
+  function values (object) {
+    return Object.keys(object).map(function (key) { return object[key]; });
+  }
+
 });
+
