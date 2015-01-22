@@ -99,9 +99,13 @@ describe('DDP client.', function () {
       describe('Given the client does subscribe,', function () {
 
         var client3 = ddp(server);
+        var id      = null;
 
         before(function () {
-          return client3.subscribe('items');
+          return client3.subscribe('items').then(function (myId) {
+            expect(myId).to.be.ok;
+            id = myId;
+          });
         });
 
         it('the data may not arrive immediately ...', function () {
@@ -119,6 +123,20 @@ describe('DDP client.', function () {
             .then(function (listOfItems) {
               expect(values(listOfItems)).contain.a.thing.with.property('name', 'some test item');
             });
+        });
+
+        describe('When the client unsubscribes,', function () {
+          before(function () {
+            return client3.unsubscribe(id);
+          });
+
+          it('the data should be gone', function () {
+            return client3
+            .sleep(500)
+            .collection('items').then(function (listOfItems) {
+              expect(listOfItems).to.be.empty;
+            });
+          });
         });
 
       });
