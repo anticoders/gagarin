@@ -102,10 +102,12 @@ describe('DDP client.', function () {
         var id      = null;
 
         before(function () {
-          return client3.subscribe('items').then(function (myId) {
-            expect(myId).to.be.ok;
-            id = myId;
-          });
+          return client3
+            .subscribe('items').then(function (myId) {
+              expect(myId).to.be.ok;
+              id = myId;
+            })
+            .call('create', [ 'some test item' ]);
         });
 
         // XXX this test case often fails because data arrives too quickly
