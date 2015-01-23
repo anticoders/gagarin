@@ -271,7 +271,7 @@ describe('Reporting Exceptions', function () {
     describe('Client-side exceptions', function () {
 
       var message = "";
-      var client = browser(server2.location);
+      var client = browser(server2);
 
       describe('If there is a syntax error in client-side injected script', function () {
 

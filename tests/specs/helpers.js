@@ -5,7 +5,7 @@ describe('Helpers', function () {
   describe('Built in helpers', function () {
 
     var server = meteor();
-    var client = browser(server.location);
+    var client = browser(server);
 
     it('should be able to use sendKeys', function () {
       return client
