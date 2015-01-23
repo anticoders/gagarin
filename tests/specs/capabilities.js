@@ -3,14 +3,14 @@ describe('Browser capabilities', function () {
   var server = meteor();
 
   var client1 = browser({
-    location: server.location,
+    location: server,
     dontWaitForMeteor: true,
     windowSize: { width: 500, height: 500 },
   });
 
   var client2 = browser({
     dontWaitForMeteor: true,
-    location: server.location,
+    location: server,
     capabilities: {
       browserName: 'chrome',
       chromeOptions: {
