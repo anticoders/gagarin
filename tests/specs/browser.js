@@ -7,7 +7,7 @@ describe('Tests with browser', function () {
 
   var server = meteor({});
 
-  var browser1 = browser(server.location);
+  var browser1 = browser(server);
   
   it('should be ok', function () {
     return Promise.resolve('should be ok');
@@ -67,7 +67,7 @@ describe('Tests with browser', function () {
 
   describe('Restarting server', function () {
 
-    var browser2 = browser(server.location);
+    var browser2 = browser(server);
 
     this.timeout(10000);
 
