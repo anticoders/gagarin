@@ -2,7 +2,7 @@
 describe('Chaining', function () {
 
   var server = meteor();
-  var client = browser(server.location);
+  var client = browser(server);
 
   it('promise chain should work on server', function () {
     return server.execute(function () {

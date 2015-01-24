@@ -12,7 +12,7 @@ describe('Initialization', function () {
     Items.insert({_id: 'server'});
   });
 
-  var client = browser(server.location, function (resolve, reject) {
+  var client = browser(server, function (resolve, reject) {
     b = 2;
     Items.insert({_id: 'client'}, either(reject).or(resolve));
   });

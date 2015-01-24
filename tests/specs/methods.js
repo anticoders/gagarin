@@ -68,7 +68,7 @@ describe('Gagarin methods', function () {
 
   describe('Client', function () {
 
-    var client = browser(server.location);
+    var client = browser(server);
 
     it('should be able to execute code on the client', function () {
       return client.execute(function () {

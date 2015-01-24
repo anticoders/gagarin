@@ -1,7 +1,6 @@
 describe('Closures', function () {
 
   var server = meteor();
-  //var client = browser(server.location);
 
   var a = Math.random();
   var b = Math.random();
@@ -245,7 +244,7 @@ describe('Closures', function () {
 
   describe('Closure variables in client scripts', function () {
 
-    var client = browser(server.location);
+    var client = browser(server);
 
     beforeEach(function () {
       b = Math.random().toString();
