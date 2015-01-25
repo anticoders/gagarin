@@ -15,8 +15,8 @@ Package.onUse(function (api) {
 
   api.addFiles([
     
-    'settings.js',
-    'backdoor.js',
+    'meteor/settings.js',
+    'meteor/backdoor.js',
 
   ], 'server');
 
