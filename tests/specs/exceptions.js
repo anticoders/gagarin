@@ -1,5 +1,5 @@
 var expect = require('chai').expect;
-var Meteor = require('../../lib/meteor/meteor');
+var Meteor = require('../../lib/meteor');
 var path   = require('path');
 
 describe('Reporting Exceptions', function () {
