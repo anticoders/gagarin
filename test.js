@@ -25,7 +25,8 @@ var gagarin = new Gagarin({
   skipBuild     : program.skipBuild,
   buildOnly     : program.buildOnly,
   muteBuild     : !program.verbose,
-  verbose       : program.verbose,
+  //verbose       : program.verbose,
+  verbose       : true,
 });
 
 fs.readdirSync(path.join(__dirname, 'tests', 'specs')).forEach(function (file) {

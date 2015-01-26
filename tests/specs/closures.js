@@ -1,7 +1,6 @@
 describe('Closures', function () {
 
   var server = meteor();
-  //var client = browser(server.location);
 
   var a = Math.random();
   var b = Math.random();
@@ -10,9 +9,7 @@ describe('Closures', function () {
 
   var zero = 0;
 
-  closure(['a', 'b', 'c', 'd', 'zero'], function (key, value) {
-    return eval(key + (arguments.length > 1 ? '=' + JSON.stringify(value) : ''));
-  });
+  closure(['a', 'b', 'c', 'd', 'zero'], function (expr) { return eval(expr); });
 
   describe('Closure variables in server scripts', function () {
 
@@ -247,7 +244,7 @@ describe('Closures', function () {
 
   describe('Closure variables in client scripts', function () {
 
-    var client = browser(server.location);
+    var client = browser(server);
 
     beforeEach(function () {
       b = Math.random().toString();
