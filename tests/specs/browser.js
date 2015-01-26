@@ -56,7 +56,7 @@ describe('Tests with browser', function () {
       return server.execute(function (id) {
           // TODO: wait?
           return Items.findOne({_id: id});
-        }, id)
+        }, [ id ])
         .then(function (value) {
           expect(value).not.to.be.empty;
           expect(value._id).to.equal(id);

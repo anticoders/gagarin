@@ -113,9 +113,8 @@ describe('Reporting Exceptions', function () {
         }, 500);
       });
 
-      it('should respawn the meteor process when requested', function () {
+      it('should respawn the meteor process automatically', function () {
         return server1
-          .restart()
           .execute(function () {
             return Meteor.release;
           })
