@@ -5,7 +5,7 @@ describe('An example Gagarin test suite', function () {
     // probably the best place for your fixtures
   });
 
-  var client = browser(server.location + "/path/to/some/view", function () {
+  var client = browser(server, function () {
     // some initialization on client (if needed)
   });
 
