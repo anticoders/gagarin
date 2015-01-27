@@ -13,7 +13,8 @@ describe('Reporting Exceptions', function () {
     var message = "";
 
     var server = new Meteor({
-      pathToApp: path.resolve(__dirname, '..', 'build_error')
+      pathToApp: path.resolve(__dirname, '..', 'build_error'),
+      skipBuild: false, // overwrite the default setting
     });
 
     it('should throw an error', function () {
