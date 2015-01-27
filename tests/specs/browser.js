@@ -86,7 +86,7 @@ describe('Tests with browser', function () {
 
     it('should recognize that the server was restarted', function () {
       return browser2
-        .wait(5000, 'until reset event is detected', "return reset > 0")
+        .wait(7000, 'until reset event is detected', "return reset > 0")
         .execute("return reset;")
         .then(function (numberOfResets) {
           expect(numberOfResets).to.equal(1);
@@ -96,7 +96,7 @@ describe('Tests with browser', function () {
     it ('another restart shoud work as well', function () {
       return server.restart().then(function () {
         return browser2
-          .wait(5000, 'until reset event is detected', "return reset > 1")
+          .wait(7000, 'until reset event is detected', "return reset > 1")
           .execute("return reset;")
           .then(function (numberOfResets) {
             expect(numberOfResets).to.equal(2);
