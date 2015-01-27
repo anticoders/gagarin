@@ -12,14 +12,15 @@ describe('Reporting Exceptions', function () {
 
     var message = "";
 
-    var server = new Meteor({
-      pathToApp: path.resolve(__dirname, '..', 'build_error'),
-      skipBuild: false, // overwrite the default setting
+    var server = meteor({
+      pathToApp   : path.resolve(__dirname, '..', 'build_error'),
+      skipBuild   : false, // overwrite the default setting
+      noAutoStart : true,
     });
 
     it('should throw an error', function () {
       return server
-        .start()
+        .init()
         .expectError(function (err) {
           message = err.message;
         });
@@ -39,13 +40,14 @@ describe('Reporting Exceptions', function () {
 
     var message = "";
 
-    var server = new Meteor({
-      pathToApp: path.resolve(__dirname, '..', 'no_gagarin')
+    var server = meteor({
+      pathToApp   : path.resolve(__dirname, '..', 'no_gagarin'),
+      noAutoStart : true,
     });
 
     it('should throw an error', function () {
       return server
-        .start()
+        .init()
         .expectError(function (err) {
           message = err.message;
         });
@@ -65,13 +67,15 @@ describe('Reporting Exceptions', function () {
 
     var message = "";
 
-    var server = new Meteor({
-      pathToApp: path.resolve(__dirname, '..', 'incompatible')
+    var server = meteor({
+      pathToApp   : path.resolve(__dirname, '..', 'incompatible'),
+      skipBuild   : false, // overwrite the default setting
+      noAutoStart : true,
     });
 
     it('should throw an error', function () {
       return server
-        .start()
+        .init()
         .expectError(function (err) {
           message = err.message;
         });
