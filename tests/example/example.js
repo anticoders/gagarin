@@ -8,9 +8,11 @@ if (Meteor.isClient) {
 
   Meteor.subscribe('items');
 
-  Template.hello.greeting = function () {
-    return "Welcome to example.";
-  };
+  Template.hello.helpers({
+    greeting: function () {
+      return "Welcome to example.";
+    }
+  });
 
   Template.hello.helpers({
     counter: function () {
