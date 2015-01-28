@@ -86,20 +86,25 @@ describe('Tests with browser', function () {
 
     it('should recognize that the server was restarted', function () {
       return browser2
-        .wait(7000, 'until reset event is detected', "return reset > 0")
+        .wait(7000, 'until status.connected === true', function () {
+          return Meteor.connection.status().connected;
+        })
         .execute("return reset;")
         .then(function (numberOfResets) {
-          expect(numberOfResets).to.equal(1);
+          // XXX the first "reset" occurs on startup, so we have two resets up to this point
+          expect(numberOfResets).to.equal(2);
         });
     });
 
     it ('another restart shoud work as well', function () {
-      return server.restart().then(function () {
+      return server.restart(2000).then(function () {
         return browser2
-          .wait(7000, 'until reset event is detected', "return reset > 1")
+          .wait(7000, 'until status.connected === true', function () {
+            return Meteor.connection.status().connected;
+          })
           .execute("return reset;")
           .then(function (numberOfResets) {
-            expect(numberOfResets).to.equal(2);
+            expect(numberOfResets).to.equal(3);
           });
       });
     });
