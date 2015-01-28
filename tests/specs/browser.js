@@ -68,12 +68,21 @@ describe('Tests with browser', function () {
   describe('Restarting server', function () {
 
     var browser2 = browser(server);
+    var value    = 0;
 
     this.timeout(10000);
 
     before(function () {
       return server.restart(2000);
     });
+
+    before(function () {
+      return browser2
+        .execute("return reset;")
+        .then(function (numberOfResets) {
+          value = numberOfResets;
+        });
+    })
 
     it ('should be all right', function () {
       return server.execute(function ()  {
@@ -92,7 +101,7 @@ describe('Tests with browser', function () {
         .execute("return reset;")
         .then(function (numberOfResets) {
           // XXX the first "reset" occurs on startup, so we have two resets up to this point
-          expect(numberOfResets).to.equal(2);
+          expect(numberOfResets).to.equal(value + 1);
         });
     });
 
@@ -104,7 +113,7 @@ describe('Tests with browser', function () {
           })
           .execute("return reset;")
           .then(function (numberOfResets) {
-            expect(numberOfResets).to.equal(3);
+            expect(numberOfResets).to.equal(value + 2);
           });
       });
     });
