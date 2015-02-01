@@ -90,7 +90,7 @@ describe('Helpers', function () {
     it('focus should set focus on the given selector', function () {
       return client
         .focus('#focus')
-        .wait(1000,'until focused',function(el){
+        .wait(1000,'until focused',function(){
           var element = document.querySelector('#focus');
           return element.value==='Focused.';
         })
@@ -103,7 +103,7 @@ describe('Helpers', function () {
       return client
         .focus('#blur')
         .blur('#blur')
-        .wait(1000,'until blurred',function(el){
+        .wait(1000,'until blurred',function(){
           var element = document.querySelector('#blur');
           return element.value==='Blurred.';
         })
