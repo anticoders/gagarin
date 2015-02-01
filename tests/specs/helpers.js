@@ -226,14 +226,10 @@ describe('Helpers', function () {
     var server = meteor();
     var client = browser(server);
     
-    it('should start in connected state.', function () {
+    it('start in connected state.', function () {
       return client
-        .execute(function () {
-          return Meteor.status();
-        })
-        .then(function(res) {
-          expect(res.status).to.eql('connected');
-          expect(res.connected).to.be.true;
+        .wait(3000,'until connected',function(){
+          return Meteor.status().connected===true;
         })
     });
 
