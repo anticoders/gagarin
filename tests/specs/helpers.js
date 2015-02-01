@@ -174,6 +174,56 @@ describe('Helpers', function () {
 
   });
 
+  // TODO test afterFlush
+  describe.skip('Built in Tracker helpers', function () {
+    var server = meteor();
+    var client = browser(server);
+    it('afterFlush should schedule function for next flush', function () {
+      return client
+        .afterFlush()
+    });
+  });  
+
+  describe('Built in server connections helpers', function () {
+    var server = meteor();
+    var client = browser(server);
+    
+    it('should start in connected state.', function () {
+      return client
+        .execute(function () {
+          return Meteor.status();
+        })
+        .then(function(res) {
+          expect(res.status).to.eql('connected');
+          expect(res.connected).to.be.true;
+        })
+    });
+
+    it('disconnect client from the server.', function () {
+      return client
+        .disconnect()
+        .execute(function () {
+          return Meteor.status();
+        })
+        .then(function(res) {
+          expect(res.connected).to.be.false;
+        })
+    });
+
+    it('reconnect client to the server.', function () {
+      return client
+        .reconnect()
+        .execute(function () {
+          return Meteor.status();
+        })
+        .then(function(res) {
+          expect(res.status).to.eql('connected');
+          expect(res.connected).to.be.true;
+        })
+    });
+
+  }); 
+
   describe('Custom user-defined helpers', function () {
 
     var server = meteor({
