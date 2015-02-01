@@ -224,6 +224,21 @@ describe('Helpers', function () {
 
   }); 
 
+  //TODO where to put screenshot file for this test ? 
+  describe.skip('screenshot', function () {
+    var server = meteor();
+    var client = browser(server);
+
+    it('should save a screenshot to file.', function () {
+      return client
+        .screenshot()
+        .then(function(res) {
+          //assert file exists and is named by today's date and has some bytes
+        })
+    });
+  });
+
+
   describe('Custom user-defined helpers', function () {
 
     var server = meteor({
