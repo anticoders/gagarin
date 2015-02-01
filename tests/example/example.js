@@ -2,6 +2,14 @@ Fiber = null;
 Items = new Meteor.Collection('items');
 reset = 0;
 
+Router.route('/', function () {
+  this.render('hello');
+});
+
+Router.route('/test', function () {
+  this.render('testRouteTemplate');
+});
+
 if (Meteor.isClient) {
 
   Session.set('counter', 0);

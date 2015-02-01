@@ -3,7 +3,7 @@
 </head>
 
 <body>
-  {{> hello}}
+  {{> yield}}
 </body>
 
 <template name="hello">
@@ -38,4 +38,8 @@
   <div id="hiddenElement" style="display:none">Hidden Element.</div>
   <div style="display:none"><ul><li id="hiddenChild"><p>Hidden Descendant.</p></li></ul></div>
   <div><ul><li><p id="visibleChild">Visible Descendant.</p></li></ul></div>
+</template>
+
+<template name="testRouteTemplate">
+  <div id="testRouteDiv"><h1>Testing Iron Router WaitForRoute Helper.</h1></div>
 </template>
