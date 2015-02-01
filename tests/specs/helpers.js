@@ -242,6 +242,18 @@ describe('Helpers', function () {
     var server = meteor();
     var client = browser(server);
 
+    it('assertion helpers should work', function () {
+      return client
+        .expectExist('#visibleChild')
+        .expectNotExist('#noExist')
+        .expectVisible('#visibleChild')
+        .expectNotVisible('#hiddenChild')
+        .expectValueToEqual('#getValue','Get value.')
+        .expectTextToEqual('#getText','<h3>Get text.</h3>')
+        .expectTextToContain('#getText','Get tex')
+        .expectToHaveClass('#getClass','myClass')
+    });
+
     describe('checkIfExist', function () {
       it('should return true if element exists', function () {
         return client
