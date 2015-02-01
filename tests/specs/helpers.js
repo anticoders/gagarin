@@ -87,6 +87,31 @@ describe('Helpers', function () {
         });
     });
 
+    it('focus should set focus on the given selector', function () {
+      return client
+        .focus('#focus')
+        .wait(1000,'until focused',function(el){
+          var element = document.querySelector('#focus');
+          return element.value==='Focused.';
+        })
+        .then(function(res) {
+          expect(res).to.be.true;
+        });
+    });
+
+    it('blur should set blur on the given selector', function () {
+      return client
+        .focus('#blur')
+        .blur('#blur')
+        .wait(1000,'until blurred',function(el){
+          var element = document.querySelector('#blur');
+          return element.value==='Blurred.';
+        })
+        .then(function(res) {
+          expect(res).to.be.true;
+        });
+    });
+
   });
 
   describe('Custom user-defined helpers', function () {

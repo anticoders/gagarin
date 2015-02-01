@@ -36,6 +36,12 @@ if (Meteor.isClient) {
     'click #waitUntilNotVisible' : function() {
       var div = document.getElementById('waitUntilNotVisible');
       div.style.display = "none";
+    },
+    'focus #focus' : function() {
+      document.getElementById('focus').value = 'Focused.';
+    },
+    'blur #blur' : function() {
+      document.getElementById('blur').value = 'Blurred.';
     }
   });
 
