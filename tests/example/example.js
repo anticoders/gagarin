@@ -30,22 +30,26 @@ if (Meteor.isClient) {
     'click input': function () {
       Session.set('counter', Session.get('counter') + 1);
     },
-    'click #waitForDOM' : function() {
+    'click #waitForDOM' : function () {
       var waitForTestDiv = document.createElement('div');
       waitForTestDiv.id = 'waitForTestDiv';
       waitForTestDiv.innerHTML = 'I have been added.';
       document.body.appendChild(waitForTestDiv);
     },
-    'click #waitUntilGone' : function() {
+    'click #waitUntilGone' : function () {
       var parent = document.getElementById('waitUntilGone');
       var child = document.getElementById('removeChildTestDiv');
       parent.removeChild(child);
     },
-    'click #waitUntilNotVisible' : function() {
+    'click #waitUntilNotVisible' : function () {
       var div = document.getElementById('waitUntilNotVisible');
       div.style.display = "none";
     },
-    'focus #focus' : function() {
+    'click #hideParentElement' : function () {
+      var div = document.getElementById('waitUntilNotVisibleParent');
+      div.style.display = "none";
+    },
+    'focus #focus' : function () {
       document.getElementById('focus').value = 'Focused.';
     },
     'blur #blur' : function() {

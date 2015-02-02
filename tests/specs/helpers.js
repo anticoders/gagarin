@@ -46,6 +46,15 @@ describe('Helpers', function () {
         });
     });
 
+    it('waitUntilNotVisible should return true when dom object ancestor no longer visible', function () {
+      return client
+        .click('#hideParentElement')
+        .waitUntilNotVisible('#visibleChild2')
+        .then(function(res) {
+          expect(res).to.be.true;
+        });
+    });
+
     it('getText should return innerHTML for a given selector', function () {
       return client
         .getText('#getText')
@@ -346,6 +355,15 @@ describe('Helpers', function () {
             expect(res).to.be.false;
           })
       });
+
+      it('should work for fixed and absolute position elements', function () {
+        return client
+          .expectVisible('#fixedPositionDiv')
+          .expectVisible('#absolutePositionDiv')
+          .expectNotVisible('#fixedPositionDivHidden')
+          .expectNotVisible('#absolutePositionDivHidden')
+      });
+
     });
   });
 

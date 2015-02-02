@@ -14,13 +14,11 @@
   <p>You clicked {{counter}} times.</p>
 
 
-  <button id="waitForDOM">Adds element.</button>
+  <button id="waitForDOM">Click to add a new element.</button>
 
   <div id="waitUntilGone">
-    <div id="removeChildTestDiv">Removes element.</div>
+    <div id="removeChildTestDiv">Click to remove this element.</div>
   </div>
-
-  <div id="waitUntilNotVisible">Hides element.</div>
 
   <div id="getText"><h3>Get text.</h3></div>
 
@@ -31,13 +29,24 @@
 
   <input id="setValue" type="text">
 
-  <textarea id="focus" type="text">Focus element.</textarea>
-  <textarea id="blur" type="text">Blur element.</textarea>
+  <textarea id="focus" type="text">Click to focus this element.</textarea>
+  <textarea id="blur" type="text">Click in then out to blur this element.</textarea>
 
+  <!--checkIfVisible-->
   <div id="visibleElement">Visible Element.</div>
   <div id="hiddenElement" style="display:none">Hidden Element.</div>
   <div style="display:none"><ul><li id="hiddenChild"><p>Hidden Descendant.</p></li></ul></div>
   <div><ul><li><p id="visibleChild">Visible Descendant.</p></li></ul></div>
+  <div id="fixedPositionDiv" style="position:fixed;top:16px;right:0px;">Fixed position.</div>
+  <div id="absolutePositionDiv" style="position:absolute;top:0px;right:4px;">Absolute position.</div>
+  <div id="fixedPositionDivHidden" style="position:fixed;top:16px;right:0px;display:none;">Fixed position hidden.</div>
+  <div id="absolutePositionDivHidden" style="position:absolute;top:0px;right:4px;display:none;">Absolute position hidden.</div>
+  
+  <!--waitUntilNotVisible-->
+  <div id="waitUntilNotVisible">Click to hide this element.</div>
+  <button id="hideParentElement">Click to hide next div.</button>
+  <div id="waitUntilNotVisibleParent"><ul><li><p id="visibleChild2">Visible Descendant 2.</p></li></ul></div>
+
 </template>
 
 <template name="testRouteTemplate">
