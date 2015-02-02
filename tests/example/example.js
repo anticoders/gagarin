@@ -8,9 +8,11 @@ if (Meteor.isClient) {
 
   Meteor.subscribe('items');
 
-  Template.hello.greeting = function () {
-    return "Welcome to example.";
-  };
+  Template.hello.helpers({
+    greeting: function () {
+      return "Welcome to example.";
+    }
+  });
 
   Template.hello.helpers({
     counter: function () {
@@ -25,7 +27,16 @@ if (Meteor.isClient) {
   });
 
   Meteor.connection._stream.on('reset', function () {
+    // console.warn('connection reset detected');
     reset += 1;
+  });
+
+  Meteor.startup(function () {
+    console.warn('application started');
+  });
+
+  Tracker.autorun(function () {
+    // console.warn(JSON.stringify(Meteor.connection.status()));
   });
 
 }

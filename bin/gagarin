@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 var program = require('commander');
-var Gagarin = require('../lib/gagarin');
+var Gagarin = require('../lib/mocha/gagarin');
 var path = require('path');
 var fs = require('fs');
 

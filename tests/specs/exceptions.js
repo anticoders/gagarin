@@ -4,6 +4,74 @@ var path   = require('path');
 
 describe('Reporting Exceptions', function () {
 
+  describe('Using expectError helper', function () {
+
+    var server = meteor();
+
+    it('should throw error if wrong parameter is used', function () {
+      expect(function () {
+        server.expectError(123);
+      }).throw(/must be/);
+    });
+
+    it('should throw an error if no error is thrown', function () {
+      return server.expectError().then(function () {
+        throw new Error('error was not thrown');
+      }, function (err) {
+        expect(err.message).to.contain('was not thrown');
+      });
+    });
+
+    it('should throw if wrong type of object is thrown', function () {
+      return server.then(function () {
+        throw "this is not a valid error";
+      }).expectError().then(function () {
+        throw new Error('error was not thorwn');
+      }, function (err) {
+        expect(err.message).to.contain('instance of Error');
+      });
+    });
+
+    it('may be used with no arguments', function () {
+      return server.then(function () {
+        throw new Error('just a fake error');
+      }).expectError();
+    });
+
+    it('may be used with string as an argument', function () {
+      return server.then(function () {
+        throw new Error('just a fake error');
+      }).expectError('just a fake error');
+    });
+
+    it('should throw if the string is not contained in err.message', function () {
+      return server.then(function () {
+        throw new Error('just a fake error');
+      }).expectError('thisTextIsNotContainedInErrorMessage').then(function () {
+        throw new Error('error was not thrown');
+      }, function (err) {
+        expect(err.message).to.contain('to include');
+      });
+    });
+
+    it('may be used with RegExp as an argument', function () {
+      return server.then(function () {
+        throw new Error('just a fake error');
+      }).expectError(/error$/);
+    });
+
+    it('should throw if the RegExp does not match err.message', function () {
+      return server.then(function () {
+        throw new Error('just a fake error');
+      }).expectError(/^error/).then(function () {
+        throw new Error('error was not thrown');
+      }, function (err) {
+        expect(err.message).to.contain('to match');
+      });
+    });
+
+  });
+
   describe('Given the app does not build properly,', function () {
 
     // TODO: check if the process is properly killed
@@ -12,13 +80,15 @@ describe('Reporting Exceptions', function () {
 
     var message = "";
 
-    var server = new Meteor({
-      pathToApp: path.resolve(__dirname, '..', 'build_error')
+    var server = meteor({
+      pathToApp   : path.resolve(__dirname, '..', 'build_error'),
+      skipBuild   : false, // overwrite the default setting
+      noAutoStart : true,
     });
 
     it('should throw an error', function () {
       return server
-        .start()
+        .init()
         .expectError(function (err) {
           message = err.message;
         });
@@ -38,13 +108,14 @@ describe('Reporting Exceptions', function () {
 
     var message = "";
 
-    var server = new Meteor({
-      pathToApp: path.resolve(__dirname, '..', 'no_gagarin')
+    var server = meteor({
+      pathToApp   : path.resolve(__dirname, '..', 'no_gagarin'),
+      noAutoStart : true,
     });
 
     it('should throw an error', function () {
       return server
-        .start()
+        .init()
         .expectError(function (err) {
           message = err.message;
         });
@@ -64,13 +135,15 @@ describe('Reporting Exceptions', function () {
 
     var message = "";
 
-    var server = new Meteor({
-      pathToApp: path.resolve(__dirname, '..', 'incompatible')
+    var server = meteor({
+      pathToApp   : path.resolve(__dirname, '..', 'incompatible'),
+      skipBuild   : false, // overwrite the default setting
+      noAutoStart : true,
     });
 
     it('should throw an error', function () {
       return server
-        .start()
+        .init()
         .expectError(function (err) {
           message = err.message;
         });
@@ -113,9 +186,8 @@ describe('Reporting Exceptions', function () {
         }, 500);
       });
 
-      it('should respawn the meteor process when requested', function () {
+      it('should respawn the meteor process automatically', function () {
         return server1
-          .restart()
           .execute(function () {
             return Meteor.release;
           })

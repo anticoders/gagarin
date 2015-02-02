@@ -56,7 +56,7 @@ describe('Tests with browser', function () {
       return server.execute(function (id) {
           // TODO: wait?
           return Items.findOne({_id: id});
-        }, id)
+        }, [ id ])
         .then(function (value) {
           expect(value).not.to.be.empty;
           expect(value._id).to.equal(id);
@@ -68,12 +68,21 @@ describe('Tests with browser', function () {
   describe('Restarting server', function () {
 
     var browser2 = browser(server);
+    var value    = 0;
 
     this.timeout(10000);
 
     before(function () {
       return server.restart(2000);
     });
+
+    before(function () {
+      return browser2
+        .execute("return reset;")
+        .then(function (numberOfResets) {
+          value = numberOfResets;
+        });
+    })
 
     it ('should be all right', function () {
       return server.execute(function ()  {
@@ -86,20 +95,25 @@ describe('Tests with browser', function () {
 
     it('should recognize that the server was restarted', function () {
       return browser2
-        .wait(5000, 'until reset event is detected', "return reset > 0")
+        .wait(7000, 'until status.connected === true', function () {
+          return Meteor.connection.status().connected;
+        })
         .execute("return reset;")
         .then(function (numberOfResets) {
-          expect(numberOfResets).to.equal(1);
+          // XXX the first "reset" occurs on startup, so we have two resets up to this point
+          expect(numberOfResets).to.equal(value + 1);
         });
     });
 
     it ('another restart shoud work as well', function () {
-      return server.restart().then(function () {
+      return server.restart(2000).then(function () {
         return browser2
-          .wait(5000, 'until reset event is detected', "return reset > 1")
+          .wait(7000, 'until status.connected === true', function () {
+            return Meteor.connection.status().connected;
+          })
           .execute("return reset;")
           .then(function (numberOfResets) {
-            expect(numberOfResets).to.equal(2);
+            expect(numberOfResets).to.equal(value + 2);
           });
       });
     });

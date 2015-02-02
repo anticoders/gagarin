@@ -1,11 +1,10 @@
 #!/usr/bin/env node
 
-var Gagarin = require('./lib/gagarin');
+var Gagarin = require('./lib/mocha/gagarin');
 var path = require('path');
 var fs = require('fs');
 var pathToApp = path.resolve('./tests/example');
 var program = require('commander');
-var helpers = require('./lib/helpers');
 
 program
   .option('-g, --grep <pattern>', 'only run tests matching <pattern>')

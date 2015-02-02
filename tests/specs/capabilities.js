@@ -9,7 +9,7 @@ describe('Browser capabilities', function () {
   });
 
   var client2 = browser({
-    dontWaitForMeteor: true,
+    dontWaitForMeteor: false,
     location: server,
     capabilities: {
       browserName: 'chrome',

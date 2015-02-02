@@ -2,7 +2,7 @@
 Package.describe({
   summary:  "Gagarin, a Meteor testing framework",
   name:     "anti:gagarin",
-  version:  "0.4.0",
+  version:  "0.4.1",
   git:      "https://github.com/anticoders/gagarin.git",
 });
 
@@ -15,8 +15,8 @@ Package.onUse(function (api) {
 
   api.addFiles([
     
-    'settings.js',
-    'backdoor.js',
+    'meteor/settings.js',
+    'meteor/backdoor.js',
 
   ], 'server');
 
