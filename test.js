@@ -30,8 +30,7 @@ var gagarin = new Gagarin({
 });
 
 fs.readdirSync(path.join(__dirname, 'tests', 'specs')).forEach(function (file) {
-  if(file === 'exceptions.js')
-    gagarin.addFile(path.join(__dirname, 'tests', 'specs', file));
+  gagarin.addFile(path.join(__dirname, 'tests', 'specs', file));
 });
 
 gagarin.run(function (failedCount) {

@@ -155,6 +155,48 @@ describe('Reporting Exceptions', function () {
 
   });
 
+  describe('Given timeout for any server output exceeded', function(){
+    var server = meteor({
+      skipBuild     : false, // overwrite the default setting
+      noAutoStart   : true,
+      safetyTimeout : 1,
+    });
+
+    it('should throw an error', function () {
+      return server
+      .init()
+      .expectError(function (err) {
+        message = err.message;
+      });
+    });
+
+    it('the error should contain useful information', function () {
+      expect(message).to.contain("server output");
+    });
+
+  });
+
+  describe('Given timeout for server startup exceeded', function(){
+    var server = meteor({
+      skipBuild            : false, // overwrite the default setting
+      noAutoStart          : true,
+      serverStartupTimeout : 1,
+    });
+
+    it('should throw an error', function () {
+      return server
+      .init()
+      .expectError(function (err) {
+        message = err.message;
+      });
+    });
+
+    it('the error should contain useful information', function () {
+      expect(message).to.contain("server startup");
+    });
+
+  });
+  
   describe('Given the app is properly built,', function () {
 
     // SERVER SIDE ERRORS
@@ -431,7 +473,7 @@ describe('Reporting Exceptions', function () {
       });
 
       describe('If the client-side wait fails due to some error', function () {
-      
+
         it('should be properly reported', function () {
           return client
             .wait(1000, 'until error is thrown', function () {
@@ -449,7 +491,7 @@ describe('Reporting Exceptions', function () {
       });
 
       describe('If the client-side wait fails due to timeout', function () {
-    
+
         it('should be properly reported', function () {
           return client
             .wait(100, 'until error is thrown', function () {
