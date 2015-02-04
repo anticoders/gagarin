@@ -24,12 +24,14 @@ var gagarin = new Gagarin({
   skipBuild     : program.skipBuild,
   buildOnly     : program.buildOnly,
   muteBuild     : !program.verbose,
+  safetyTimeout : 5000,
   //verbose       : program.verbose,
   verbose       : true,
 });
 
 fs.readdirSync(path.join(__dirname, 'tests', 'specs')).forEach(function (file) {
-  gagarin.addFile(path.join(__dirname, 'tests', 'specs', file));
+  if(file === 'exceptions.js')
+    gagarin.addFile(path.join(__dirname, 'tests', 'specs', file));
 });
 
 gagarin.run(function (failedCount) {
