@@ -90,7 +90,7 @@ describe('Flavor', function () {
       beforeEach(function() {
         beforeY = fiberServer.execute(function(beforeY) {
           return beforeY + 10;
-        }, beforeY);
+        }, [ beforeY ]);
       });
 
       it('should get the value incremented by beforeEach', function() {
@@ -107,7 +107,7 @@ describe('Flavor', function () {
       afterEach(function() {
         beforeA = fiberServer.execute(function(beforeA) {
           return beforeA + 10;
-        }, beforeA);
+        }, [ beforeA ]);
       });
 
       it('should not get the value set by afterEach', function() {
@@ -128,7 +128,7 @@ describe('Flavor', function () {
       after(function() {
         beforeB = fiberServer.execute(function(beforeB) {
           return beforeB + 10;
-        }, beforeB);
+        }, [ beforeB ]);
       });
 
       it('should not get the value set by after', function() {
