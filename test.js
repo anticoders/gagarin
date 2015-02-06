@@ -24,7 +24,8 @@ var gagarin = new Gagarin({
   skipBuild     : program.skipBuild,
   buildOnly     : program.buildOnly,
   muteBuild     : !program.verbose,
-  safetyTimeout : 5000,
+  
+  startupTimeout : 5000,
   //verbose       : program.verbose,
   verbose       : true,
 });

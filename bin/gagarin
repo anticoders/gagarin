@@ -35,7 +35,8 @@ program
   .option('-r, --remote-server <url>', 'run tests on a remote server')
   .option('-m, --mute-build', 'do not show build logs', false)
   .option('-f, --flavor <name>', 'default flavor of api (promise, fiber)', 'promise')
-  .option('-T, --safety-timeout <ms>' ,'server start timeout',intParse,5000)
+  .option('-T, --startup-timeout <ms>' ,'server startup timeout [5000]', intParse, 5000)
+
 program.name = 'gagarin';
 
 program.parse(process.argv);

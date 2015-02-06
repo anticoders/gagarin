@@ -155,11 +155,10 @@ describe('Reporting Exceptions', function () {
 
   });
 
-  describe('Given timeout for any server output exceeded', function(){
+  describe('Given timeout for the first server output is exceeded', function(){
     var server = meteor({
-      skipBuild     : false, // overwrite the default setting
-      noAutoStart   : true,
-      safetyTimeout : 1,
+      noAutoStart    : true,
+      startupTimeout : 1,
     });
 
     it('should throw an error', function () {
@@ -176,11 +175,10 @@ describe('Reporting Exceptions', function () {
 
   });
 
-  describe('Given timeout for server startup exceeded', function(){
+  describe('Given timeout for server startup is exceeded', function(){
     var server = meteor({
-      skipBuild            : false, // overwrite the default setting
-      noAutoStart          : true,
-      serverStartupTimeout : 1,
+      noAutoStart     : true,
+      startupTimeout2 : 1,
     });
 
     it('should throw an error', function () {
