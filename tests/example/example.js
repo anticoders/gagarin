@@ -2,19 +2,25 @@ Fiber = null;
 Items = new Meteor.Collection('items');
 reset = 0;
 
+Router.route('/', function () {
+  this.render('hello');
+});
+
+Router.route('/test', function () {
+  this.render('testRouteTemplate');
+});
+
 if (Meteor.isClient) {
 
   Session.set('counter', 0);
 
   Meteor.subscribe('items');
 
+
   Template.hello.helpers({
     greeting: function () {
       return "Welcome to example.";
-    }
-  });
-
-  Template.hello.helpers({
+    },
     counter: function () {
       return Session.get('counter');
     }
@@ -23,6 +29,31 @@ if (Meteor.isClient) {
   Template.hello.events({
     'click input': function () {
       Session.set('counter', Session.get('counter') + 1);
+    },
+    'click #waitForDOM' : function () {
+      var waitForTestDiv = document.createElement('div');
+      waitForTestDiv.id = 'waitForTestDiv';
+      waitForTestDiv.innerHTML = 'I have been added.';
+      document.body.appendChild(waitForTestDiv);
+    },
+    'click #waitUntilGone' : function () {
+      var parent = document.getElementById('waitUntilGone');
+      var child = document.getElementById('removeChildTestDiv');
+      parent.removeChild(child);
+    },
+    'click #waitUntilNotVisible' : function () {
+      var div = document.getElementById('waitUntilNotVisible');
+      div.style.display = "none";
+    },
+    'click #hideParentElement' : function () {
+      var div = document.getElementById('waitUntilNotVisibleParent');
+      div.style.display = "none";
+    },
+    'focus #focus' : function () {
+      document.getElementById('focus').value = 'Focused.';
+    },
+    'blur #blur' : function() {
+      document.getElementById('blur').value = 'Blurred.';
     }
   });
 
