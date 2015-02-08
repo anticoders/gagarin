@@ -401,6 +401,24 @@ describe('Reporting Exceptions', function () {
 
       });
 
+      describe('If chai assertion fails in client-side injected script', function () {
+
+        it('should be properly reported', function () {
+          return client
+            .execute(function () {
+              expect(true).to.be.false;
+            })
+            .expectError(function (err) {
+              message = err.message;
+            });
+        });
+
+        it('the error message should contain useful information', function () {
+          expect(message).to.contain('expected true to be false');
+        });
+
+      });
+
       describe('If there is a syntax error in client-side promise', function () {
 
         it('should be properly reported', function () {
