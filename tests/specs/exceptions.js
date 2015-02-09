@@ -385,6 +385,34 @@ describe('Reporting Exceptions', function () {
       var message = "";
       var client = browser(server2);
 
+      describe('Use strict', function () {
+
+        it('should not allow introducing new global variables in client.execute', function () {
+          return client.execute(function () {
+            someNewVariable = true;
+          }).expectError(function (err) {
+            expect(err.message).to.include('someNewVariable');
+          });
+        });
+
+        it('should not allow introducing new global variables in client.promise', function () {
+          return client.promise(function (resolve) {
+            resolve(someNewVariable = true);
+          }).expectError(function (err) {
+            expect(err.message).to.include('someNewVariable');
+          });
+        });
+
+        it('should not allow introducing new global variables in client.wait', function () {
+          return client.wait(1000, '', function () {
+            return someNewVariable = true;
+          }).expectError(function (err) {
+            expect(err.message).to.include('someNewVariable');
+          });
+        });
+
+      });
+
       describe('If there is a syntax error in client-side injected script', function () {
 
         it('should be properly reported', function () {
