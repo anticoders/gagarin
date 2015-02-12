@@ -36,6 +36,7 @@ program
   .option('-m, --mute-build', 'do not show build logs', false)
   .option('-f, --flavor <name>', 'default flavor of api (promise, fiber)', 'promise')
   .option('-T, --startup-timeout <ms>' ,'server startup timeout [5000]', intParse, 5000)
+  .option('-U, --meteor-startup-timeout <ms>' ,'initial meteor startup timeout [120000]', intParse, 120000);
 
 program.name = 'gagarin';
 
