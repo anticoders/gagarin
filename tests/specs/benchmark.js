@@ -44,6 +44,9 @@ describe('Benchmark test suite', function () {
 
   describe("Browser benchmark", function () {
     var client = browser(server);
+
+    this.timeout(15000);
+
     it('500x execute', function () {
       var myPromise = client;
       var i;
