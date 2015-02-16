@@ -155,6 +155,46 @@ describe('Reporting Exceptions', function () {
 
   });
 
+  describe('Given timeout for the first server output is exceeded', function(){
+    var server = meteor({
+      noAutoStart    : true,
+      startupTimeout : 1,
+    });
+
+    it('should throw an error', function () {
+      return server
+      .init()
+      .expectError(function (err) {
+        message = err.message;
+      });
+    });
+
+    it('the error should contain useful information', function () {
+      expect(message).to.contain("server output");
+    });
+
+  });
+
+  describe('Given timeout for server startup is exceeded', function(){
+    var server = meteor({
+      noAutoStart     : true,
+      startupTimeout2 : 1,
+    });
+
+    it('should throw an error', function () {
+      return server
+      .init()
+      .expectError(function (err) {
+        message = err.message;
+      });
+    });
+
+    it('the error should contain useful information', function () {
+      expect(message).to.contain("server startup");
+    });
+
+  });
+  
   describe('Given the app is properly built,', function () {
 
     // SERVER SIDE ERRORS
@@ -345,6 +385,34 @@ describe('Reporting Exceptions', function () {
       var message = "";
       var client = browser(server2);
 
+      describe('Use strict', function () {
+
+        it('should not allow introducing new global variables in client.execute', function () {
+          return client.execute(function () {
+            someNewVariable = true;
+          }).expectError(function (err) {
+            expect(err.message).to.include('someNewVariable');
+          });
+        });
+
+        it('should not allow introducing new global variables in client.promise', function () {
+          return client.promise(function (resolve) {
+            resolve(someNewVariable = true);
+          }).expectError(function (err) {
+            expect(err.message).to.include('someNewVariable');
+          });
+        });
+
+        it('should not allow introducing new global variables in client.wait', function () {
+          return client.wait(1000, '', function () {
+            return someNewVariable = true;
+          }).expectError(function (err) {
+            expect(err.message).to.include('someNewVariable');
+          });
+        });
+
+      });
+
       describe('If there is a syntax error in client-side injected script', function () {
 
         it('should be properly reported', function () {
@@ -357,6 +425,24 @@ describe('Reporting Exceptions', function () {
 
         it('the error message should contain useful information', function () {
           expect(message).to.contain('Unexpected token :');
+        });
+
+      });
+
+      describe.skip('If chai assertion fails in client-side injected script', function () {
+
+        it('should be properly reported', function () {
+          return client
+            .execute(function () {
+              expect(true).to.be.false;
+            })
+            .expectError(function (err) {
+              message = err.message;
+            });
+        });
+
+        it('the error message should contain useful information', function () {
+          expect(message).to.contain('expected true to be false');
         });
 
       });
@@ -431,7 +517,7 @@ describe('Reporting Exceptions', function () {
       });
 
       describe('If the client-side wait fails due to some error', function () {
-      
+
         it('should be properly reported', function () {
           return client
             .wait(1000, 'until error is thrown', function () {
@@ -449,7 +535,7 @@ describe('Reporting Exceptions', function () {
       });
 
       describe('If the client-side wait fails due to timeout', function () {
-    
+
         it('should be properly reported', function () {
           return client
             .wait(100, 'until error is thrown', function () {
