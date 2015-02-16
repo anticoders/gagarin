@@ -24,8 +24,8 @@ var gagarin = new Gagarin({
   skipBuild     : program.skipBuild,
   buildOnly     : program.buildOnly,
   muteBuild     : !program.verbose,
-  
   startupTimeout : 5000,
+  meteorLoadTimeout : 4000,
   //verbose       : program.verbose,
   verbose       : true,
 });
