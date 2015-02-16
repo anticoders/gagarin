@@ -429,7 +429,7 @@ describe('Reporting Exceptions', function () {
 
       });
 
-      describe('If chai assertion fails in client-side injected script', function () {
+      describe.skip('If chai assertion fails in client-side injected script', function () {
 
         it('should be properly reported', function () {
           return client
