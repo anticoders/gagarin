@@ -6,6 +6,11 @@ Package.describe({
   git:      "https://github.com/anticoders/gagarin.git",
 });
 
+Npm.depends({
+  chai  : '2.0.0',
+  mocha : '2.1.0',
+});
+
 Package.onUse(function (api) {
 
   api.versionsFrom('METEOR@1.0');

@@ -42,6 +42,7 @@
     "mongodb": "^1.4.7",
     "portscanner": "1.0.0",
     "pty.js": "git://github.com/chjj/pty.js",
+    "source-map": "^0.3.0",
     "wd": "^0.3.11"
   }
 }
