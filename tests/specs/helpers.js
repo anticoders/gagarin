@@ -7,7 +7,7 @@ describe('Helpers', function () {
     var server = meteor();
     var client = browser(server);
     // client
-    beforeEach(function() {
+    before(function() {
       return client
         .loadScript('./node_modules/chai/chai.js',
           'chai',
