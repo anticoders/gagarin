@@ -2,6 +2,106 @@ var Promise = require('es6-promise').Promise;
 
 describe('Helpers', function () {
 
+  describe('loadScript', function () {
+
+    var server = meteor();
+    var client = browser(server);
+    // client
+    beforeEach(function() {
+      return client
+        .loadScript('./node_modules/chai/chai.js',
+          'chai',
+          function(){
+            window['expect']=chai.expect;
+          })
+        .loadScript('./node_modules/chai-things/lib/chai-things.js',
+          '[].should',
+          function(){
+            chai.should();  // you can do some initialization here
+          })
+    });
+
+    it('should be able to load chai', function () {
+      return client  
+      .execute(function(){
+        var x = 2;
+        var y = x + 3;
+        expect(y).to.eql(5);
+      })
+    });
+
+    it('should be able to use chai-things', function () {
+      return client  
+      .execute(function(){
+        [4, 11, 15].should.include.one.below(10);
+        [{ a: 'cat' }, { a: 'dog' }].should.contain.an.item.with.property('a', 'dog');
+      })
+    });
+
+    it('chai-things should throw an error if assertion fails ', function () {
+      return client  
+      .execute(function(){
+        try{
+          [4, 11, 15].should.contain.some.above(20)
+        }catch(e){return e.message;}
+      })
+      .then(function(res){
+        expect(res).to.contain('expected an element of [ 4, 11, 15 ] to be above 20');
+      })
+    });
+
+    it('should work given parameters', function () {
+      return client
+      .execute(function(a,b,c){
+
+        expect(a+b+c).to.eql(6);
+
+      },[1,2,3])
+
+    });
+
+    it('should work with get', function () {
+      return client
+      .get('http://www.google.com')
+      .reloadScripts()
+      .execute(function(){
+        var x = 2;
+        var y = x + 3;
+        expect(y).to.eql(5);
+      })
+    });
+    
+    it('should throw an error if assertion fails ', function () {
+      return client
+      .execute(function(){
+        var x = 2;
+        var y = x + 3;
+        try{
+          chai.expect(y).to.eql(4);
+        }catch(e){return e.message;}
+      })
+      .then(function(res){
+        expect(res).to.contain('expected 5 to deeply equal 4');
+      })
+
+    });
+
+    it('should throw an error if assertion fails given parameters', function () {
+      return client
+      .execute(function(a,b,c){
+
+        try{
+          expect(a+b+c).to.eql(4);
+        }catch(e){return e.message;}
+
+      },[1,2,3])
+      .then(function(res){
+        expect(res).to.contain('expected 6 to deeply equal 4');
+      })
+    });
+
+  });
+
   describe('Built in DOM helpers', function () {
 
     var server = meteor();
