@@ -58,11 +58,11 @@ describe('Fixtures', function () {
     });
 
     it('should receive unit tests results from server', function () {
-      return server.runMocha().expectError(/30.*\n.*this is a simulated error/);
+      return server.mocha().expectError(/30.*\n.*this is a simulated error/);
     });
 
     it('should receive unit tests results from client', function () {
-      return client.runMocha();
+      return client.mocha();
     });
 
   });
@@ -105,11 +105,11 @@ describe('Fixtures', function () {
     });
 
     it('should receive unit tests results from server', function () {
-      return server.runMocha();
+      return server.mocha();
     });
 
     it('should receive unit tests results from client', function () {
-      return client.runMocha();
+      return client.mocha();
     });
 
   });
