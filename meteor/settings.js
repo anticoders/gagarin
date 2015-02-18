@@ -9,7 +9,11 @@ if (!Meteor.settings.gagarin && process.env.GAGARIN_SETTINGS) {
 
 var settings = Meteor.settings.gagarin;
 
-Gagarin = {};
+if (Package['anti:gagarin']) { // it might get created by a fixture
+  Gagarin = Package['anti:gagarin'].Gagarin;
+} else {
+  Gagarin = {};
+}
 
 Gagarin.isActive = !!settings;
 

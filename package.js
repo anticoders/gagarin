@@ -17,11 +17,13 @@ Package.onUse(function (api) {
   
   api.use('livedata', 'server');
   api.use('accounts-password', 'server', { weak: true });
+  api.use('mongo', [ 'client', 'server' ]);
 
   api.addFiles([
     
     'meteor/settings.js',
     'meteor/backdoor.js',
+    'meteor/mocha.js',
 
   ], 'server');
 

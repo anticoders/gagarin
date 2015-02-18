@@ -28,8 +28,10 @@ describe('Fixtures', function () {
 
         });
 
-        it('should throw an error', function () {
-          throw new Error('this is a simulated error');
+        it('should throw an error', function (done) {
+          setTimeout(function () {
+            done(new Error('this is a simulated error'));
+          }, 500);
         });
 
       });    
