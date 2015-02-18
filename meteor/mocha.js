@@ -2,10 +2,7 @@
 var socket = null;
 
 Gagarin.feedback = function feedback (what, data) {
-
-  var feedback = _.extend({ what: what }, data);
-
-  socket && socket.write(JSON.stringify(feedback) + '\n');
+  socket && socket.write(JSON.stringify(_.extend({ what: what }, data)) + '\n');
 };
 
 Gagarin.setFeedbackUrl = function setReportsUrl (url, done) {
@@ -22,10 +19,12 @@ Gagarin.setFeedbackUrl = function setReportsUrl (url, done) {
 
   socket.on('error', function (err) {
     done(err);
+    socket = null;
   });
 
   socket.on('close', function () {
     done(new Error('socket closed prematurely'));
+    socket = null;
   });
 
 }
