@@ -1,9 +1,11 @@
 
 var reports = new Mongo.Collection("gagarin_reports");
 
-Meteor.publish('/gagarin/reports', function () {
-  return reports.find({});
-});
+if (Meteor.isServer) {
+  Meteor.publish('/gagarin/reports', function () {
+    return reports.find({});
+  });
+}
 
 var when = 0;
 
