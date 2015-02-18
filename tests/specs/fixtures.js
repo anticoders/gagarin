@@ -24,15 +24,18 @@ describe('Fixtures', function () {
 
       describe('Super duper server test suite', function () {
 
-        it('should just work', function () {
+        var i = 0;
 
-        });
-
-        it('should throw an error', function (done) {
-          setTimeout(function () {
-            done(new Error('this is a simulated error'));
-          }, 500);
-        });
+        for (i = 0; i < 30; i++) {
+          (function (i) {
+            it('should just work ' + i, function (done) { setTimeout(done, 2 * i); });
+            it('should throw an error', function (done) {
+              setTimeout(function () {
+                done(new Error('this is a simulated error'));
+              }, 2 * i);
+            });
+          })(i);
+        }
 
       });    
 
@@ -55,7 +58,7 @@ describe('Fixtures', function () {
     });
 
     it('should receive unit tests results from server', function () {
-      return server.runMocha();
+      return server.runMocha().expectError(/30.*\n.*this is a simulated error/);
     });
 
     it('should receive unit tests results from client', function () {
