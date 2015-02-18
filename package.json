@@ -43,6 +43,7 @@
     "portscanner": "1.0.0",
     "pty.js": "git://github.com/chjj/pty.js",
     "rimraf": "^2.2.8",
+    "sockjs": "^0.3.12",
     "source-map": "^0.3.0",
     "wd": "^0.3.11"
   }

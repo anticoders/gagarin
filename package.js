@@ -7,8 +7,9 @@ Package.describe({
 });
 
 Npm.depends({
-  chai  : '2.0.0',
-  mocha : '2.1.0',
+  'chai'           : '2.0.0',
+  'mocha'          : '2.1.0',
+  'faye-websocket' : '0.9.2',
 });
 
 Package.onUse(function (api) {
@@ -17,7 +18,7 @@ Package.onUse(function (api) {
   
   api.use('livedata', 'server');
   api.use('accounts-password', 'server', { weak: true });
-  api.use('mongo', [ 'client', 'server' ]);
+  api.use(['underscore', 'mongo'], [ 'client', 'server' ]);
 
   api.addFiles([
     
