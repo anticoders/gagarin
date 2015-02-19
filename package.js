@@ -7,9 +7,8 @@ Package.describe({
 });
 
 Npm.depends({
-  'chai'           : '2.0.0',
-  'mocha'          : '2.1.0',
-  'faye-websocket' : '0.9.2',
+  'chai'  : '2.0.0',
+  'mocha' : '2.1.0',
 });
 
 Package.onUse(function (api) {
@@ -29,7 +28,6 @@ Package.onUse(function (api) {
   api.addFiles([
 
     'meteor/gagarin.js',
-    'meteor/mocha.js',
 
   ], [ 'client', 'server']);
 
