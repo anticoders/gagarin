@@ -20,15 +20,15 @@ describe('Fixtures', function () {
     var server = meteor({ mocha: true });
     var client = browser(server);
 
-    server.addJavaScript('server', { atLineNumber: 85 }, superDuperTestSuite);
-    server.addJavaScript('client', { atLineNumber: 85 }, superDuperTestSuite);
+    // by default it goes to both client and server
+    server.useFixture('superDuperTestSuite.js');
 
     it('should receive unit tests results from server', function () {
-      return server.mocha().expectError(/30.*\n.*this is a simulated error/);
+      return server.mocha().expectError(/30.*\n.*this is a simulated error.*\n.*superDuperTestSuite.js:9:1/);
     });
 
     it('should receive unit tests results from client', function () {
-      return client.mocha().expectError(/30.*\n.*this is a simulated error/);
+      return client.mocha().expectError(/30.*\n.*this is a simulated error.*\n.*superDuperTestSuite.js:9:1/);
     });
 
   });
@@ -82,16 +82,3 @@ describe('Fixtures', function () {
 
 });
 
-function superDuperTestSuite() {
-  describe('Super duper test suite', function () {
-    var i = 0;
-    for (i = 0; i < 30; i++) {
-      (function (i) {
-        it('should just work ' + i, function () { });
-        it('should throw an error', function () {
-          throw new Error('this is a simulated error');
-        });
-      })(i);
-    }
-  });      
-}
