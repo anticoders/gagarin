@@ -20,8 +20,8 @@ describe('Fixtures', function () {
     var server = meteor({ mocha: true });
     var client = browser(server);
 
-    server.addJavaScript('server', superDuperTestSuite);
-    server.addJavaScript('client', superDuperTestSuite);
+    server.addJavaScript('server', { atLineNumber: 85 }, superDuperTestSuite);
+    server.addJavaScript('client', { atLineNumber: 85 }, superDuperTestSuite);
 
     it('should receive unit tests results from server', function () {
       return server.mocha().expectError(/30.*\n.*this is a simulated error/);
@@ -82,17 +82,14 @@ describe('Fixtures', function () {
 
 });
 
-
 function superDuperTestSuite() {
   describe('Super duper test suite', function () {
     var i = 0;
     for (i = 0; i < 30; i++) {
       (function (i) {
-        it('should just work ' + i, function (done) { setTimeout(done, 2 * i); });
-        it('should throw an error', function (done) {
-          setTimeout(function () {
-            done(new Error('this is a simulated error'));
-          }, 2 * i);
+        it('should just work ' + i, function () { });
+        it('should throw an error', function () {
+          throw new Error('this is a simulated error');
         });
       })(i);
     }

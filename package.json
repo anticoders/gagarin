@@ -45,6 +45,7 @@
     "rimraf": "^2.2.8",
     "sockjs": "^0.3.12",
     "source-map": "^0.3.0",
+    "source-map-support": "^0.2.9",
     "wd": "^0.3.11"
   }
 }
