@@ -42,11 +42,11 @@ describe('Fixtures', function () {
     server.useFixtures([ __dirname, '..', 'fixtures' ], /^packages\/.+/);
 
     it('should receive unit tests results from server', function () {
-      return server.mocha();
+      return server.mocha().expectError(/we are expecting this error.*\n.*my-package.js:22:1/);
     });
 
     it('should receive unit tests results from client', function () {
-      return client.mocha();
+      return client.mocha().expectError(/we are expecting this error.*\n.*my-package.js:22:1/);
     });
 
   });

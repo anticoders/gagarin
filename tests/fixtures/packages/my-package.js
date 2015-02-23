@@ -7,7 +7,7 @@ describe('A test suite for my-package.', function () {
   });
 
   it('should be able to use "doSomething" method', function () {
-    if (MyPackage.doSomething() !== 1) {
+    if (MyPackage.doSomething(1) !== 1) {
       throw new Error('expected MyPackage.doSomething() to equal 1')
     }
   });
@@ -16,6 +16,10 @@ describe('A test suite for my-package.', function () {
     if (thisIsSomePrivateVariable !== 1) {
       throw new Error('expected thisIsSomePrivateVariable to equal 1')
     }
+  });
+
+  it('should throw an error', function () {
+    throw new Error('we are expecting this error');
   });
 
 });
