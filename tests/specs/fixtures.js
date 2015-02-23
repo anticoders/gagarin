@@ -1,5 +1,5 @@
 
-describe('Fixtures', function () {
+describe.only('Fixtures', function () {
 
   describe.skip('Basic code injection', function () {
 
@@ -15,7 +15,7 @@ describe('Fixtures', function () {
 
   });
 
-  describe('Unit tests with mocha', function () {
+  describe.skip('Unit tests with mocha', function () {
 
     var server = meteor({ mocha: true });
     var client = browser(server);
@@ -33,7 +33,7 @@ describe('Fixtures', function () {
 
   });
 
-  describe.only('Unit tests for package', function () {
+  describe.skip('Unit tests for packages', function () {
 
     var server = meteor({ mocha: true });
     var client = browser(server);
@@ -47,6 +47,24 @@ describe('Fixtures', function () {
 
     it('should receive unit tests results from client', function () {
       return client.mocha().expectError(/we are expecting this error.*\n.*my-package.js:22:1/);
+    });
+
+  });
+
+  describe('Unit tests for individual files', function () {
+
+    var server = meteor({ mocha: true });
+    var client = browser(server);
+
+    // by default it goes to both client and server
+    server.useFixtures([ __dirname, '..', 'fixtures' ], /^(client|server)\/.+/);
+
+    it('should receive unit tests results from server', function () {
+      return server.mocha();
+    });
+
+    it('should receive unit tests results from client', function () {
+      return client.mocha();
     });
 
   });
