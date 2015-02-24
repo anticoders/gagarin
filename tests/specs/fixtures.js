@@ -1,24 +1,12 @@
 
 describe.only('Fixtures', function () {
 
-  describe.skip('Basic code injection', function () {
+  describe('Unit tests with mocha', function () {
 
     var server = meteor();
-
-    server.addJavaScript('client', function () {
-
-    });
-
-    server.addJavaScript('server', function () {
-      
-    });
-
-  });
-
-  describe.skip('Unit tests with mocha', function () {
-
-    var server = meteor({ mocha: true });
     var client = browser(server);
+
+    server.use('mocha');
 
     // by default it goes to both client and server
     server.useFixtures([ __dirname, '..', 'fixtures' ], /^superDuperTestSuite.js$/);
@@ -35,8 +23,10 @@ describe.only('Fixtures', function () {
 
   describe('Unit tests for packages', function () {
 
-    var server = meteor({ mocha: true });
+    var server = meteor();
     var client = browser(server);
+
+    server.use('mocha');
 
     // by default it goes to both client and server
     server.useFixtures([ __dirname, '..', 'fixtures' ], /^packages\/.+/);
@@ -53,8 +43,10 @@ describe.only('Fixtures', function () {
 
   describe('Unit tests for individual files', function () {
 
-    var server = meteor({ mocha: true });
+    var server = meteor();
     var client = browser(server);
+
+    server.use('mocha');
 
     // by default it goes to both client and server
     server.useFixtures([ __dirname, '..', 'fixtures' ], /^(client|server)\/.+/);
