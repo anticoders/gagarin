@@ -52,11 +52,11 @@ describe.only('Fixtures', function () {
     server.useFixtures([ __dirname, '..', 'fixtures' ], /^(client|server)\/.+/);
 
     it('should receive unit tests results from server', function () {
-      return server.mocha();
+      return server.mocha().expectError(/this error was thrown on purpose.*\n.*serverSideOnly.js:11:1/);
     });
 
     it('should receive unit tests results from client', function () {
-      return client.mocha();
+      return client.mocha().expectError(/this error was thrown on purpose.*\n.*clientSideOnly.js:11:1/);
     });
 
   });
