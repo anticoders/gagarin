@@ -33,7 +33,7 @@ describe.only('Fixtures', function () {
 
   });
 
-  describe.skip('Unit tests for packages', function () {
+  describe('Unit tests for packages', function () {
 
     var server = meteor({ mocha: true });
     var client = browser(server);
