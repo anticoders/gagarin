@@ -1,6 +1,6 @@
 var path = require('path');
 
-describe('Velocity integration.', function () {
+describe.skip('Velocity integration.', function () {
 
   this.timeout(20000);
 

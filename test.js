@@ -12,6 +12,7 @@ program
   .option('-B, --skip-build', 'do not build, just run the tests')
   .option('-o, --build-only', 'just build, do not run the tests')
   .option('-V, --verbose', 'run with verbose mode with logs from client/server', false)
+  .option('-v, --velocity <url>', 'report results to velocity at given url')
 
 program.parse(process.argv);
 
@@ -24,7 +25,8 @@ var gagarin = new Gagarin({
   skipBuild     : program.skipBuild,
   buildOnly     : program.buildOnly,
   muteBuild     : !program.verbose,
-  
+  velocity      : program.velocity,
+
   startupTimeout : 5000,
   //verbose       : program.verbose,
   verbose       : true,
