@@ -29,6 +29,7 @@
   "homepage": "https://github.com/anticoders/gagarin",
   "devDependencies": {},
   "dependencies": {
+    "ncp" : "^2.0.0",
     "chai": "^1.10.0",
     "chai-things": "^0.2.0",
     "chalk": "^0.5.1",
