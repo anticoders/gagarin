@@ -13,6 +13,7 @@ program
   .option('-o, --build-only', 'just build, do not run the tests')
   .option('-V, --verbose', 'run with verbose mode with logs from client/server', false)
   .option('-v, --velocity <url>', 'report results to velocity at given url')
+  .option('-p, --parallel <number>', 'run test suites in parallel', parseInt, 0)
 
 program.parse(process.argv);
 
@@ -26,6 +27,7 @@ var gagarin = new Gagarin({
   buildOnly     : program.buildOnly,
   muteBuild     : !program.verbose,
   velocity      : program.velocity,
+  parallel      : program.parallel,
 
   startupTimeout : 5000,
   //verbose       : program.verbose,
