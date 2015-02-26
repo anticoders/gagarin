@@ -1,2 +1,0 @@
-)]}'
-{"version":3,"sources":["anti:gagarin/meteor/gagarin.js"],"names":[],"mappings":";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;AACA,0D;;AAEA,mE;AACA,4C;AACA,Q;AACA,e;AACA,C;;AAEA,8B;;AAEA,uB;AACA,8B;AACA,C","file":"/packages/anti:gagarin.js","sourcesContent":["\nvar settings = Meteor.settings && Meteor.settings.gagarin;\n\nif (Package['anti:gagarin']) { // it might get created by a fixture\n  Gagarin = Package['anti:gagarin'].Gagarin;\n} else {\n  Gagarin = {};\n}\n\nGagarin.isActive = !!settings;\n\nif (Gagarin.isActive) {\n  Gagarin.settings = settings;\n}\n"]}
