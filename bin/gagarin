@@ -4,6 +4,7 @@ var program = require('commander');
 var Gagarin = require('../lib/mocha/gagarin');
 var path = require('path');
 var fs = require('fs');
+var coffee = require('coffee-script/register');
 
 //TODO check why we can simply pass parseInt as argument ?
 
@@ -60,10 +61,10 @@ if (fs.lstatSync(pathToTests).isDirectory()) {
         return addFiles(pathToFile);
       }
 
-      if (path.extname(file) !== '.js') {
-        return;
+      var fileType = path.extname(file);
+      if (fileType === '.js' || fileType === '.coffee') {
+      	return gagarin.addFile(pathToFile);
       }
-      gagarin.addFile(pathToFile);
     });
   }
 } else {
