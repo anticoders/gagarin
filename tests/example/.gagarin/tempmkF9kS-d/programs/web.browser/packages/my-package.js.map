@@ -1,0 +1,2 @@
+)]}'
+{"version":3,"sources":["my-package/client.js"],"names":[],"mappings":";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;AAAA,gC;;AAEA,kC;;AAEA,0C;AACA,qC;AACA,mC;AACA,C","file":"/packages/my-package.js","sourcesContent":["MyPackage = { where: 'client' };\n\nvar thisIsSomePrivateVariable = 0;\n\nMyPackage.doSomething = function (value) {\n  thisIsSomePrivateVariable += value;\n  return thisIsSomePrivateVariable;\n}\n"]}
