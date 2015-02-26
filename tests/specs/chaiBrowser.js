@@ -1,9 +1,10 @@
 
 describe('Using chai in the browser', function () {
 
+  var server = meteor();
+
   describe('browser chai.expect()', function () {
 
-    var server = meteor();
     var client = browser(server);
 
     it('should work', function () {
@@ -18,7 +19,6 @@ describe('Using chai in the browser', function () {
 
   describe('browser expect()', function () {
 
-    var server = meteor();
     var client = browser(server);
 
     it('should work', function () {
@@ -59,7 +59,6 @@ describe('Using chai in the browser', function () {
 
   describe('browser should()', function () {
 
-    var server = meteor();
     var client = browser(server);
 
     it('should work', function () {
@@ -91,6 +90,46 @@ describe('Using chai in the browser', function () {
         expect(a+b+c).to.eql(4);
       },[1,2,3])
       .expectError('expected 6 to deeply equal 4');
+    });
+
+  });
+
+  describe('using chai asserters within browser.promise', function () {
+
+    var client = browser(server);
+
+    it('should not throw if the assertion holds', function () {
+      return client.promise(function (resolve) {
+        //expect(true).to.be.true;
+        setTimeout(resolve, 100);
+      });
+    });
+
+    it('should throw a descriptive error if the assertion fails', function () {
+      return client.promise(function () {
+        expect(true).to.be.false;
+      })
+      .expectError('expected true to be false');
+    });
+
+  });
+
+  describe('using chai asserters within browser.wait', function () {
+    
+    var client = browser(server);
+
+    it('should not throw if the assertion holds', function () {
+      return client.wait(1000, 'until something happens', function () {
+        expect(true).to.be.true;
+        return true;
+      });
+    });
+
+    it('should throw a descriptive error if the assertion fails', function () {
+      return client.wait(1000, 'until something', function () {
+        expect(true).to.be.false;
+      })
+      .expectError('expected true to be false');
     });
 
   });
