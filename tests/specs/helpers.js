@@ -4,10 +4,10 @@ describe('Helpers', function () {
 
   describe('browser chai.expect()', function () {
 
-      var server = meteor();
-      var client = browser(server);
+    var server = meteor();
+    var client = browser(server);
 
-      it('should work', function () {
+    it('should work', function () {
       return client  
       .execute(function(){
         var x = 2;
@@ -231,7 +231,7 @@ describe('Helpers', function () {
 
   });
   
-  describe.skip('waitForRoute', function () {
+  describe('waitForRoute', function () {
 
     var server = meteor();
     var client = browser(server);
@@ -269,7 +269,7 @@ describe('Helpers', function () {
 
   });
 
-  describe.skip('Built in Accounts helpers', function () {
+  describe('Built in Accounts helpers', function () {
     
     var server = meteor();
     var client = browser(server);
@@ -339,7 +339,7 @@ describe('Helpers', function () {
     });
   });  
 
-  describe.skip('Built in server connections helpers', function () {
+  describe('Built in server connections helpers', function () {
     var server = meteor();
     var client = browser(server);
     
@@ -389,7 +389,7 @@ describe('Helpers', function () {
     });
   });
 
-  describe.skip('helper assertions', function () {
+  describe('helper assertions', function () {
     var server = meteor();
     var client = browser(server);
 
@@ -475,7 +475,7 @@ describe('Helpers', function () {
     });
   });
 
-  describe.skip('Custom user-defined helpers', function () {
+  describe('Custom user-defined helpers', function () {
 
     var server = meteor({
       helpers: {
