@@ -36,9 +36,7 @@ if (Gagarin.isActive) {
       check(args, Array);
       check(closure, Object);
 
-      var func = compile(code, closure);
-
-      return func.apply({}, values(closure, function (userFunc, getClosure) {
+      return compile(code, closure).apply({}, values(closure, function (userFunc, getClosure) {
         return { value : userFunc.apply({}, args), closure : getClosure() };
       }));
 
@@ -62,9 +60,7 @@ if (Gagarin.isActive) {
         future['return'](feedback);
       };
 
-      var func = compile(code, closure);
-
-      return func.apply({}, values(closure, function (userFunc, getClosure) {
+      return compile(code, closure).apply({}, values(closure, function (userFunc, getClosure) {
         // reject
         args.unshift(function (error) { setTimeout(function () { ready({ error: error, closure: getClosure() }); }); });
 
@@ -88,72 +84,37 @@ if (Gagarin.isActive) {
       check(closure, Object);
 
       var future  = new Future();
-      var done    = false;
       var handle1 = null;
       var handle2 = null;
 
       function resolve (feedback) {
-        // TODO: can we do away with this sentinel?
-        if (done) {
-          return;
-        }
-        done = true;
-        if (!feedback.closure) {
-          feedback.closure = closure;
-        }
+        //-------------------------
+        clearTimeout(handle1);
+        clearTimeout(handle2);
+
         if (feedback.error && typeof feedback.error === 'object') {
           feedback.error = feedback.error.message;
         }
         future['return'](feedback);
-        //-------------------------
-        clearTimeout(handle1);
-        clearTimeout(handle2);
       }
 
-      code = providePlugins(wrapSourceCode(code, args, closure)).join('\n');
-
-      var func;
-
-      try {
-        func = vm.runInThisContext("(" + code + ")").apply({}, values(plugins));
-      } catch (err) {
-        resolve({ error: err });
-      }
-
-      if (!done) {
-
-        // XXX this should be defined prior to the fist call to test, because
-        //     the latter can return immediatelly
-        
+      return compile(code, closure).apply({}, values(closure, function (userFunc, getClosure) {        
         handle2 = setTimeout(function () {
-          resolve({ error: 'I have been waiting for ' + timeout + ' ms ' + message + ', but it did not happen.' });
+          resolve({ closure: getClosure(), error: 'I have been waiting for ' + timeout + ' ms ' + message + ', but it did not happen.' });
         }, timeout);
-
         (function test() {
-          var feedback;
+          var value;
           try {
-            feedback = func.apply({}, values(closure));
-
-            if (feedback.value || feedback.error) {
-              resolve(feedback);
+            value = userFunc.apply({}, args);
+            if (value) {
+              return resolve({ closure: getClosure(), value: value });
             }
-            
-            handle1 = setTimeout(Meteor.bindEnvironment(test), 50); // repeat after 1/20 sec.
-            
-            if (feedback.closure) {
-              closure = feedback.closure;
-            }
-
-          } catch (err) {
-            resolve({ error: err });
-          }
+          } catch (error) {
+            return resolve({ closure: getClosure(), error: error });
+          }            
+          handle1 = setTimeout(Meteor.bindEnvironment(test), 50); // repeat after 1/20 sec.          
         }());
-
-      } else {
-        resolve({ error: 'code has to be a function' })
-      }
-
-      return future.wait();
+      })) || future.wait();
     },
 
   });
