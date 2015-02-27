@@ -36,14 +36,7 @@ if (Gagarin.isActive) {
       check(args, Array);
       check(closure, Object);
 
-      var code = providePlugins(isolateScope(code, closure)).join('\n');
-      var func;
-
-      try {
-        func = vm.runInThisContext('(' + code + ')').apply({}, values(plugins));
-      } catch (err) {
-        throw new Meteor.Error(400, err);
-      }
+      var func = compile(code, closure);
 
       return func.apply({}, values(closure, function (userFunc, getClosure) {
         return { value : userFunc.apply({}, args), closure : getClosure() };
@@ -61,62 +54,26 @@ if (Gagarin.isActive) {
       check(closure, Object);
 
       var future = new Future();
-      var chunks = [];
 
-      var keys = Object.keys(closure).map(function (key) {
-        return stringify(key) + ": " + key;
-      }).join(',');
-
-      args = args.map(stringify);
-
-      args.unshift("(function (cb) {\n    return function ($) {\n      setTimeout(function () { cb({ error : $, closure: {" + keys + "}}); });\n    };\n  })(arguments[arguments.length-1])");
-      args.unshift("(function (cb) {\n    return function ($) {\n      setTimeout(function () { cb({ value : $, closure: {" + keys + "}}); });\n    };\n  })(arguments[arguments.length-1])");
-
-      chunks.push(
-        "function (" + Object.keys(closure).concat(Object.keys(plugins)).join(', ') + ") {",
-        "  'use strict';",
-        "  var either = function (first) {",
-        "    return {",
-        "      or: function (second) {",
-        "        return function (arg1, arg2) {",
-        "          return arg1 ? first(arg1) : second(arg2);",
-        "        };",
-        "      }",
-        "    };",
-        "  };",
-        "  try {",
-        "    (" + code + ")(",
-        "    " + args.join(', ') + ");",
-        "  } catch ($) {",
-        "    arguments[arguments.length-1]({",
-        "      error   : $.message,",
-        "      closure : { " + keys + " }",
-        "    });",
-        "  }",
-        "}"
-      );
-
-      var func;
-
-      try {
-        func = vm.runInThisContext("(" + chunks.join('\n') + ")");
-      } catch (err) {
-        throw new Meteor.Error(err);
-      }
-
-      if (typeof func === 'function') {
-        try {
-          func.apply({}, values(closure).concat(values(plugins)).concat([ function (feedback) {
-            if (feedback.error && typeof feedback.error === 'object') {
-              feedback.error = feedback.error.message;
-            }
-            future['return'](feedback);
-          } ]));
-        } catch (err) {
-          throw new Meteor.Error(err);
+      var ready = function (feedback) {
+        if (feedback.error && typeof feedback.error === 'object') {
+          feedback.error = feedback.error.message;
         }
-        return future.wait();
-      }
+        future['return'](feedback);
+      };
+
+      var func = compile(code, closure);
+
+      return func.apply({}, values(closure, function (userFunc, getClosure) {
+        // reject
+        args.unshift(function (error) { setTimeout(function () { ready({ error: error, closure: getClosure() }); }); });
+
+        // resolve
+        args.unshift(function (value) { setTimeout(function () { ready({ value: value, closure: getClosure() }); }); });
+
+        userFunc.apply({}, args);
+
+      })) || future.wait();
     },
 
     '/gagarin/wait': function (closure, timeout, message, code, args) {
@@ -278,6 +235,15 @@ function align(code) {
     });
   }
   return code;
+}
+
+function compile(code, closure) {
+  code = providePlugins(isolateScope(code, closure)).join('\n');
+  try {
+    return vm.runInThisContext('(' + code + ')').apply({}, values(plugins));
+  } catch (err) {
+    throw new Meteor.Error(400, err);
+  }
 }
 
 /**
