@@ -3,7 +3,19 @@ var vm = Npm.require('vm');
 var Fiber = Npm.require('fibers');
 var Future = Npm.require('fibers/future');
 
+var chai, plugins = {};
+
 if (Gagarin.isActive) {
+
+  chai = Npm.require('chai');
+
+  chai.should();
+  chai.use(Npm.require('chai-things'));
+
+  plugins.chai   = chai;
+  plugins.Fiber  = Fiber;
+  plugins.expect = chai.expect;
+  plugins.assert = chai.assert;
 
   // TODO: also protect these methods with some authentication (user/password/token?)
   //       note that required data my be provided with GAGARIN_SETTINGS
@@ -19,17 +31,17 @@ if (Gagarin.isActive) {
       check(args, Array);
       check(closure, Object);
 
-      var context = vm.createContext(global);
-      context.Fiber = Fiber;
+      var func;
+
       try {
-        vm.runInContext("value = " + wrapSourceCode(code, args, closure), context);
+        func = vm.runInThisContext('(' + wrapSourceCode(code, args, closure, Object.keys(plugins)) + ')');
       } catch (err) {
         throw new Meteor.Error(400, err);
       }
-      if (typeof context.value === 'function') {
+      if (typeof func === 'function') {
         var feedback;
         try {
-          feedback = context.value.apply(null, values(closure));
+          feedback = func.apply({}, values(closure).concat(values(plugins)));
         } catch (err) {
           feedback = { error: err.message };
         }
@@ -51,6 +63,10 @@ if (Gagarin.isActive) {
 
       context.Fiber = Fiber;
 
+      context.chai   = chai;
+      context.expect = chai.expect;
+      context.assert = chai.assert;
+
       var chunks = [];
 
       var keys = Object.keys(closure).map(function (key) {
@@ -63,7 +79,7 @@ if (Gagarin.isActive) {
       args.unshift("(function (cb) {\n    return function ($) {\n      setTimeout(function () { cb({ value : $, closure: {" + keys + "}}); });\n    };\n  })(arguments[arguments.length-1])");
 
       chunks.push(
-        "function (" + Object.keys(closure).join(', ') + ") {",
+        "function (" + Object.keys(closure).concat(Object.keys(plugins)).join(', ') + ") {",
         "  'use strict';",
         "  var either = function (first) {",
         "    return {",
@@ -86,22 +102,22 @@ if (Gagarin.isActive) {
         "}"
       );
 
-      //console.log(chunks.join('\n'));
+      var func;
 
       try {
-        vm.runInContext("value = " + chunks.join('\n'), context);
+        func = vm.runInThisContext("(" + chunks.join('\n') + ")");
       } catch (err) {
         throw new Meteor.Error(err);
       }
 
-      if (typeof context.value === 'function') {
+      if (typeof func === 'function') {
         try {
-          context.value.apply(null, values(closure, function (feedback) {
+          func.apply({}, values(closure).concat(values(plugins)).concat([ function (feedback) {
             if (feedback.error && typeof feedback.error === 'object') {
               feedback.error = feedback.error.message;
             }
             future['return'](feedback);
-          }));
+          } ]));
         } catch (err) {
           throw new Meteor.Error(err);
         }
@@ -124,9 +140,6 @@ if (Gagarin.isActive) {
       var done    = false;
       var handle1 = null;
       var handle2 = null;
-      var context = vm.createContext(global);
-
-      context.Fiber = Fiber;
 
       function resolve (feedback) {
         // TODO: can we do away with this sentinel?
@@ -146,13 +159,15 @@ if (Gagarin.isActive) {
         clearTimeout(handle2);
       }
 
+      var func;
+
       try {
-        vm.runInContext("value = " + wrapSourceCode(code, args, closure), context);
+        func = vm.runInThisContext("(" + wrapSourceCode(code, args, closure, Object.keys(plugins)) + ")");
       } catch (err) {
         resolve({ error: err });
       }
 
-      if (!done && typeof context.value === 'function') {
+      if (!done && typeof func === 'function') {
 
         // XXX this should be defined prior to the fist call to test, because
         //     the latter can return immediatelly
@@ -164,7 +179,7 @@ if (Gagarin.isActive) {
         (function test() {
           var feedback;
           try {
-            feedback = context.value.apply(null, values(closure));
+            feedback = func.apply({}, values(closure).concat(values(plugins)));
 
             if (feedback.value || feedback.error) {
               resolve(feedback);
@@ -204,13 +219,15 @@ if (Gagarin.isActive) {
  * @param {Array} args
  * @param {Object} closure
  */
-function wrapSourceCode(code, args, closure) {
+function wrapSourceCode(code, args, closure, listOfNames) {
   "use strict";
 
   var chunks = [];
 
+  listOfNames = listOfNames || [];
+
   chunks.push(
-    "function (" + Object.keys(closure).join(', ') + ") {",
+    "function (" + Object.keys(closure).concat(listOfNames).join(', ') + ") {",
     "  'use strict';"
   );
 

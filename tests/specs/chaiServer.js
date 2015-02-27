@@ -1,14 +1,12 @@
 
-describe('Using chai in the browser', function () {
+describe('Using chai on the server', function () {
 
   var server = meteor();
 
-  describe('browser chai.expect()', function () {
-
-    var client = browser(server);
+  describe('server chai.expect()', function () {
 
     it('should work', function () {
-      return client  
+      return server  
       .execute(function(){
         var x = 2;
         var y = x + 3;
@@ -17,12 +15,10 @@ describe('Using chai in the browser', function () {
     });
   });
 
-  describe('browser expect()', function () {
-
-    var client = browser(server);
+  describe('server expect()', function () {
 
     it('should work', function () {
-      return client  
+      return server  
       .execute(function(){
         var x = 2;
         var y = x + 3;
@@ -30,23 +26,15 @@ describe('Using chai in the browser', function () {
       });
     });
 
-    it('should work after get url', function () {
-      return client
-      .get('http://www.google.com')
-      .execute(function(){
-         expect(4).to.eql(4);
-      });
-    });
-
     it('should work given parameters', function () {
-      return client
+      return server
       .execute(function(a,b,c){
         expect(a+b+c).to.eql(6);
       },[1,2,3]);
     });
 
     it('should throw an error if assertion fails ', function () {
-      return client
+      return server
       .execute(function(){
         var x = 2;
         var y = x + 3;
@@ -57,12 +45,10 @@ describe('Using chai in the browser', function () {
 
   });
 
-  describe('browser should()', function () {
-
-    var client = browser(server);
+  describe('server should()', function () {
 
     it('should work', function () {
-      return client  
+      return server  
       .execute(function(){
         [4, 11, 15].should.include.one.below(10);
         [4, 11, 15].should.contain.some.above(10);
@@ -77,7 +63,7 @@ describe('Using chai in the browser', function () {
     });
 
     it('should throw error if assertion fails ', function () {
-      return client  
+      return server  
       .execute(function(){
         [4, 11, 15].should.contain.some.above(20)
       })
@@ -85,7 +71,7 @@ describe('Using chai in the browser', function () {
     });
 
     it('should throw error if assertion fails given parameters', function () {
-      return client
+      return server
       .execute(function(a,b,c){
         expect(a+b+c).to.eql(4);
       },[1,2,3])
@@ -94,26 +80,24 @@ describe('Using chai in the browser', function () {
 
   });
 
-  describe('using chai asserters within browser.promise', function () {
-
-    var client = browser(server);
+  describe('using chai asserters within server.promise', function () {
 
     it('should not throw if the assertion holds', function () {
-      return client.promise(function (resolve) {
+      return server.promise(function (resolve) {
         expect(true).to.be.true;
         resolve();
       });
     });
 
     it('should throw a descriptive error if the assertion fails', function () {
-      return client.promise(function () {
+      return server.promise(function () {
         expect(true).to.be.false;
       })
       .expectError('expected true to be false');
     });
 
     it('should work', function () {
-      return client.promise(function (resolve) {
+      return server.promise(function (resolve) {
         true.should.be.true;
         resolve();
       });
@@ -121,26 +105,24 @@ describe('Using chai in the browser', function () {
 
   });
 
-  describe('using chai asserters within browser.wait', function () {
-    
-    var client = browser(server);
+  describe('using chai asserters within server.wait', function () {
 
     it('should not throw if the assertion holds', function () {
-      return client.wait(1000, 'until something happens', function () {
+      return server.wait(1000, 'until something happens', function () {
         expect(true).to.be.true;
         return true;
       });
     });
 
     it('should throw a descriptive error if the assertion fails', function () {
-      return client.wait(1000, 'until something happens', function () {
+      return server.wait(1000, 'until something', function () {
         expect(true).to.be.false;
       })
       .expectError('expected true to be false');
     });
-    
+
     it('should work', function () {
-      return client.wait(1000, 'until something happens', function () {
+      return server.wait(1000, 'until something happens', function () {
         true.should.be.true;
         return true;
       });
