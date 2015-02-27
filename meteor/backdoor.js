@@ -59,14 +59,6 @@ if (Gagarin.isActive) {
       check(closure, Object);
 
       var future = new Future();
-      var context = vm.createContext(global);
-
-      context.Fiber = Fiber;
-
-      context.chai   = chai;
-      context.expect = chai.expect;
-      context.assert = chai.assert;
-
       var chunks = [];
 
       var keys = Object.keys(closure).map(function (key) {
