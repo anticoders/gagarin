@@ -60,6 +60,7 @@ if (Gagarin.isActive) {
         future['return'](feedback);
       };
 
+      // either return immediately (e.g. on error) or future.wait()
       return compile(code, closure).apply({}, values(closure, function (userFunc, getClosure) {
         // reject
         args.unshift(function (error) { setTimeout(function () { ready({ error: error, closure: getClosure() }); }); });
@@ -87,7 +88,7 @@ if (Gagarin.isActive) {
       var handle1 = null;
       var handle2 = null;
 
-      function resolve (feedback) {
+      function ready(feedback) {
         //-------------------------
         clearTimeout(handle1);
         clearTimeout(handle2);
@@ -98,19 +99,20 @@ if (Gagarin.isActive) {
         future['return'](feedback);
       }
 
+      // either return immediately (e.g. on error) or future.wait()
       return compile(code, closure).apply({}, values(closure, function (userFunc, getClosure) {        
         handle2 = setTimeout(function () {
-          resolve({ closure: getClosure(), error: 'I have been waiting for ' + timeout + ' ms ' + message + ', but it did not happen.' });
+          ready({ closure: getClosure(), error: 'I have been waiting for ' + timeout + ' ms ' + message + ', but it did not happen.' });
         }, timeout);
         (function test() {
           var value;
           try {
             value = userFunc.apply({}, args);
             if (value) {
-              return resolve({ closure: getClosure(), value: value });
+              return ready({ closure: getClosure(), value: value });
             }
           } catch (error) {
-            return resolve({ closure: getClosure(), error: error });
+            return ready({ closure: getClosure(), error: error });
           }            
           handle1 = setTimeout(Meteor.bindEnvironment(test), 50); // repeat after 1/20 sec.          
         }());
@@ -125,6 +127,12 @@ if (Gagarin.isActive) {
 
 }
 
+/**
+ * Provide plugins the the local context.
+ *
+ * @param {(string|string[])} code
+ * @returns {string[]}
+ */
 function providePlugins(code) {
   var chunks = [];
   if (typeof code === 'string') {
@@ -141,6 +149,14 @@ function providePlugins(code) {
   return chunks;
 }
 
+/**
+ * Make sure that the only local variables visible inside the code,
+ * are those from the closure object.
+ *
+ * @param {(string|string[])} code
+ * @param {Object} closure
+ * @returns {string[]}
+ */
 function isolateScope(code, closure) {
   if (typeof code === 'string') {
     code = code.split('\n');
@@ -183,6 +199,12 @@ function isolateScope(code, closure) {
   return chunks;
 }
 
+/**
+ * Fixes the source code indentation.
+ *
+ * @param {(string|string[])} code
+ * @returns {string[]}
+ */
 function align(code) {
   if (typeof code === 'string') {
     code = code.split('\n');
@@ -198,6 +220,13 @@ function align(code) {
   return code;
 }
 
+/**
+ * Creates a function from the provided source code and closure object.
+ *
+ * @param {(string|string[])} code
+ * @param {Object} closure
+ * @returns {string[]}
+ */
 function compile(code, closure) {
   code = providePlugins(isolateScope(code, closure)).join('\n');
   try {
@@ -208,64 +237,11 @@ function compile(code, closure) {
 }
 
 /**
- * Creates a source code of another function, providing the given
- * arguments and injecting the given closure variables.
- *
- * @param {String} code
- * @param {Array} args
- * @param {Object} closure
- */
-function wrapSourceCode(code, args, closure) {
-  "use strict";
-
-  var chunks = [];
-
-  chunks.push(
-    "function (" + Object.keys(closure).join(', ') + ") {",
-    "  'use strict';"
-  );
-
-  chunks.push(
-    "  try {",
-    "    return (function ($) {",
-    "      return {",
-    "        closure: {"
-  );
-
-  Object.keys(closure).forEach(function (key) {
-    chunks.push("          " + stringify(key) + ": " + key + ",");
-  });
-
-  chunks.push(
-    "        },",
-    "        value: $,",
-    "      };",
-    "    })( (" + code + ")(" + args.map(stringify).join(',') + ") );",
-    "  } catch (err) {",
-    "    return {",
-    "      closure: {"
-  );
-
-  Object.keys(closure).forEach(function (key) {
-    chunks.push("        " + stringify(key) + ": " + key + ",");
-  });
-
-  chunks.push(
-    "      },",
-    "      error: err.message",
-    "    };",
-    "  }",
-    "}"
-  );
-
-  return chunks;
-}
-
-/**
  * Returns all values of the object, sorted
  * alphabetically by corresponding keys.
  *
  * @param {Object}
+ * @returns {Array}
  */
 function values(object) {
   "use strict";
@@ -286,6 +262,7 @@ function values(object) {
  *  - a function gets evaluated to source code
  *
  * @param {Object} value
+ * @returns {string}
  */
 function stringify(value) {
   "use strict";
