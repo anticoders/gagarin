@@ -63,10 +63,10 @@ if (Gagarin.isActive) {
       // either return immediately (e.g. on error) or future.wait()
       return compile(code, closure).apply({}, values(closure, function (userFunc, getClosure) {
         // reject
-        args.unshift(function (error) { setTimeout(function () { ready({ error: error, closure: getClosure() }); }); });
+        args.unshift(_.once(function (error) { setTimeout(function () { ready({ error: error, closure: getClosure() }); }); }));
 
         // resolve
-        args.unshift(function (value) { setTimeout(function () { ready({ value: value, closure: getClosure() }); }); });
+        args.unshift(_.once(function (value) { setTimeout(function () { ready({ value: value, closure: getClosure() }); }); }));
 
         userFunc.apply({}, args);
 
