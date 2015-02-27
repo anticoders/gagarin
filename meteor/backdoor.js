@@ -16,6 +16,11 @@ if (Gagarin.isActive) {
   plugins.Fiber  = Fiber;
   plugins.expect = chai.expect;
   plugins.assert = chai.assert;
+  plugins.either = function either (first) {
+    return { or: function (second) {
+        return function (arg1, arg2) { return arg1 ? first(arg1) : second(arg2) };
+    }};
+  };
 
   // TODO: also protect these methods with some authentication (user/password/token?)
   //       note that required data my be provided with GAGARIN_SETTINGS
@@ -31,22 +36,19 @@ if (Gagarin.isActive) {
       check(args, Array);
       check(closure, Object);
 
+      var code = providePlugins(isolateScope(code, closure)).join('\n');
       var func;
 
       try {
-        func = vm.runInThisContext('(' + wrapSourceCode(code, args, closure, Object.keys(plugins)) + ')');
+        func = vm.runInThisContext('(' + code + ')').apply({}, values(plugins));
       } catch (err) {
         throw new Meteor.Error(400, err);
       }
-      if (typeof func === 'function') {
-        var feedback;
-        try {
-          feedback = func.apply({}, values(closure).concat(values(plugins)));
-        } catch (err) {
-          feedback = { error: err.message };
-        }
-        return feedback;
-      }
+
+      return func.apply({}, values(closure, function (userFunc, getClosure) {
+        return { value : userFunc.apply({}, args), closure : getClosure() };
+      }));
+
     },
 
     '/gagarin/promise': function (closure, code, args) {
@@ -151,15 +153,17 @@ if (Gagarin.isActive) {
         clearTimeout(handle2);
       }
 
+      code = providePlugins(wrapSourceCode(code, args, closure)).join('\n');
+
       var func;
 
       try {
-        func = vm.runInThisContext("(" + wrapSourceCode(code, args, closure, Object.keys(plugins)) + ")");
+        func = vm.runInThisContext("(" + code + ")").apply({}, values(plugins));
       } catch (err) {
         resolve({ error: err });
       }
 
-      if (!done && typeof func === 'function') {
+      if (!done) {
 
         // XXX this should be defined prior to the fist call to test, because
         //     the latter can return immediatelly
@@ -171,7 +175,7 @@ if (Gagarin.isActive) {
         (function test() {
           var feedback;
           try {
-            feedback = func.apply({}, values(closure).concat(values(plugins)));
+            feedback = func.apply({}, values(closure));
 
             if (feedback.value || feedback.error) {
               resolve(feedback);
@@ -203,6 +207,79 @@ if (Gagarin.isActive) {
 
 }
 
+function providePlugins(code) {
+  var chunks = [];
+  if (typeof code === 'string') {
+    code = code.split('\n');
+  }
+  chunks.push("function (" + Object.keys(plugins).join(', ') + ") {");
+  chunks.push("  return " + code[0]);
+
+  code.forEach(function (line, index) {
+    if (index === 0) return; // omit the first line
+    chunks.push("  " + line);
+  });
+  chunks.push("}");
+  return chunks;
+}
+
+function isolateScope(code, closure) {
+  if (typeof code === 'string') {
+    code = code.split('\n');
+  }
+  var keys = Object.keys(closure).map(function (key) {
+    return stringify(key) + ": " + key;
+  });
+  var chunks = [];
+
+  chunks.push(
+    "function (" + Object.keys(closure).join(', ') + ") {",
+    "  'use strict';",
+    "  return (function (userFunc, getClosure, action) {",
+    "    try {",
+    "      return action(userFunc, getClosure);",
+    "    } catch (err) {",
+    "      return { error: err.message, closure: getClosure() };",
+    "    }",
+    "  })("
+  );
+
+  // the code provided by the user goes here
+  align(code).forEach(function (line) {
+    chunks.push("    " + line);
+  });
+  chunks[chunks.length-1] += ',';
+
+  chunks.push(
+    // the function returning current state of the closure
+    "    function () {",
+    "      return { " + keys.join(', ') + " };",
+    "    },",
+
+    // the custom action
+    "    arguments[arguments.length-1]",
+    "  );",
+    "}"
+  );
+
+  return chunks;
+}
+
+function align(code) {
+  if (typeof code === 'string') {
+    code = code.split('\n');
+  }
+  var match = code[code.length-1].match(/^(\s+)\}/);
+  var regex = null;
+  if (match && code[0].match(/^function/)) {
+    regex = new RegExp("^" + match[1]);
+    return code.map(function (line) {
+      return line.replace(regex, "");
+    });
+  }
+  return code;
+}
+
 /**
  * Creates a source code of another function, providing the given
  * arguments and injecting the given closure variables.
@@ -211,15 +288,13 @@ if (Gagarin.isActive) {
  * @param {Array} args
  * @param {Object} closure
  */
-function wrapSourceCode(code, args, closure, listOfNames) {
+function wrapSourceCode(code, args, closure) {
   "use strict";
 
   var chunks = [];
 
-  listOfNames = listOfNames || [];
-
   chunks.push(
-    "function (" + Object.keys(closure).concat(listOfNames).join(', ') + ") {",
+    "function (" + Object.keys(closure).join(', ') + ") {",
     "  'use strict';"
   );
 
@@ -256,7 +331,7 @@ function wrapSourceCode(code, args, closure, listOfNames) {
     "}"
   );
 
-  return chunks.join('\n');
+  return chunks;
 }
 
 /**
