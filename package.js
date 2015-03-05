@@ -2,8 +2,13 @@
 Package.describe({
   summary:  "Gagarin, a Meteor testing framework",
   name:     "anti:gagarin",
-  version:  "0.4.2",
+  version:  "0.4.3",
   git:      "https://github.com/anticoders/gagarin.git",
+});
+
+Npm.depends({
+  'chai'        : '2.1.0',
+  'chai-things' : '0.2.0',
 });
 
 Package.onUse(function (api) {

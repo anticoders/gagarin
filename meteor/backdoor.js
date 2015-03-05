@@ -3,7 +3,24 @@ var vm = Npm.require('vm');
 var Fiber = Npm.require('fibers');
 var Future = Npm.require('fibers/future');
 
+var chai, plugins = {};
+
 if (Gagarin.isActive) {
+
+  chai = Npm.require('chai');
+
+  chai.should();
+  chai.use(Npm.require('chai-things'));
+
+  plugins.chai   = chai;
+  plugins.Fiber  = Fiber;
+  plugins.expect = chai.expect;
+  plugins.assert = chai.assert;
+  plugins.either = function either (first) {
+    return { or: function (second) {
+        return function (arg1, arg2) { return arg1 ? first(arg1) : second(arg2) };
+    }};
+  };
 
   // TODO: also protect these methods with some authentication (user/password/token?)
   //       note that required data my be provided with GAGARIN_SETTINGS
@@ -19,22 +36,10 @@ if (Gagarin.isActive) {
       check(args, Array);
       check(closure, Object);
 
-      var context = vm.createContext(global);
-      context.Fiber = Fiber;
-      try {
-        vm.runInContext("value = " + wrapSourceCode(code, args, closure), context);
-      } catch (err) {
-        throw new Meteor.Error(400, err);
-      }
-      if (typeof context.value === 'function') {
-        var feedback;
-        try {
-          feedback = context.value.apply(null, values(closure));
-        } catch (err) {
-          feedback = { error: err.message };
-        }
-        return feedback;
-      }
+      return compile(code, closure).apply({}, values(closure, function (userFunc, getClosure) {
+        return { value : userFunc.apply({}, args), closure : getClosure() };
+      }));
+
     },
 
     '/gagarin/promise': function (closure, code, args) {
@@ -47,66 +52,25 @@ if (Gagarin.isActive) {
       check(closure, Object);
 
       var future = new Future();
-      var context = vm.createContext(global);
 
-      context.Fiber = Fiber;
-
-      var chunks = [];
-
-      var keys = Object.keys(closure).map(function (key) {
-        return stringify(key) + ": " + key;
-      }).join(',');
-
-      args = args.map(stringify);
-
-      args.unshift("(function (cb) {\n    return function ($) {\n      setTimeout(function () { cb({ error : $, closure: {" + keys + "}}); });\n    };\n  })(arguments[arguments.length-1])");
-      args.unshift("(function (cb) {\n    return function ($) {\n      setTimeout(function () { cb({ value : $, closure: {" + keys + "}}); });\n    };\n  })(arguments[arguments.length-1])");
-
-      chunks.push(
-        "function (" + Object.keys(closure).join(', ') + ") {",
-        "  'use strict';",
-        "  var either = function (first) {",
-        "    return {",
-        "      or: function (second) {",
-        "        return function (arg1, arg2) {",
-        "          return arg1 ? first(arg1) : second(arg2);",
-        "        };",
-        "      }",
-        "    };",
-        "  };",
-        "  try {",
-        "    (" + code + ")(",
-        "    " + args.join(', ') + ");",
-        "  } catch ($) {",
-        "    arguments[arguments.length-1]({",
-        "      error   : $.message,",
-        "      closure : { " + keys + " }",
-        "    });",
-        "  }",
-        "}"
-      );
-
-      //console.log(chunks.join('\n'));
-
-      try {
-        vm.runInContext("value = " + chunks.join('\n'), context);
-      } catch (err) {
-        throw new Meteor.Error(err);
-      }
-
-      if (typeof context.value === 'function') {
-        try {
-          context.value.apply(null, values(closure, function (feedback) {
-            if (feedback.error && typeof feedback.error === 'object') {
-              feedback.error = feedback.error.message;
-            }
-            future['return'](feedback);
-          }));
-        } catch (err) {
-          throw new Meteor.Error(err);
+      var ready = function (feedback) {
+        if (feedback.error && typeof feedback.error === 'object') {
+          feedback.error = feedback.error.message;
         }
-        return future.wait();
-      }
+        future['return'](feedback);
+      };
+
+      // either return immediately (e.g. on error) or future.wait()
+      return compile(code, closure).apply({}, values(closure, function (userFunc, getClosure) {
+        // reject
+        args.unshift(_.once(function (error) { setTimeout(function () { ready({ error: error, closure: getClosure() }); }); }));
+
+        // resolve
+        args.unshift(_.once(function (value) { setTimeout(function () { ready({ value: value, closure: getClosure() }); }); }));
+
+        userFunc.apply({}, args);
+
+      })) || future.wait();
     },
 
     '/gagarin/wait': function (closure, timeout, message, code, args) {
@@ -121,71 +85,38 @@ if (Gagarin.isActive) {
       check(closure, Object);
 
       var future  = new Future();
-      var done    = false;
       var handle1 = null;
       var handle2 = null;
-      var context = vm.createContext(global);
 
-      context.Fiber = Fiber;
+      function ready(feedback) {
+        //-------------------------
+        clearTimeout(handle1);
+        clearTimeout(handle2);
 
-      function resolve (feedback) {
-        // TODO: can we do away with this sentinel?
-        if (done) {
-          return;
-        }
-        done = true;
-        if (!feedback.closure) {
-          feedback.closure = closure;
-        }
         if (feedback.error && typeof feedback.error === 'object') {
           feedback.error = feedback.error.message;
         }
         future['return'](feedback);
-        //-------------------------
-        clearTimeout(handle1);
-        clearTimeout(handle2);
       }
 
-      try {
-        vm.runInContext("value = " + wrapSourceCode(code, args, closure), context);
-      } catch (err) {
-        resolve({ error: err });
-      }
-
-      if (!done && typeof context.value === 'function') {
-
-        // XXX this should be defined prior to the fist call to test, because
-        //     the latter can return immediatelly
-        
+      // either return immediately (e.g. on error) or future.wait()
+      return compile(code, closure).apply({}, values(closure, function (userFunc, getClosure) {        
         handle2 = setTimeout(function () {
-          resolve({ error: 'I have been waiting for ' + timeout + ' ms ' + message + ', but it did not happen.' });
+          ready({ closure: getClosure(), error: 'I have been waiting for ' + timeout + ' ms ' + message + ', but it did not happen.' });
         }, timeout);
-
         (function test() {
-          var feedback;
+          var value;
           try {
-            feedback = context.value.apply(null, values(closure));
-
-            if (feedback.value || feedback.error) {
-              resolve(feedback);
+            value = userFunc.apply({}, args);
+            if (value) {
+              return ready({ closure: getClosure(), value: value });
             }
-            
-            handle1 = setTimeout(Meteor.bindEnvironment(test), 50); // repeat after 1/20 sec.
-            
-            if (feedback.closure) {
-              closure = feedback.closure;
-            }
-
-          } catch (err) {
-            resolve({ error: err });
-          }
+          } catch (error) {
+            return ready({ closure: getClosure(), error: error });
+          }            
+          handle1 = setTimeout(Meteor.bindEnvironment(test), 50); // repeat after 1/20 sec.          
         }());
-
-      } else {
-        resolve({ error: 'code has to be a function' })
-      }
-
-      return future.wait();
+      })) || future.wait();
     },
 
   });
@@ -197,57 +128,112 @@ if (Gagarin.isActive) {
 }
 
 /**
- * Creates a source code of another function, providing the given
- * arguments and injecting the given closure variables.
+ * Provide plugins the the local context.
  *
- * @param {String} code
- * @param {Array} args
- * @param {Object} closure
+ * @param {(string|string[])} code
+ * @returns {string[]}
  */
-function wrapSourceCode(code, args, closure) {
-  "use strict";
+function providePlugins(code) {
+  var chunks = [];
+  if (typeof code === 'string') {
+    code = code.split('\n');
+  }
+  chunks.push("function (" + Object.keys(plugins).join(', ') + ") {");
+  chunks.push("  return " + code[0]);
 
+  code.forEach(function (line, index) {
+    if (index === 0) return; // omit the first line
+    chunks.push("  " + line);
+  });
+  chunks.push("}");
+  return chunks;
+}
+
+/**
+ * Make sure that the only local variables visible inside the code,
+ * are those from the closure object.
+ *
+ * @param {(string|string[])} code
+ * @param {Object} closure
+ * @returns {string[]}
+ */
+function isolateScope(code, closure) {
+  if (typeof code === 'string') {
+    code = code.split('\n');
+  }
+  var keys = Object.keys(closure).map(function (key) {
+    return stringify(key) + ": " + key;
+  });
   var chunks = [];
 
   chunks.push(
     "function (" + Object.keys(closure).join(', ') + ") {",
-    "  'use strict';"
+    "  'use strict';",
+    "  return (function (userFunc, getClosure, action) {",
+    "    try {",
+    "      return action(userFunc, getClosure);",
+    "    } catch (err) {",
+    "      return { error: err.message, closure: getClosure() };",
+    "    }",
+    "  })("
   );
 
-  chunks.push(
-    "  try {",
-    "    return (function ($) {",
-    "      return {",
-    "        closure: {"
-  );
-
-  Object.keys(closure).forEach(function (key) {
-    chunks.push("          " + stringify(key) + ": " + key + ",");
+  // the code provided by the user goes here
+  align(code).forEach(function (line) {
+    chunks.push("    " + line);
   });
+  chunks[chunks.length-1] += ',';
 
   chunks.push(
-    "        },",
-    "        value: $,",
-    "      };",
-    "    })( (" + code + ")(" + args.map(stringify).join(',') + ") );",
-    "  } catch (err) {",
-    "    return {",
-    "      closure: {"
-  );
+    // the function returning current state of the closure
+    "    function () {",
+    "      return { " + keys.join(', ') + " };",
+    "    },",
 
-  Object.keys(closure).forEach(function (key) {
-    chunks.push("        " + stringify(key) + ": " + key + ",");
-  });
-
-  chunks.push(
-    "      },",
-    "      error: err.message",
-    "    };",
-    "  }",
+    // the custom action
+    "    arguments[arguments.length-1]",
+    "  );",
     "}"
   );
 
-  return chunks.join('\n');
+  return chunks;
+}
+
+/**
+ * Fixes the source code indentation.
+ *
+ * @param {(string|string[])} code
+ * @returns {string[]}
+ */
+function align(code) {
+  if (typeof code === 'string') {
+    code = code.split('\n');
+  }
+  var match = code[code.length-1].match(/^(\s+)\}/);
+  var regex = null;
+  if (match && code[0].match(/^function/)) {
+    regex = new RegExp("^" + match[1]);
+    return code.map(function (line) {
+      return line.replace(regex, "");
+    });
+  }
+  return code;
+}
+
+/**
+ * Creates a function from the provided source code and closure object.
+ *
+ * @param {(string|string[])} code
+ * @param {Object} closure
+ * @returns {string[]}
+ */
+function compile(code, closure) {
+  code = providePlugins(isolateScope(code, closure)).join('\n');
+  try {
+    return vm.runInThisContext('(' + code + ')').apply({}, values(plugins));
+  } catch (err) {
+    throw new Meteor.Error(400, err);
+  }
 }
 
 /**
@@ -255,6 +241,7 @@ function wrapSourceCode(code, args, closure) {
  * alphabetically by corresponding keys.
  *
  * @param {Object}
+ * @returns {Array}
  */
 function values(object) {
   "use strict";
@@ -275,6 +262,7 @@ function values(object) {
  *  - a function gets evaluated to source code
  *
  * @param {Object} value
+ * @returns {string}
  */
 function stringify(value) {
   "use strict";

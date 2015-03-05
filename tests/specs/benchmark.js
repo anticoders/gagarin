@@ -42,6 +42,21 @@ describe('Benchmark test suite', function () {
     });
   });
 
+  describe("Server benchmark", function () {
+    this.timeout(5000);
+
+    it('2000x execute', function () {
+      var myPromise = server;
+      var i;
+      for (var i=0; i<2000; i++) {
+        myPromise = myPromise.execute(function () {
+          return Meteor.relese;
+        });
+      }
+      return myPromise;
+    });
+  });
+
   describe("Browser benchmark", function () {
     var client = browser(server);
 
