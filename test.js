@@ -24,7 +24,7 @@ var gagarin = new Gagarin({
   skipBuild     : program.skipBuild,
   buildOnly     : program.buildOnly,
   muteBuild     : !program.verbose,
-  
+
   startupTimeout : 5000,
   //verbose       : program.verbose,
   verbose       : true,
@@ -38,5 +38,5 @@ gagarin.run(function (failedCount) {
   if (failedCount > 0) {
     process.exit(1);
   }
-  process.exit(0);
+  process.emit('cleanup');
 });
