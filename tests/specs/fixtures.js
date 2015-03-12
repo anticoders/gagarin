@@ -1,5 +1,5 @@
 
-describe.only('Fixtures', function () {
+describe('Fixtures', function () {
 
   describe('Unit tests with mocha', function () {
 

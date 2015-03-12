@@ -38,6 +38,22 @@ describe('Gagarin methods', function () {
         })
     });
 
+    it('multiple calls to resolve should not break anything', function () {
+      return server.promise(function (resolve) {
+        resolve(1);
+        resolve(2);
+      }).then(function (value) {
+        expect(value).to.equal(1);
+      });
+    });
+
+    it('multiple calls to reject should not break anything', function () {
+      return server.promise(function (resolve, reject) {
+        reject(new Error("1"));
+        reject(new Error("2"));
+      }).expectError("1");
+    });
+
     it('should be able to wait on server', function () {
       server.execute(function () {
         setTimeout(function () {
