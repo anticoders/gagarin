@@ -17,6 +17,10 @@ if (Meteor.isClient) {
   Meteor.subscribe('items');
 
 
+  Meteor.throwError = function () {
+    throw new Error('LOL');
+  }
+
   Template.hello.helpers({
     greeting: function () {
       return "Welcome to example.";
