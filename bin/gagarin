@@ -4,6 +4,7 @@ var program = require('commander');
 var Gagarin = require('../lib/mocha/gagarin');
 var path = require('path');
 var fs = require('fs');
+var coffee = require('coffee-script/register');
 
 //TODO check why we can simply pass parseInt as argument ?
 
@@ -31,12 +32,14 @@ program
   .option('-w, --webdriver <url>', 'webdriver url [default: http://127.0.0.1:9515]', 'http://127.0.0.1:9515')
   .option('-M, --dont-wait-for-meteor', 'do not wait until meteor is loaded')
   .option('-l, --meteor-load-timeout <ms>', 'meteor load timeout [2000]', intParse, 2000)
-  .option('-p, --path-to-app <path>', 'path to a meteor application', path.resolve('.'))
+  .option('-a, --path-to-app <path>', 'path to a meteor application', path.resolve('.'))
   .option('-r, --remote-server <url>', 'run tests on a remote server')
   .option('-m, --mute-build', 'do not show build logs', false)
   .option('-f, --flavor <name>', 'default flavor of api (promise, fiber)', 'promise')
   .option('-T, --startup-timeout <ms>' ,'server startup timeout [5000]', intParse, 5000)
-  .option('-U, --build-timeout <ms>' ,'meteor building timeout [120000]', intParse, 120000);
+  .option('-U, --build-timeout <ms>' ,'meteor building timeout [120000]', intParse, 120000)
+  .option('-v, --velocity <url>', 'report results to velocity at given url')
+  .option('-p, --parallel <number>', 'run test suites in parallel', intParse, 0)
 
 program.name = 'gagarin';
 
@@ -60,10 +63,10 @@ if (fs.lstatSync(pathToTests).isDirectory()) {
         return addFiles(pathToFile);
       }
 
-      if (path.extname(file) !== '.js') {
-        return;
+      var fileType = path.extname(file);
+      if (fileType === '.js' || fileType === '.coffee') {
+      	return gagarin.addFile(pathToFile);
       }
-      gagarin.addFile(pathToFile);
     });
   }
 } else {
@@ -74,7 +77,7 @@ gagarin.run(function (failedCount) {
   if (failedCount > 0) {
     process.exit(1);
   }
-  process.exit(0);
+  process.emit('cleanup');
 });
 
 function intParse(v) {
