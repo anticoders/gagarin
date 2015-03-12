@@ -7,6 +7,7 @@ Package.describe({
 });
 
 Npm.depends({
+  'mocha'       : '2.1.0',
   'chai'        : '2.1.0',
   'chai-things' : '0.2.0',
 });
@@ -17,11 +18,24 @@ Package.onUse(function (api) {
   
   api.use('livedata', 'server');
   api.use('accounts-password', 'server', { weak: true });
+  api.use(['underscore', 'mongo'], [ 'client', 'server' ]);
 
   api.addFiles([
     
     'meteor/settings.js',
+
+  ], 'server');
+
+  api.addFiles([
+
+    'meteor/gagarin.js',
+
+  ], [ 'client', 'server']);
+
+  api.addFiles([
+
     'meteor/backdoor.js',
+    'meteor/createUser.js',
 
   ], 'server');
 
