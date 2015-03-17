@@ -210,7 +210,68 @@ describe('Context.', function () {
 
     });
 
-  });
+    describe('Persistance in promise chains', function () {
 
+      it('should persist in promise chains', function () {
+        return server.then(function () {
+          this.someContextVariable = 1;
+        }).then(function () {
+          expect(this.someContextVariable).to.equal(1);
+        }).then(function () {
+          throw new Error('fake error');
+        }).expectError(function (err) {
+          expect(err.message).to.match(/fake error/);
+          expect(this.someContextVariable).to.equal(1);
+        });
+      });
+
+      it('should survive noWait calls', function () {
+        var promise = server.then(function () {
+          this.anotherContextVariable = 2;
+        });
+        return promise.noWait().then(function () {
+          expect(this.anotherContextVariable).to.equal(2);
+        });
+      });
+
+      it('should survive branch calls', function () {
+        var promise = server.then(function () {
+          this.anotherContextVariable = 3;
+        });
+        return promise.branch().then(function () {
+          expect(this.anotherContextVariable).to.equal(3);
+        });
+      });
+
+      it('should not be shared accross different promise chains', function () {
+        return server.then(function () {
+          this.yetAnotherVariable = 10;
+          return server.then(function () {
+            expect(this.yetAnotherVariable).to.be.undefined;
+          });
+        });
+      });
+
+      it('unless there is an explicit request to do so', function () {
+        var context = {};
+        return server.branch(context).then(function () {
+          this.yetAnotherVariable = 10;
+          return server.branch(context).then(function () {
+            expect(this.yetAnotherVariable).to.equal(10);
+          });
+        });
+      });
+
+      it('should persist accross switchTo calls', function () {
+        return server.then(function () {
+          this.mySharedVariable = 1234;
+        }).switchTo(client).then(function () {
+          expect(this.mySharedVariable).to.equal(1234);
+        });
+      });
+
+    });
+
+  });
 
 });
