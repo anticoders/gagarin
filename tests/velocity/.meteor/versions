@@ -1,6 +1,6 @@
-anti:gagarin@0.4.4
+amplify@1.0.0
+anti:gagarin@0.4.2
 application-configuration@1.0.4
-autopublish@1.0.2
 autoupdate@1.1.5
 base64@1.0.2
 binary-heap@1.0.2
@@ -23,6 +23,7 @@ insecure@1.0.2
 jquery@1.11.3
 json@1.0.2
 launch-screen@1.0.1
+less@1.0.12
 livedata@1.0.12
 logging@1.0.6
 meteor@1.1.4
@@ -47,5 +48,7 @@ tracker@1.0.5
 ui@1.0.5
 underscore@1.0.2
 url@1.0.3
+velocity:core@0.4.5
+velocity:html-reporter@0.4.2
 webapp@1.1.6
 webapp-hashing@1.0.2
