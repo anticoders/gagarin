@@ -38,7 +38,11 @@ if (Gagarin.isActive) {
       check(context, Object);
 
       return compile(code, closure).apply({}, values(closure, function (userFunc, getClosure) {
-        return { value : userFunc.apply(context, args), closure : getClosure(), context: context };
+        try {
+          return { value : userFunc.apply(context, args), context: context, closure : getClosure() };
+        } catch (err) {
+          return { error: err.message, context: context, closure: getClosure() };
+        }
       }));
 
     },
@@ -73,7 +77,11 @@ if (Gagarin.isActive) {
         // resolve
         args.unshift(_.once(function (value) { setTimeout(function () { ready({ value: value, closure: getClosure() }); }); }));
 
-        userFunc.apply(context, args);
+        try {
+          userFunc.apply(context, args);
+        } catch (err) {
+          return { error: err.message, context: context, closure: getClosure() };
+        }
 
       })) || future.wait();
     },
@@ -181,6 +189,7 @@ function isolateScope(code, closure) {
     "    try {",
     "      return action(userFunc, getClosure);",
     "    } catch (err) {",
+    // this should never happen ...
     "      return { error: err.message, closure: getClosure() };",
     "    }",
     "  })("
