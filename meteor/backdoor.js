@@ -27,7 +27,7 @@ if (Gagarin.isActive) {
 
   Meteor.methods({
 
-    '/gagarin/execute': function (closure, code, args) {
+    '/gagarin/execute': function (context, closure, code, args) {
       "use strict";
 
       args = args || [];
@@ -35,14 +35,19 @@ if (Gagarin.isActive) {
       check(code, String);
       check(args, Array);
       check(closure, Object);
+      check(context, Object);
 
       return compile(code, closure).apply({}, values(closure, function (userFunc, getClosure) {
-        return { value : userFunc.apply({}, args), closure : getClosure() };
+        try {
+          return { value : userFunc.apply(context, args), context: context, closure : getClosure() };
+        } catch (err) {
+          return { error: err.message, context: context, closure: getClosure() };
+        }
       }));
 
     },
 
-    '/gagarin/promise': function (closure, code, args) {
+    '/gagarin/promise': function (context, closure, code, args) {
       "use strict";
 
       args = args || [];
@@ -50,10 +55,14 @@ if (Gagarin.isActive) {
       check(code, String);
       check(args, Array);
       check(closure, Object);
+      check(context, Object);
 
       var future = new Future();
 
       var ready = function (feedback) {
+        if (!feedback.context) {
+          feedback.context = context;
+        }
         if (feedback.error && typeof feedback.error === 'object') {
           feedback.error = feedback.error.message;
         }
@@ -68,12 +77,16 @@ if (Gagarin.isActive) {
         // resolve
         args.unshift(_.once(function (value) { setTimeout(function () { ready({ value: value, closure: getClosure() }); }); }));
 
-        userFunc.apply({}, args);
+        try {
+          userFunc.apply(context, args);
+        } catch (err) {
+          return { error: err.message, context: context, closure: getClosure() };
+        }
 
       })) || future.wait();
     },
 
-    '/gagarin/wait': function (closure, timeout, message, code, args) {
+    '/gagarin/wait': function (context, closure, timeout, message, code, args) {
       "use strict";
 
       args = args || [];
@@ -83,6 +96,7 @@ if (Gagarin.isActive) {
       check(code, String);
       check(args, Array);
       check(closure, Object);
+      check(context, Object);
 
       var future  = new Future();
       var handle1 = null;
@@ -92,7 +106,9 @@ if (Gagarin.isActive) {
         //-------------------------
         clearTimeout(handle1);
         clearTimeout(handle2);
-
+        if (!feedback.context) {
+          feedback.context = context;
+        }
         if (feedback.error && typeof feedback.error === 'object') {
           feedback.error = feedback.error.message;
         }
@@ -100,14 +116,14 @@ if (Gagarin.isActive) {
       }
 
       // either return immediately (e.g. on error) or future.wait()
-      return compile(code, closure).apply({}, values(closure, function (userFunc, getClosure) {        
+      return compile(code, closure).apply({}, values(closure, function (userFunc, getClosure) {
         handle2 = setTimeout(function () {
           ready({ closure: getClosure(), error: 'I have been waiting for ' + timeout + ' ms ' + message + ', but it did not happen.' });
         }, timeout);
         (function test() {
           var value;
           try {
-            value = userFunc.apply({}, args);
+            value = userFunc.apply(context, args);
             if (value) {
               return ready({ closure: getClosure(), value: value });
             }
@@ -173,6 +189,7 @@ function isolateScope(code, closure) {
     "    try {",
     "      return action(userFunc, getClosure);",
     "    } catch (err) {",
+    // this should never happen ...
     "      return { error: err.message, closure: getClosure() };",
     "    }",
     "  })("

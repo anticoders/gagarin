@@ -1,5 +1,5 @@
 
-describe('Running code on a remote server', function () {
+describe.skip('Running code on a remote server', function () {
 
   this.timeout(10000);
 
