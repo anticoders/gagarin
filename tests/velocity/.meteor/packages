@@ -6,6 +6,6 @@
 
 meteor-platform
 insecure
-velocity:core@0.4.5
+velocity:core@=0.4.5
 anti:gagarin
 velocity:html-reporter

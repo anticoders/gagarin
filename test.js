@@ -30,6 +30,7 @@ var gagarin = new Gagarin({
   parallel      : program.parallel,
 
   startupTimeout : 5000,
+  meteorLoadTimeout : 4000,
   //verbose       : program.verbose,
   verbose       : true,
 });
