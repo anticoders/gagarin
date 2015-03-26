@@ -11,20 +11,24 @@ Npm.depends({
   'chai-things' : '0.2.0',
 });
 
-Package.onUse(function (api) {
+Package.on_use(function (api) {
 
-  api.versionsFrom('METEOR@1.0');
+  if (api.versionsFrom) {
+    api.versionsFrom('METEOR@1.0');
+  }
   
   api.use('livedata', 'server');
   api.use('accounts-password', 'server', { weak: true });
 
-  api.addFiles([
+  api.add_files([
     
     'meteor/settings.js',
     'meteor/backdoor.js',
 
   ], 'server');
 
-  api.export('Gagarin');
+  if (api.export) {
+    api.export('Gagarin');
+  }
 
 });
