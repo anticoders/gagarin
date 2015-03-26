@@ -24,7 +24,7 @@ program
   .option('-i, --invert', 'inverts --grep matches')
   .option('-s, --slow <ms>', '"slow" test threshold in milliseconds [75]')
   .option('-S, --settings <path>', 'use meteor settings from the given file')
-  .option('-t, --timeout <ms>', 'set test-case timeout in milliseconds [2000]')
+  .option('-t, --timeout <ms>', 'set test-case timeout in milliseconds [5000]', 5000)
   //.option('-u, --ui <name>', 'specify user-interface (bdd|tdd|exports)', 'bdd')
   .option('-B, --skip-build', 'do not build, just run the tests')
   .option('-o, --build-only', 'just build, do not run the tests')
