@@ -2,7 +2,7 @@ var path = require('path');
 
 describe('Build Errors', function () {
 
-  describe.skip('Given the app does not build properly,', function () {
+  describe('Given the app does not build properly,', function () {
 
     // TODO: check if the process is properly killed
 
@@ -26,6 +26,9 @@ describe('Build Errors', function () {
 
     it('the error should contain useful information', function () {
       expect(message).to.contain("Unexpected token :");
+      expect(message).to.contain("build_error.js");
+      expect(message).to.contain("3");
+      expect(message).to.contain("35");
     });
 
   });
