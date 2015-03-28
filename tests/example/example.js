@@ -78,6 +78,8 @@ if (Meteor.isClient) {
 
 if (Meteor.isServer) {
 
+  console.log('Node version is: ' + process.version);
+
   Fiber = Npm.require('fibers');
 
   console.log('settings are:', Meteor.settings);

@@ -6,8 +6,6 @@ var path = require('path');
 var fs = require('fs');
 var coffee = require('coffee-script/register');
 
-//TODO check why we can simply pass parseInt as argument ?
-
 program
   .version(require('../package.json').version)
   .usage('[debug] [options] [files]')
@@ -24,22 +22,22 @@ program
   .option('-i, --invert', 'inverts --grep matches')
   .option('-s, --slow <ms>', '"slow" test threshold in milliseconds [75]')
   .option('-S, --settings <path>', 'use meteor settings from the given file')
-  .option('-t, --timeout <ms>', 'set test-case timeout in milliseconds [2000]')
+  .option('-t, --timeout <ms>', 'set test-case timeout in milliseconds [5000]', 5000)
   //.option('-u, --ui <name>', 'specify user-interface (bdd|tdd|exports)', 'bdd')
   .option('-B, --skip-build', 'do not build, just run the tests')
   .option('-o, --build-only', 'just build, do not run the tests')
-  .option('-V, --verbose', 'run with verbose mode with logs from client/server', false)
+  .option('-v, --verbose', 'run with verbose mode with logs from client/server', false)
   .option('-w, --webdriver <url>', 'webdriver url [default: http://127.0.0.1:9515]', 'http://127.0.0.1:9515')
   .option('-M, --dont-wait-for-meteor', 'do not wait until meteor is loaded')
-  .option('-l, --meteor-load-timeout <ms>', 'meteor load timeout [2000]', intParse, 2000)
+  .option('-l, --meteor-load-timeout <ms>', 'meteor load timeout [2000]', parse10, 2000)
   .option('-a, --path-to-app <path>', 'path to a meteor application', path.resolve('.'))
   .option('-r, --remote-server <url>', 'run tests on a remote server')
   .option('-m, --mute-build', 'do not show build logs', false)
   .option('-f, --flavor <name>', 'default flavor of api (promise, fiber)', 'promise')
-  .option('-T, --startup-timeout <ms>' ,'server startup timeout [5000]', intParse, 5000)
-  .option('-U, --build-timeout <ms>' ,'meteor building timeout [120000]', intParse, 120000)
-  .option('-v, --velocity <url>', 'report results to velocity at given url')
-  .option('-p, --parallel <number>', 'run test suites in parallel', intParse, 0)
+  .option('-T, --startup-timeout <ms>' ,'server startup timeout [5000]', parse10, 5000)
+  .option('-U, --build-timeout <ms>' ,'meteor building timeout [120000]', parse10, 120000)
+  .option('-O, --velocity <url>', 'report results to velocity at given url')
+  .option('-p, --parallel <number>', 'run test suites in parallel', parse10, 0)
 
 program.name = 'gagarin';
 
@@ -80,6 +78,6 @@ gagarin.run(function (failedCount) {
   process.emit('cleanup');
 });
 
-function intParse(v) {
-  return parseInt(v);
+function parse10(v) {
+  return parseInt(v, 10);
 };

@@ -12,15 +12,24 @@ Npm.depends({
   'chai-things' : '0.2.0',
 });
 
-Package.onUse(function (api) {
+(Package.registerBuildPlugin || Package._transitional_registerBuildPlugin)({
+  name: "collectGagarinBuildArtifacts",
+  sources: [
+    'meteor/plugin.js'
+  ],
+});
 
-  api.versionsFrom('METEOR@1.0');
+Package.on_use(function (api) {
+
+  if (api.versionsFrom) {
+    api.versionsFrom('METEOR@0.9.0');
+  }
   
   api.use('livedata', 'server');
   api.use('accounts-password', 'server', { weak: true });
   api.use(['underscore', 'mongo'], [ 'client', 'server' ]);
 
-  api.addFiles([
+  api.add_files([
     
     'meteor/settings.js',
 
@@ -39,6 +48,8 @@ Package.onUse(function (api) {
 
   ], 'server');
 
-  api.export('Gagarin');
+  if (api.export) {
+    api.export('Gagarin');
+  }
 
 });
