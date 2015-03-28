@@ -1,6 +1,6 @@
 {
   "name": "gagarin",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "description": "another testing framework for your meteor apps",
   "main": "gagarin.js",
   "repository": {
@@ -43,8 +43,7 @@
     "mocha": "^1.20.1",
     "mongodb": "^1.4.7",
     "portscanner": "1.0.0",
-    "pty.js": "git://github.com/chjj/pty.js",
-    "sqlite3": "^3.0.5",
+    "pty.js": "0.2.6",
     "wd": "^0.3.11"
   }
 }

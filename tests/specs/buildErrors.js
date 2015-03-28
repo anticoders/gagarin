@@ -26,6 +26,9 @@ describe('Build Errors', function () {
 
     it('the error should contain useful information', function () {
       expect(message).to.contain("Unexpected token :");
+      expect(message).to.contain("build_error.js");
+      expect(message).to.contain("3");
+      expect(message).to.contain("35");
     });
 
   });
@@ -52,7 +55,7 @@ describe('Build Errors', function () {
     });
 
     it('the error should contain useful information', function () {
-      expect(message).to.contain("anti:gagarin");
+      expect(message).to.match(/not installed/);
     });
 
   });
@@ -80,7 +83,7 @@ describe('Build Errors', function () {
     });
 
     it('the error should contain useful information', function () {
-      expect(message).to.contain("please update");
+      expect(message).to.match(/(please update)|(not installed)/);
     });
 
   });

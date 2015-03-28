@@ -2,7 +2,7 @@
 Package.describe({
   summary:  "Gagarin, a Meteor testing framework",
   name:     "anti:gagarin",
-  version:  "0.4.5",
+  version:  "0.4.6",
   git:      "https://github.com/anticoders/gagarin.git",
 });
 
@@ -11,10 +11,17 @@ Npm.depends({
   'chai-things' : '0.2.0',
 });
 
+(Package.registerBuildPlugin || Package._transitional_registerBuildPlugin)({
+  name: "collectGagarinBuildArtifacts",
+  sources: [
+    'meteor/plugin.js'
+  ],
+});
+
 Package.on_use(function (api) {
 
   if (api.versionsFrom) {
-    api.versionsFrom('METEOR@1.0');
+    api.versionsFrom('METEOR@0.9.0');
   }
   
   api.use('livedata', 'server');

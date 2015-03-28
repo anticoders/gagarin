@@ -25,7 +25,7 @@ var gagarin = new Gagarin({
   grep          : program.grep,
   skipBuild     : program.skipBuild,
   buildOnly     : program.buildOnly,
-  muteBuild     : !program.verbose,
+  //muteBuild     : !program.verbose,
   velocity      : program.velocity,
   parallel      : program.parallel,
 
