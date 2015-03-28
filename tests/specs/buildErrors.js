@@ -55,7 +55,7 @@ describe('Build Errors', function () {
     });
 
     it('the error should contain useful information', function () {
-      expect(message).to.match(/(anti\:gagarin|not installed)/);
+      expect(message).to.match(/not installed/);
     });
 
   });
