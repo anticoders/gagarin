@@ -72,10 +72,10 @@ if (fs.lstatSync(pathToTests).isDirectory()) {
 }
 
 gagarin.run(function (failedCount) {
-  if (failedCount > 0) {
-    process.exit(1);
-  }
   process.emit('cleanup');
+  process.once('clean', function () {
+    process.exit(failedCount > 0 ? 1 : 0);
+  });
 });
 
 function parse10(v) {

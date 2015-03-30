@@ -40,5 +40,8 @@ fs.readdirSync(path.join(__dirname, 'tests', 'specs')).forEach(function (file) {
 });
 
 gagarin.run(function (failedCount) {
-  process.emit('cleanup', failedCount);
+  process.emit('cleanup');
+  process.once('clean', function () {
+    process.exit(failedCount > 0 ? 1 : 0);
+  });
 });
