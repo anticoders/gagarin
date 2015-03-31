@@ -19,7 +19,7 @@
     "gagarin": "./bin/gagarin"
   },
   "scripts": {
-    "test": "./test.js"
+    "test": "./test.js --verbose"
   },
   "author": "Tomasz Lenarcik (apendua@gmail.com)",
   "license": "MIT",
