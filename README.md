@@ -243,7 +243,11 @@ in the project root directory. Additionally you can use
 ```
 to display information about all possible options. For example, to use a different webdriver location, you can specify it with
 ```
-./test.js --webdriver http://localhost:4444
+./test.js --webdriver http://localhost:4444/wd/hub
+```
+For testing purposes it's sometimes useful to intall a version of the npm package from specyfic branch.
+```
+npm install -g anticoders/gagarin#develop
 ```
 
 ## Disclaimer
