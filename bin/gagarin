@@ -2,6 +2,7 @@
 
 var program = require('commander');
 var Gagarin = require('../lib/mocha/gagarin');
+var logs = require('../lib/logs');
 var path = require('path');
 var fs = require('fs');
 var coffee = require('coffee-script/register');
@@ -45,6 +46,9 @@ program.parse(process.argv);
 
 var gagarin = new Gagarin(program);
 var pathToTests = program.args[0] || path.join(program.pathToApp, 'tests', 'gagarin');
+
+// set verbose mode if necessary
+logs.setVerbose(program.verbose);
 
 if (!fs.existsSync(pathToTests)) {
   console.warn('looking for tests in ' + pathToTests + ' but this path does not exist');

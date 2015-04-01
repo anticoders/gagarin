@@ -50,6 +50,7 @@ describe('Helpers Misc.', function () {
 
   //TODO where to put screenshot file for this test ? 
   describe.skip('screenshot', function () {
+
     var server = meteor();
     var client = browser(server);
 
@@ -66,18 +67,34 @@ describe('Helpers Misc.', function () {
 
     var server = meteor({
       helpers: {
-        sleepForOneSecond: function () {
+        sleepFor100ms: function () {
           return this.then(function () {
             return new Promise(function (resolve) {
-              setTimeout(resolve, 1000);
+              setTimeout(resolve, 100);
             });
           });
         },
       },
     });
 
-    it('should be able to use a custom helper', function () {
-      return server.sleepForOneSecond();
+    var client = browser(server, {
+      helpers: {
+        sleepFor100ms: function () {
+          return this.then(function () {
+            return new Promise(function (resolve) {
+              setTimeout(resolve, 100);
+            });
+          });
+        },
+      },
+    });
+
+    it('should be able to use a custom helper on the server', function () {
+      return server.sleepFor100ms();
+    });
+
+    it('should be able to use a custom helper on the client', function () {
+      return client.sleepFor100ms();
     });
 
   });
