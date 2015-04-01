@@ -45,6 +45,7 @@ describe('Build Errors', function () {
 
     var server = meteor({
       pathToApp   : pathToApp,
+      skipBuild   : false,
       noAutoStart : true,
     });
 
