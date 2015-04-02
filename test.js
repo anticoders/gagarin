@@ -3,6 +3,7 @@
 var Gagarin = require('./lib/mocha/gagarin');
 var path = require('path');
 var fs = require('fs');
+var logs = require('./lib/logs');
 var pathToApp = path.resolve('./tests/example');
 var program = require('commander');
 
@@ -11,11 +12,14 @@ program
   .option('-w, --webdriver <url>', 'webdriver url [default: http://127.0.0.1:9515]', 'http://127.0.0.1:9515')
   .option('-B, --skip-build', 'do not build, just run the tests')
   .option('-o, --build-only', 'just build, do not run the tests')
-  .option('-V, --verbose', 'run with verbose mode with logs from client/server', false)
-  .option('-v, --velocity <url>', 'report results to velocity at given url')
+  .option('-v, --verbose', 'run with verbose mode with logs from client/server', false)
+  .option('-o, --velocity <url>', 'report results to velocity at given url')
   .option('-p, --parallel <number>', 'run test suites in parallel', parseInt, 0)
 
 program.parse(process.argv);
+
+// set verbose mode ...
+logs.setVerbose(program.verbose);
 
 var gagarin = new Gagarin({
   pathToApp     : pathToApp,
@@ -25,14 +29,12 @@ var gagarin = new Gagarin({
   grep          : program.grep,
   skipBuild     : program.skipBuild,
   buildOnly     : program.buildOnly,
-  //muteBuild     : !program.verbose,
   velocity      : program.velocity,
   parallel      : program.parallel,
 
-  startupTimeout : 5000,
+  startupTimeout    : 5000,
   meteorLoadTimeout : 4000,
-  //verbose       : program.verbose,
-  verbose       : true,
+  verbose           : program.verbose,
 });
 
 fs.readdirSync(path.join(__dirname, 'tests', 'specs')).forEach(function (file) {

@@ -1,4 +1,5 @@
 var path = require('path');
+var fs = require('fs');
 
 describe('Build Errors', function () {
 
@@ -39,24 +40,38 @@ describe('Build Errors', function () {
 
     this.timeout(20000);
 
-    var message = "";
+    var pathToApp = path.resolve(__dirname, '..', 'no_gagarin');
+    var message   = "";
 
     var server = meteor({
-      pathToApp   : path.resolve(__dirname, '..', 'no_gagarin'),
+      pathToApp   : pathToApp,
+      skipBuild   : false,
       noAutoStart : true,
     });
 
-    it('should throw an error', function () {
-      return server
-        .init()
-        .expectError(function (err) {
-          message = err.message;
-        });
+    after(function (done) {
+      var pathToMeteorPackages = path.join(pathToApp, '.meteor', 'packages');
+      replaceFileContent(pathToMeteorPackages, function (content) {
+        return content.replace(/anti:gagarin@=.*\n/, "");
+      }, done);
     });
 
-    it('the error should contain useful information', function () {
-      expect(message).to.match(/not installed/);
+    after(function (done) {
+      var pathToMeteorVersions = path.join(pathToApp, '.meteor', 'versions');
+      replaceFileContent(pathToMeteorVersions, function (content) {
+        return content.replace(/anti:gagarin@.*\n/, "");
+      }, done);
     });
+
+    it('should not throw an error', function () {
+      return server
+        .init()
+        .then(function () {});
+    });
+
+    // it('the error should contain useful information', function () {
+    //  expect(message).to.match(/not installed/);
+    // });
 
   });
 
@@ -66,25 +81,38 @@ describe('Build Errors', function () {
 
     this.timeout(20000);
 
-    var message = "";
+    var pathToApp = path.resolve(__dirname, '..', 'incompatible');
+    var message   = "";
 
     var server = meteor({
-      pathToApp   : path.resolve(__dirname, '..', 'incompatible'),
+      pathToApp   : pathToApp,
       skipBuild   : false, // overwrite the default setting
       noAutoStart : true,
     });
 
-    it('should throw an error', function () {
-      return server
-        .init()
-        .expectError(function (err) {
-          message = err.message;
-        });
+    after(function (done) {
+      var pathToMeteorPackages = path.join(pathToApp, '.meteor', 'packages');
+      replaceFileContent(pathToMeteorPackages, function (content) {
+        return content.replace(/anti:gagarin@=.*/, "anti:gagarin@=0.3.0");
+      }, done);
     });
 
-    it('the error should contain useful information', function () {
-      expect(message).to.match(/(please update)|(not installed)/);
+    after(function (done) {
+      var pathToMeteorVersions = path.join(pathToApp, '.meteor', 'versions');
+      replaceFileContent(pathToMeteorVersions, function (content) {
+        return content.replace(/anti:gagarin@.*/, "anti:gagarin@0.3.0");
+      }, done);
     });
+
+    it('should not throw an error', function () {
+      return server
+        .init()
+        .then(function () {});
+    });
+
+    // it('the error should contain useful information', function () {
+    //   expect(message).to.match(/(please update)|(not installed)/);
+    // });
 
   });
 
@@ -129,3 +157,21 @@ describe('Build Errors', function () {
   });
 
 });
+
+
+function replaceFileContent (pathToFile, transform, done) {
+  fs.readFile(pathToFile, { encoding: 'utf8' }, function (err, content) {
+    if (err) {
+      return done(err);
+    }
+    content = transform(content);
+    //-------------------------------------------------
+    fs.writeFile(pathToFile, content, function (err) {
+      if (err) {
+        return done(err);
+      }
+      done();
+    });
+  });  
+}
+
