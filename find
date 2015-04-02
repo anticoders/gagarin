@@ -1,2 +1,2 @@
 #!/bin/bash
-grep -R $1 lib/*/*.js tests/specs/*.js
+grep -R $1 bin lib tests/specs/*.js
