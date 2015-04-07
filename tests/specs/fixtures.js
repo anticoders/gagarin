@@ -17,14 +17,14 @@ describe('Fixtures', function () {
     it('should receive unit tests results from server', function () {
       return server.mocha(suite, { silent: silent }).expectError(function (err) {
         expect(err.message).to.contain("this is a simulated error");
-        expect(err.stack).to.contain("superDuperTestSuite.js:8:1");
+        expect(err.stack).to.contain("superDuperTestSuite.js:12:1");
       });
     });
     
     it('should receive unit tests results from client', function () {
       return client.mocha(suite, { silent: silent }).expectError(function (err) {
         expect(err.message).to.contain("this is a simulated error");
-        expect(err.stack).to.contain("superDuperTestSuite.js:8:1");
+        expect(err.stack).to.contain("superDuperTestSuite.js:12:1");
       });
     });
 
