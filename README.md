@@ -46,7 +46,9 @@ If your app depends on the old unmigrated atmosphere packages than you also need
 
 ## The simplest possible test
 
-Basically, you run the tests with `gagarin` command within you project root.
+First run your meteor app with command `meteor`. 
+
+Next run the tests with `gagarin` command within you project root.
 By default, the script will look for your test definitions inside `tests/gagarin` directory. You can alter this behavior by providing a custom path as the first parameter. For details try `gagarin --help`.
 
 The simplest possible test suite may look like this:
@@ -115,6 +117,8 @@ gagarin --webdriver http://localhost:4444/wd/hub
 We've been testing Gagarin with `chrome` (38) and `firefox` (34). At this moment we cannot guarantee it will work with other browsers.
 
 # Examples
+
+- [The simplest possible test](https://github.com/parhelium/meteor-gagarin-example-the-simplest-one)
 
 Since we don't have a comprehensive documentation yet, please consider the following set of simple examples as a current API reference. Note that this document will evolve in the nearest future.
 
