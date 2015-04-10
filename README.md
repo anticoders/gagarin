@@ -380,3 +380,8 @@ to display information about all possible options. For example, to use a differe
 ./test.js --webdriver http://localhost:4444/wd/hub
 ```
 
+## License
+
+MIT licensed
+
+Copyright (C) 2015 Tomasz Lenarcik, http://apendua.com
