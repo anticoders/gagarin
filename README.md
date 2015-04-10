@@ -32,6 +32,11 @@ Try `gagarin --help` if you need more options.
 
 ## Important notes
 
+Gagarin is still under heavy development and a new release is published almost
+[every week](https://github.com/anticoders/gagarin/releases). Some parts of the API change over time and we can't guarantee backward compatibility before we reach `1.0.0`. Minor version changes may contain breaking changes. Though, we put a lot of effort to reduce the risk of breaking old tests. Gagarin has it's own test suite with more than
+[250 test cases](https://github.com/anticoders/gagarin/tree/develop/tests/specs),
+which BTW are very good source of examples.
+
 Gagarin should play nicely with node `0.10.x` and `0.12.x`. On the other hand, there are known compatibility issues with `0.11.x` so we don't recommend using that particular version. It only applies to the cli-tool though. Your meteor application will always be run with the `node` from the development bundle corresponding to your current meteor release. Please keep this in mind if you are using any kind of continuos integration system, because it basically means that the appropriate version of meteor dev-tools will need to be downloaded before the tests can be run.
 
 Since version `0.4.0` the `server` object created by `meteor()` helper no longer has the `location` property. To make sure the `browser` starts on the proper location, you need to pass `server` as the first argument, so
