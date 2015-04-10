@@ -71,9 +71,9 @@ must coincide.
 ### The minimal setup
 
 Please start by installing the cli tool:
-
-    npm install -g gagarin
-
+```
+npm install -g gagarin
+```
 If you try to run `gagarin` command in your meteor project directory you should receive an error message telling that there are no tests to run. Let's fix it by creating a dummy test in `tests/gagarin/` directory.
 ```javascript
 // tests/gagarin/dummy.js
@@ -131,9 +131,9 @@ it('should print the value of a', function () {
 ```
 will throw an "undefined variable" error. Instead you should pass `a` as an argument
 ```javascript
-  return server.execute(function (a) {
-    console.log(a);
-  }, [ a ]);
+return server.execute(function (a) {
+  console.log(a);
+}, [ a ]);
 ```
 
 ## Testing with browser
@@ -165,6 +165,42 @@ If you're testing locally, we recommend using **chromedriver** which can be down
 ```
 Other webdrivers can be used as well. If you plan to use [phantomjs](http://phantomjs.org/) and **GhostDriver** please note that due to [a BUG in GhostDriver](https://github.com/detro/ghostdriver/issues/90) all browser sessions will share the same cookie jar, which may be problematic in test scenarios when multiple concurrent users need to be created.
 
+A part of webdriver API is exposed and ready to use within you client promise chain. For example:
+```javascript
+it('should be able to use webdriver methods', function () {
+  return client
+    .title()
+    .then(function (title) {
+      expect(title).to.contain("meteor");
+    });
+});
+```
+The full list of supported methods is:
+```javascript
+[
+  'newWindow',
+  'close',
+  'quit',
+  'status',
+  'get',
+  'refresh',
+  'maximize',
+  'getWindowSize',
+  'setWindowSize',
+  'forward',
+  'back',
+  'takeScreenshot',
+  'saveScreenshot',
+  'title',
+  'allCookies',
+  'setCookie',
+  'deleteAllCookies',
+  'deleteCookie',
+]
+```
+Additionally we've implemented a bunch of useful [helpers](https://github.com/anticoders/gagarin/blob/develop/lib/browser/helpers.js),
+which you can use to simplify your tests.
+m
 ## Testing with Selenium WebDriver
 
 We recommend using selenium `2.45.0` along with Firefox 36 or 34.
@@ -312,6 +348,6 @@ in the project root directory. Additionally you can use
 ```
 to display information about all possible options. For example, to use a different webdriver location, you can specify it with
 ```
-./test.js --webdriver http://localhost:4444
+./test.js --webdriver http://localhost:4444/wd/hub
 ```
 
