@@ -1,12 +1,12 @@
 ![gagarin](https://s3.amazonaws.com/gagarinjs/assets/gagarinLogo.svg)
 
-# gagarin [![Circle CI](https://circleci.com/gh/anticoders/gagarin/tree/develop.svg?style=svg)](https://circleci.com/gh/anticoders/gagarin/tree/develop)
+# What it's all about? [![Circle CI](https://circleci.com/gh/anticoders/gagarin/tree/develop.svg?style=svg)](https://circleci.com/gh/anticoders/gagarin/tree/develop)
 
 Gagarin is a testing framework designed to be used with [Meteor](https://www.meteor.com/). It can spawn multiple instances of your meteor application and run the tests by executing commands on both server and client in realtime. In other words, Gagarin allows you to automate everything you can do with `meteor shell`, browser console and a lot of free time. There's no magic. It just works.
 
-Gagarin is also useful when you need more refined control over the meteor processes and test fancy things, e.g. the behavior of your app on server restarts or when you have multiple app instances writing to the same database. To my knowledge, this is currently not achievable with [Velocity](http://velocity.meteor.com/) - the official Meteor testing framework.
+Gagarin is also useful when you need more refined control over the meteor processes and test fancy things, e.g. the behavior of your app on server restarts or when you have multiple app instances writing to the same database. To our knowledge, this is currently not achievable with [Velocity](http://velocity.meteor.com/) - the official Meteor testing framework.
 
-# Quick start
+## Quick start
 
 First, install the cli-tool with `npm`:
 ```
@@ -30,7 +30,9 @@ gagarin --verbose
 We recommend running tests in `verbose` mode, at least before `1.0.0`.
 Try `gagarin --help` if you need more options.
 
-# Important notes
+## Important notes
+
+Gagarin should play nicely with node `0.10.x` and `0.12.x`. On the other hand, there are known compatibility issues with `0.11.x` so we don't recommend using that particular version. It only applies to the cli-tool though. Your meteor application will always be run with the `node` from the development bundle corresponding to your current meteor release. Please keep this in mind if you are using any kind of continuos integration system, because it basically means that the appropriate version of meteor dev-tools will need to be downloaded before the tests can be run.
 
 Since version `0.4.0` the `server` object created by `meteor()` helper no longer has the `location` property. To make sure the `browser` starts on the proper location, you need to pass `server` as the first argument, so
 ```javascript
