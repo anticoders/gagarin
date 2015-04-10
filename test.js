@@ -38,7 +38,10 @@ var gagarin = new Gagarin({
 });
 
 fs.readdirSync(path.join(__dirname, 'tests', 'specs')).forEach(function (file) {
-  gagarin.addFile(path.join(__dirname, 'tests', 'specs', file));
+  var fileType = path.extname(file);
+  if (fileType === '.js') {
+    gagarin.addFile(path.join(__dirname, 'tests', 'specs', file));
+  }
 });
 
 gagarin.run(function (failedCount) {
