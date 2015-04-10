@@ -65,7 +65,7 @@ Gagarin is a simple test runner built on top of [mocha](http://mochajs.org/). In
 
 Gagarin consists of two parts: `gagarin` npm module and `anti:gagarin` meteor package.
 The first one should be installed globally on your system, while the second one should be
-added to your meteor application. In orther to work properly, the versions of the two guys
+added to your meteor application. In order to work properly, the versions of the two guys
 must coincide.
 
 ### The minimal setup
@@ -83,60 +83,68 @@ describe('A dummy test suite', function () {
 ```
 This time, everything should work fine and your test should pass. Please note that prior to running
 the tests scenarios Gagarin builds your application as well. Should the build fail
-you will be notified accordingly.
+you will be notified accordingly. In case of problems, it's always good to try
+`gagarin --verbose` mode for better insight.
 
-### So what about the `anti:gagarin` package?
+Gagarin will always look for your test scenarios in `tests/gagarin/` directory. To alter this behavior pass a custom path as the first parameter, e.g.
+```
+gagarin path/to/my/tests
+```
+For more details see `gagarin --help`.
+
+### What about the `anti:gagarin` package?
 
 If you forgot to add it manually,
 the `gagarin` cli-tool will make sure to add the right version to your project.
 If the dummy test passed you should notice that indeed the `anit:gagarin` package
 is listed in `.meteor/packages` file.
 
-The role of the smart package is adding some backdoor functionality, simillar to `meteor shell`, for testing purposes. But don't worry - it's only activate when `GAGARIN_SETTINGS` environment variable is present. For safety, double check it's not there in your production environment.
+The role of the smart package is adding some backdoor functionality, similar to `meteor shell`, for testing purposes. But don't worry - it's only activate when `GAGARIN_SETTINGS` environment variable is present. For safety, double check it's not there in your production environment.
 
-## The simplest possible test
-
-Basically, you run the tests with `gagarin` command within you project root.
-By default, the script will look for your test definitions inside `tests/gagarin` directory. You can alter this behavior by providing a custom path as the first parameter. For details try `gagarin --help`.
+## Writing simple tests
 
 The simplest possible test suite may look like this:
 ```javascript
 describe('Example test suite', function () {
   var server = meteor();
-
   it('execute should work', function () {
     // return a promise
     return server.execute(function () {
-      return Meteor.release;
-    })
-    .then(function (value) {
-      expect(value).not.to.be.empty;
+      expect(Meteor.release).not.to.be.empty;
     });
   });
-
 });
 ```
-In the above example `meteor` is a global function provided by the framework, which you can use to spawn new meteor instances. Another function of this type is `browser`. For your convenience we've also exposed `expect` from the good old [chai](http://chaijs.com/).
+In the above example `meteor` is a global function provided by the framework, which you can use to spawn new meteor instances.For your convenience we've also exposed `expect` from the good old [chai](http://chaijs.com/).
+
+Please note that the function passed to the `server.execute` routine is the only part that
+is executed within the server environment. The rest of the code is totally external to your application.
+This technique has a lot of advantages but it also have one major drawback. The functions which are passed
+to the server do not share their scope with the other ones. In particular, the following code
+```javascript
+a = 0;
+it('should print the value of a', function () {
+  return server.execute(function () {
+    console.log(a);
+  });
+});
+```
+will throw an "undefined variable" error. Instead you should pass `a` as an argument
+```javascript
+  return server.execute(function (a) {
+    console.log(a);
+  }, [ a ]);
+```
 
 ## Testing with browser
 
-Gagarin makes it really easy to coordinate tests for client and server. This idea originated from Laika, but we decided to go for more promise-oriented API. Basically speaking, you can use the `browser` function to spawn as many clients as you want. The only requirement is that you have a webdriver running somewhere. By default, gagarin will try to find webdriver at port `9515` (chromedriver default). You can customize the webdriver url by providing the corresponding option for the cli tool:
-```
-gagarin --webdriver http://localhost:9515
-```
-If you're testing locally, we recommend using **chromedriver** which can be downloaded [from here](http://chromedriver.storage.googleapis.com/index.html). After unpacking the executable the only thing you need to do is to run it in the background. By default the process will listen on port `9515` by default. This can be altered by specifying the port explicitly
-```
-./chromedriver --port=4444
-```
-Other webdrivers can be used as well. However, if you plan to use [phantomjs](http://phantomjs.org/) and **GhostDriver** please note that due to [a BUG in GhostDriver](https://github.com/detro/ghostdriver/issues/90) all browser sessions will share the same cookie jar, which may be problematic in test scenarios when multiple concurrent users need to be created.
-
-A test suite using both server and client may look like this:
+Gagarin makes it really easy to coordinate tests for client and server. For example
 ```javascript
 describe('You can also use browser in your tests', function () {
   var server = meteor();
   var client = browser(server);
 
-  it('should just work', function () {
+  it('should work for both client and server', function () {
     return client.execute(function () {
       // some code to execute
     }).then(function () {
@@ -147,22 +155,33 @@ describe('You can also use browser in your tests', function () {
   });
 });
 ```
+This idea originated from Laika, but we decided to go for a more promise-oriented API. Basically speaking, you can use the `browser` function to spawn as many clients as you want. The only requirement is that you have a webdriver running somewhere. By default, gagarin will try to find webdriver at port `9515` (chromedriver default). You can customize the webdriver url by providing the corresponding option for the cli tool:
+```
+gagarin --webdriver http://localhost:9515
+```
+If you're testing locally, we recommend using **chromedriver** which can be downloaded [from here](http://chromedriver.storage.googleapis.com/index.html). After unpacking the executable the only thing you need to do is to run it in the background. By default the process will listen on port `9515`. This behavior can be altered by specifying the port explicitly
+```
+./chromedriver --port=1234
+```
+Other webdrivers can be used as well. If you plan to use [phantomjs](http://phantomjs.org/) and **GhostDriver** please note that due to [a BUG in GhostDriver](https://github.com/detro/ghostdriver/issues/90) all browser sessions will share the same cookie jar, which may be problematic in test scenarios when multiple concurrent users need to be created.
 
 ## Testing with Selenium WebDriver
 
+We recommend using selenium `2.45.0` along with Firefox 36 or 34.
+Please note that webdriver is broken in Firefox 35, so don't even try to use that one.
+
 Lets assume that you have a copy of `selenium-server-standalone-*.jar` available at `/path/to/selenium.jar`. First start a selenium "hub" with the following command:
 ```
-java -jar /path/to/selenium.jar -role hub
+java -jar /path/to/selenium.jar
 ```
-Selenium server should be listening on port `4444` by default. Then start a selenium "node" with
-```
-java -jar /path/to/selenium.jar -role node -hub http://localhost:4444
-```
-Finally run your Gagarin tests providing `--webdriver` option
+Selenium server should be listening on port `4444` by default.
+Then run your Gagarin tests specyfing `--webdriver` option
 ```
 gagarin --webdriver http://localhost:4444/wd/hub
 ```
-We've been testing Gagarin with `chrome` (38) and `firefox` (34). At this moment we cannot guarantee it will work with other browsers.
+Please note the `/wd/hub` suffix! If you only try to connect at port `4444` the webdriver will not respond.
+We've been testing Gagarin with `chrome` (38) and `firefox` (34, 36).
+At this moment we cannot guarantee it will work with other browsers.
 
 # Examples
 
