@@ -1,18 +1,42 @@
 ![gagarin](https://s3.amazonaws.com/gagarinjs/assets/gagarinLogo.svg)
 
-# Important note
+# gagarin [![Circle CI](https://circleci.com/gh/anticoders/gagarin/tree/develop.svg?style=svg)](https://circleci.com/gh/anticoders/gagarin/tree/develop)
+
+Gagarin is a testing framework designed to be used with [Meteor](https://www.meteor.com/). It can spawn multiple instances of your meteor application and run the tests by executing commands on both server and client in realtime. In other words, Gagarin allows you to automate everything you can do with `meteor shell`, browser console and a lot of free time. There's no magic. It just works.
+
+Gagarin is also useful when you need more refined control over the meteor processes and test fancy things, e.g. the behavior of your app on server restarts or when you have multiple app instances writing to the same database. To my knowledge, this is currently not achievable with [Velocity](http://velocity.meteor.com/) - the official Meteor testing framework.
+
+# Quick start
+
+First, install the cli-tool with `npm`:
+```
+npm install -g gagarin
+```
+Put your tests in `tests/gagarin/` directory, e.g.
+```javascript
+// tests/gagarin/myFirstTestSuite.js
+
+describe('My first Gagarin test suite', function () {
+  var server = meteor();
+  it('should just work', function () {
+    return server.execute(function () { console.log('I am alive!'); });
+  });
+});
+```
+Finally, in your project root directory run:
+```
+gagarin --verbose
+```
+We recommend running tests in `verbose` mode, at least before `1.0.0`.
+Try `gagarin --help` if you need more options.
+
+# Important notes
 
 Since version `0.4.0` the `server` object created by `meteor()` helper no longer has the `location` property. To make sure the `browser` starts on the proper location, you need to pass `server` as the first argument, so
 ```javascript
 var server = meteor();
 var client = browser(server); // before 0.4.0 you would use server.location here
 ```
-
-# gagarin [![Circle CI](https://circleci.com/gh/anticoders/gagarin/tree/develop.svg?style=svg)](https://circleci.com/gh/anticoders/gagarin/tree/develop)
-
-Gagarin is a tool you can use in your tests to run Meteor apps in a sandboxed environment. It's useful when you need more refined control over the meteor processes and test fancy things, e.g. the behavior of your app on server restarts or when you have multiple app instances writing to the same database. This is currently not achievable with the official Meteor testing framework.
-
-For more information on the official testing framework for Meteor, see [Velocity](http://velocity.meteor.com/).
 
 ## How is it different from Velocity?
 
