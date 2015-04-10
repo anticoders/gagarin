@@ -277,8 +277,3 @@ to display information about all possible options. For example, to use a differe
 ./test.js --webdriver http://localhost:4444
 ```
 
-## Disclaimer
-
-Gagarin is still in a pretty early development stage. Though it's API will probably change. I have based most of the design decisions on experience with Meteor apps testing but I understand that there are always people who are more experienced and have some nice ideas. I am always opened for discussion and please, feel welcome if you want to contribute.
-
-
