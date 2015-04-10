@@ -205,6 +205,8 @@ m
 
 We recommend using selenium `2.45.0` along with Firefox 36 or 34.
 Please note that webdriver is broken in Firefox 35, so don't even try to use that one.
+Also keep in mind that `selenium` is usually much slower than `chromedriver` so consider
+using larger timeouts values when you switch to Firefox.
 
 Lets assume that you have a copy of `selenium-server-standalone-*.jar` available at `/path/to/selenium.jar`. First start a selenium "hub" with the following command:
 ```
@@ -221,7 +223,7 @@ At this moment we cannot guarantee it will work with other browsers.
 
 # Examples
 
-Since we don't have a comprehensive documentation yet, please consider the following set of simple examples as a current API reference. Note that this document will evolve in the nearest future.
+Since we don't have a comprehensive documentation yet, please consider the following set of simple examples as a current API reference.
 
 ## Scope of the a local variable
 
