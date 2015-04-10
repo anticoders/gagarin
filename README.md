@@ -57,23 +57,42 @@ The truth is Gagarin originates from [Laika](http://arunoda.github.io/laika/). I
 - the communication with client is done through a real web driver API, which means that your tests can visit any web page and are not bound to your app's routes
 - it does not depend on external mongo processes; the tests runner is clever enough to find mongo executable within your meteor development bundle
 
-# The test runner
+# Step-by-step guide
 
-Gagarin can be also used as a simple test runner, which in it's essence is very similar to [laika](https://github.com/arunoda/laika), though it's much more flexible and up-to-date and compatible with the latest Meteor versions. Currently it's implemented as a custom `mocha` interface, which simply extends the standard `bdd` ui. This may change in the future if there's a a demand to support other testing frameworks.
+Gagarin is a simple test runner built on top of [mocha](http://mochajs.org/). In it's essence is very similar to [laika](https://github.com/arunoda/laika), though it's much more flexible, up-to-date and compatible with the latest Meteor versions. Currently it's implemented as a custom `mocha` interface, which simply extends the standard `bdd` ui. This may change in the future if there's a a demand to support other testing frameworks.
 
 ## Installation
 
-First you need to add `anti:gagarin` package to your app:
+Gagarin consists of two parts: `gagarin` npm module and `anti:gagarin` meteor package.
+The first one should be installed globally on your system, while the second one should be
+added to your meteor application. In orther to work properly, the versions of the two guys
+must coincide.
 
-    meteor add anti:gagarin
+### The minimal setup
 
-It basically adds some backdoor functionality for testing purposes. But don't worry - it's only activate when `GAGARIN_SETTINGS` environment variable is present. For safety, double check it's not there in your production environment.
-
-If you want to use the test runner, install the cli tool as well:
+Please start by installing the cli tool:
 
     npm install -g gagarin
 
-If your app depends on the old unmigrated atmosphere packages than you also need to make sure that `meteorite` is installed globally.
+If you try to run `gagarin` command in your meteor project directory you should receive an error message telling that there are no tests to run. Let's fix it by creating a dummy test in `tests/gagarin/` directory.
+```javascript
+// tests/gagarin/dummy.js
+describe('A dummy test suite', function () {
+  it('should do nothing', function () {});
+});
+```
+This time, everything should work fine and your test should pass. Please note that prior to running
+the tests scenarios Gagarin builds your application as well. Should the build fail
+you will be notified accordingly.
+
+### So what about the `anti:gagarin` package?
+
+If you forgot to add it manually,
+the `gagarin` cli-tool will make sure to add the right version to your project.
+If the dummy test passed you should notice that indeed the `anit:gagarin` package
+is listed in `.meteor/packages` file.
+
+The role of the smart package is adding some backdoor functionality, simillar to `meteor shell`, for testing purposes. But don't worry - it's only activate when `GAGARIN_SETTINGS` environment variable is present. For safety, double check it's not there in your production environment.
 
 ## The simplest possible test
 
