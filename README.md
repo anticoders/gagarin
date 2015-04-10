@@ -200,7 +200,7 @@ The full list of supported methods is:
 ```
 Additionally we've implemented a bunch of useful [helpers](https://github.com/anticoders/gagarin/blob/develop/lib/browser/helpers.js),
 which you can use to simplify your tests.
-m
+
 ## Testing with Selenium WebDriver
 
 We recommend using selenium `2.45.0` along with Firefox 36 or 34.
@@ -363,7 +363,8 @@ it("should be able to wait on server", function () {
 
 # For contributors
 
-To test the package locally make sure that a webdriver is listening on port `9515`, then simply run the tests with the following command
+To test the package locally make sure that a webdriver is listening on port `9515`,
+then simply run the tests with the following command
 ```
 npm test
 ```
@@ -375,7 +376,8 @@ in the project root directory. Additionally you can use
 ```
 ./test.js --help
 ```
-to display information about all possible options. For example, to use a different webdriver location, you can specify it with
+to display information about all possible options.
+For example, to use a different webdriver location, you can specify it with
 ```
 ./test.js --webdriver http://localhost:4444/wd/hub
 ```
