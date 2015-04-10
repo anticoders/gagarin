@@ -221,6 +221,33 @@ Please note the `/wd/hub` suffix! If you only try to connect at port `4444` the 
 We've been testing Gagarin with `chrome` (38) and `firefox` (34, 36).
 At this moment we cannot guarantee it will work with other browsers.
 
+# Caveats
+
+There are a few issues which we are aware of
+and we are working hard to minimize their impact on the user experience.
+
+## Mongo throwing 100 error
+
+Sometimes, when you interrupt your tests with `CTRL-C` the test runner will fail to clean-up
+the mongo process running in the background. If you see this error, first try to find the process
+and kill it. If it does not help go to `.gagarin/local/db` and delete the `mongo.lock` file.
+
+## Tests fail due to timeouts
+
+Depending on the environment and the system performance,
+the tests may require timeout values different from the default ones.
+Please keep this in mind and see `gagarin --help` for available customization options.
+In case of problems, it's generally good to run tests in `--verbose` mode
+to have a better picture of what's going on.
+
+## `before all` timeout
+
+If you run your tests in `--verbose` mode you would notice that this is happening
+because sometimes webdriver fails to respond within a reasonable time window
+when we create a new browser session. This may also depend on your system resources.
+It's totally external to Gagarin, so the only thing we can do is to report
+this error properly.
+
 # Examples
 
 Since we don't have a comprehensive documentation yet, please consider the following set of simple examples as a current API reference.
