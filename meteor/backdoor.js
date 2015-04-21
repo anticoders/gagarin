@@ -137,9 +137,16 @@ if (Gagarin.isActive) {
 
   });
 
-  Meteor.startup(function () {
+  function norifyWeAreReady () {
     console.log('Поехали!'); // Let's ride! (Gagarin, during the Vostok 1 launch)
-  });
+  }
+
+  if (WebApp.onListening) {
+    WebApp.onListening(norifyWeAreReady);
+
+  } else {
+    Meteor.startup(norifyWeAreReady);
+  }
 
 }
 
