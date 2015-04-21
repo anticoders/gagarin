@@ -381,6 +381,17 @@ For example, to use a different webdriver location, you can specify it with
 ```
 ./test.js --webdriver http://localhost:4444/wd/hub
 ```
+For testing purposes it's sometimes useful to install a version of the npm package from specyfic branch.
+```
+npm install -g anticoders/gagarin#develop
+```
+If you're developing Gagarin locally please remember that `anti:gagarin` package is an integral
+part of the testing framework and it has to be consistent with the `gagarin` node module.
+The easiest way to achieve this is to put a symbolic link inside the `packages` directory
+within your project root, i.e.
+```
+path/to/your/project/packages/anti:gagarin -> path/to/repos/gagarin
+```
 
 ## License
 
