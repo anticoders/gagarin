@@ -5,7 +5,7 @@
 
 standard-app-packages
 insecure
-anti:gagarin@=0.4.8
+anti:gagarin@=0.4.9
 mystor:device-detection
 accounts-password
 
