@@ -3,7 +3,7 @@ var Promise = require('es6-promise').Promise;
 var expect = require('chai').expect;
 var path = require('path');
 
-describe('Tests with browser', function () {
+describe('Browser', function () {
 
   var server = meteor({});
 
@@ -66,6 +66,14 @@ describe('Tests with browser', function () {
   });
 
   describe('Restarting server', function () {
+
+    before(function () {
+      return browser1.execute(function () {
+        throw new Error("checkpoint error");
+      }).expectError(function () {
+
+      });
+    })
 
     var browser2 = browser(server);
     var value    = 0;
