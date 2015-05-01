@@ -4,7 +4,7 @@ var fs = require('fs');
 describe('Build Errors', function () {
 
   // it does not work without pty.js
-  describe.skip('Given the app does not build properly,', function () {
+  describe('Given the app does not build properly,', function () {
 
     // TODO: check if the process is properly killed
 
@@ -27,10 +27,11 @@ describe('Build Errors', function () {
     });
 
     it('the error should contain useful information', function () {
-      expect(message).to.contain("Unexpected token :");
-      expect(message).to.contain("build_error.js");
-      expect(message).to.contain("3");
-      expect(message).to.contain("35");
+      expect(message).to.contain('meteor build exited with code');
+      //expect(message).to.contain("Unexpected token :");
+      //expect(message).to.contain("build_error.js");
+      //expect(message).to.contain("3");
+      //expect(message).to.contain("35");
     });
 
   });
