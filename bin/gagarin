@@ -49,6 +49,7 @@ var pathToTests = program.args[0] || path.join(program.pathToApp, 'tests', 'gaga
 
 // set verbose mode if necessary
 logs.setVerbose(program.verbose);
+logs.setSilentBuild(program.muteBuild);
 
 if (!fs.existsSync(pathToTests)) {
   console.warn('looking for tests in ' + pathToTests + ' but this path does not exist');
