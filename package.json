@@ -1,6 +1,6 @@
 {
   "name": "gagarin",
-  "version": "0.4.9",
+  "version": "0.4.10-pre1",
   "description": "another testing framework for your meteor apps",
   "main": "gagarin.js",
   "repository": {
