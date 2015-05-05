@@ -1,8 +1,8 @@
 ![gagarin](https://s3.amazonaws.com/gagarinjs/assets/gagarinLogo.svg)
 
-# What it's all about? [![Circle CI](https://circleci.com/gh/anticoders/gagarin/tree/develop.svg?style=svg)](https://circleci.com/gh/anticoders/gagarin/tree/develop)
+# What it's all about [![Circle CI](https://circleci.com/gh/anticoders/gagarin/tree/develop.svg?style=svg)](https://circleci.com/gh/anticoders/gagarin/tree/develop)
 
-Gagarin is a testing framework designed to be used with [Meteor](https://www.meteor.com/). It can spawn multiple instances of your meteor application and run the tests by executing commands on both server and client in realtime. In other words, Gagarin allows you to automate everything you can do with `meteor shell`, browser console and a lot of free time. There's no magic. It just works.
+Gagarin is a [mocha](http://mochajs.org/) based testing framework designed to be used with [Meteor](https://www.meteor.com/). It can spawn multiple instances of your meteor application and run the tests by executing commands on both server and client in realtime. In other words, Gagarin allows you to automate everything you could achieve manually with `meteor shell`, browser console and a lot of free time. There's no magic. It just works.
 
 Gagarin is also useful when you need more refined control over the meteor processes and test fancy things, e.g. the behavior of your app on server restarts or when you have multiple app instances writing to the same database. To our knowledge, this is currently not achievable with [Velocity](http://velocity.meteor.com/) - the official Meteor testing framework.
 
@@ -33,11 +33,22 @@ Try `gagarin --help` if you need more options.
 ## Important notes
 
 Gagarin is still under heavy development and a new release is published almost
-[every week](https://github.com/anticoders/gagarin/releases). Some parts of the API change over time and we can't guarantee backward compatibility before we reach `1.0.0`. Minor version changes may contain breaking changes. Though, we put a lot of effort to reduce the risk of breaking old tests. Gagarin has it's own test suite with more than
-[250 test cases](https://github.com/anticoders/gagarin/tree/develop/tests/specs),
-which BTW are very good source of examples.
+[every week](https://github.com/anticoders/gagarin/releases). Some parts of the API change over time and we can't guarantee backward compatibility before we reach `1.0.0`. Minor version changes may contain breaking changes. Though, we put a lot of effort to reduce the risk of breaking old tests. Gagarin has it's own test suite with more than [250 test cases](https://github.com/anticoders/gagarin/tree/develop/tests/specs), which BTW are very good source of examples.
+
+### Windows support
+
+Since version `0.4.10` gagarin can also run on windows platform. The only additional requirement is that it has to be run within the elevated prompt. This is because during the application build process we need to create a symbolic link to
+```
+[..]\AppData\Local\.meteor\packages\meteor-tool\[..]\dev_bundle\server-lib\node_modules
+```
+which requires administrative rights. We are working hard to find a decent workaround
+(look [here](https://github.com/anticoders/gagarin/issues/128)). Any help and suggestions are welcome.
+
+### Compatibility with various node versions
 
 Gagarin should play nicely with node `0.10.x` and `0.12.x`. On the other hand, there are known compatibility issues with `0.11.x` so we don't recommend using that particular version. It only applies to the cli-tool though. Your meteor application will always be run with the `node` from the development bundle corresponding to your current meteor release. Please keep this in mind if you are using any kind of continuos integration system, because it basically means that the appropriate version of meteor dev-tools will need to be downloaded before the tests can be run.
+
+### Breaking changes
 
 Since version `0.4.0` the `server` object created by `meteor()` helper no longer has the `location` property. To make sure the `browser` starts on the proper location, you need to pass `server` as the first argument, so
 ```javascript
