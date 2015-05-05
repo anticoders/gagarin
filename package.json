@@ -1,6 +1,6 @@
 {
   "name": "gagarin",
-  "version": "0.4.7",
+  "version": "0.4.10",
   "description": "another testing framework for your meteor apps",
   "main": "gagarin.js",
   "repository": {
@@ -44,7 +44,6 @@
     "mocha": "^1.20.1",
     "mongodb": "^1.4.7",
     "portscanner": "1.0.0",
-    "pty.js": "0.2.6",
     "rimraf": "^2.2.8",
     "sockjs": "^0.3.12",
     "shortid": "^2.1.3",

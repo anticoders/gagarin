@@ -1,9 +1,9 @@
 amplify@1.0.0
-anti:gagarin@0.4.6
+anti:gagarin@0.4.7
 autoupdate@1.2.1
 base64@1.0.3
 binary-heap@1.0.3
-blaze@2.1.1
+blaze@2.1.2
 blaze-tools@1.0.3
 boilerplate-generator@1.0.3
 callback-hook@1.0.3
@@ -47,6 +47,6 @@ ui@1.0.6
 underscore@1.0.3
 url@1.0.4
 velocity:core@0.4.5
-velocity:html-reporter@0.4.2
+velocity:html-reporter@0.5.0
 webapp@1.2.0
 webapp-hashing@1.0.3

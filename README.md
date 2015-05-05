@@ -1,6 +1,54 @@
 ![gagarin](https://s3.amazonaws.com/gagarinjs/assets/gagarinLogo.svg)
 
-# Important note
+# What it's all about [![Circle CI](https://circleci.com/gh/anticoders/gagarin/tree/develop.svg?style=svg)](https://circleci.com/gh/anticoders/gagarin/tree/develop)
+
+Gagarin is a [mocha](http://mochajs.org/) based testing framework designed to be used with [Meteor](https://www.meteor.com/). It can spawn multiple instances of your meteor application and run the tests by executing commands on both server and client in realtime. In other words, Gagarin allows you to automate everything you could achieve manually with `meteor shell`, browser console and a lot of free time. There's no magic. It just works.
+
+Gagarin is also useful when you need more refined control over the meteor processes and test fancy things, e.g. the behavior of your app on server restarts or when you have multiple app instances writing to the same database. To our knowledge, this is currently not achievable with [Velocity](http://velocity.meteor.com/) - the official Meteor testing framework.
+
+## Quick start
+
+First, install the cli-tool with `npm`:
+```
+npm install -g gagarin
+```
+Put your tests in `tests/gagarin/` directory, e.g.
+```javascript
+// tests/gagarin/myFirstTestSuite.js
+
+describe('My first Gagarin test suite', function () {
+  var server = meteor();
+  it('should just work', function () {
+    return server.execute(function () { console.log('I am alive!'); });
+  });
+});
+```
+Finally, in your project root directory run:
+```
+gagarin --verbose
+```
+We recommend running tests in `verbose` mode, at least before `1.0.0`.
+Try `gagarin --help` if you need more options.
+
+## Important notes
+
+Gagarin is still under heavy development and a new release is published almost
+[every week](https://github.com/anticoders/gagarin/releases). Some parts of the API change over time and we can't guarantee backward compatibility before we reach `1.0.0`. Minor version changes may contain breaking changes. Though, we put a lot of effort to reduce the risk of breaking old tests. Gagarin has it's own test suite with more than [250 test cases](https://github.com/anticoders/gagarin/tree/develop/tests/specs), which BTW are very good source of examples.
+
+### Windows support
+
+Since version `0.4.10` gagarin can also run on windows platform. The only additional requirement is that it has to be run within the elevated prompt. This is because during the application build process we need to create a symbolic link to
+```
+[..]\AppData\Local\.meteor\packages\meteor-tool\[..]\dev_bundle\server-lib\node_modules
+```
+which requires administrative rights. We are working hard to find a decent workaround
+(look [here](https://github.com/anticoders/gagarin/issues/128)). Any help and suggestions are welcome.
+
+### Compatibility with various node versions
+
+Gagarin should play nicely with node `0.10.x` and `0.12.x`. On the other hand, there are known compatibility issues with `0.11.x` so we don't recommend using that particular version. It only applies to the cli-tool though. Your meteor application will always be run with the `node` from the development bundle corresponding to your current meteor release. Please keep this in mind if you are using any kind of continuos integration system, because it basically means that the appropriate version of meteor dev-tools will need to be downloaded before the tests can be run.
+
+### Breaking changes
 
 Since version `0.4.0` the `server` object created by `meteor()` helper no longer has the `location` property. To make sure the `browser` starts on the proper location, you need to pass `server` as the first argument, so
 ```javascript
@@ -8,85 +56,106 @@ var server = meteor();
 var client = browser(server); // before 0.4.0 you would use server.location here
 ```
 
-# gagarin [![Circle CI](https://circleci.com/gh/anticoders/gagarin/tree/develop.svg?style=svg)](https://circleci.com/gh/anticoders/gagarin/tree/develop)
-
-Gagarin is a tool you can use in your tests to run Meteor apps in a sandboxed environment. It's useful when you need more refined control over the meteor processes and test fancy things, e.g. the behavior of your app on server restarts or when you have multiple app instances writing to the same database. This is currently not achievable with the official Meteor testing framework.
-
-For more information on the official testing framework for Meteor, see [Velocity](http://velocity.meteor.com/).
-
 ## How is it different from Velocity?
 
-Gagarin is practically external to meteor. It only takes care of spawning your meteor processes and allows you to execute source code chunks in your app environment from within your test suite and that's it. On the other hand, Velocity will deeply integrate with your app by making your test cases an integral part of your app source code, but only in a special type of builds called mirrors. This is very clever because your tests will run as fast as it can possibly be. The only drawback of using velocity is that you don't have a satisfactory control over your meteor processes. In most situations this is acceptable but there are some very specific scenarios when this is not sufficient. In those cases Gagarin is probably a good choice. Gagarin tests will run a little bit slower because the source code is send to your app through DDP, but in most situations in which you would need Gagarin this is acceptable because the bottleneck of your test speed is usually somewhere else. Another advantage of using DDP is that the tests can be potentially executed on a deployed application which may be useful in some specific cases, though this feature is not fully implemented yet.
+Gagarin is external to meteor. It only takes care of spawning your meteor processes and allows you to execute chunks of source code in your app environment from within your test suite and that's it. On the other hand, Velocity will deeply integrate with your app by making your test cases an integral part of your app source code, but only in a special type of builds called mirrors. This is very clever because your tests will run as fast as they possibly can. The only drawback of using velocity is that you don't have a satisfactory control over your meteor processes. In most situations this is acceptable but there are some very specific scenarios when this is not sufficient. In those cases Gagarin is probably a good choice. Gagarin tests will run a little bit slower because the source code is send to your app through DDP, but in most situations in which you would need Gagarin, this is totally acceptable because the bottleneck of your tests speed is usually somewhere else. Another advantage of using DDP is that the tests can be potentially executed on a deployed application which may be useful in some specific cases.
 
 ## How is it different from Laika?
 
-In needs to be said that Gagarin originates from Laika. In some sense, one may think of it as Laika 2.0, though it's not backward compatible. The main advantages of using Gagarin rather then Laika are the following:
+The truth is Gagarin originates from [Laika](http://arunoda.github.io/laika/). In some sense, one may think of it as Laika 2.0, though it's not backward compatible. The main advantages of using Gagarin rather then Laika are the following:
 - it does not depend on `phantomjs`
 - it does not depend on injected source code, so the test runner does not have to rebuild your app each time you run the tests
-- the communication with client is done through a real webDriver API, which means that your tests can visit any web page and are not bound to your app's routes
+- the communication with client is done through a real web driver API, which means that your tests can visit any web page and are not bound to your app's routes
 - it does not depend on external mongo processes; the tests runner is clever enough to find mongo executable within your meteor development bundle
 
-# The test runner
+# Step-by-step guide
 
-Gagarin can be also used as a simple test runner, which in it's essence is very similar to [laika](https://github.com/arunoda/laika), though it's much more flexible and up-to-date and compatible with the latest Meteor versions. Currently it's implemented as a custom `mocha` interface, which simply extends the standard `bdd` ui. This may change in the future if there's a a demand to support other testing frameworks.
+Gagarin is a simple test runner built on top of [mocha](http://mochajs.org/). In it's essence is very similar to [laika](https://github.com/arunoda/laika), though it's much more flexible, up-to-date and compatible with the latest Meteor versions. Currently it's implemented as a custom `mocha` interface, which simply extends the standard `bdd` ui. This may change in the future if there's a a demand to support other testing frameworks.
 
 ## Installation
 
-First you need to add `anti:gagarin` package to your app:
+Gagarin consists of two parts: `gagarin` npm module and `anti:gagarin` meteor package.
+The first one should be installed globally on your system, while the second one should be
+added to your meteor application. In order to work properly, the versions of the two guys
+must coincide.
 
-    meteor add anti:gagarin
+### The minimal setup
 
-It basically adds some backdoor functionality for testing purposes. But don't worry - it's only activate when `GAGARIN_SETTINGS` environment variable is present. For safety, double check it's not there in your production environment.
+Please start by installing the cli tool:
+```
+npm install -g gagarin
+```
+If you try to run `gagarin` command in your meteor project directory you should receive an error message telling that there are no tests to run. Let's fix it by creating a dummy test in `tests/gagarin/` directory.
+```javascript
+// tests/gagarin/dummy.js
+describe('A dummy test suite', function () {
+  it('should do nothing', function () {});
+});
+```
+This time, everything should work fine and your test should pass. Please note that prior to running
+the tests scenarios Gagarin builds your application as well. Should the build fail
+you will be notified accordingly. In case of problems, it's always good to try
+`gagarin --verbose` mode for better insight.
 
-If you want to use the test runner, install the cli tool as well:
+Gagarin will always look for your test scenarios in `tests/gagarin/` directory. To alter this behavior pass a custom path as the first parameter, e.g.
+```
+gagarin path/to/my/tests
+```
+For more details see `gagarin --help`.
 
-    npm install -g gagarin
+### What about the `anti:gagarin` package?
 
-If your app depends on the old unmigrated atmosphere packages than you also need to make sure that `meteorite` is installed globally.
+If you forgot to add it manually,
+the `gagarin` cli-tool will make sure to add the right version to your project.
+If the dummy test passed you should notice that indeed the `anit:gagarin` package
+is listed in `.meteor/packages` file.
 
-## The simplest possible test
+The role of the smart package is adding some backdoor functionality, similar to `meteor shell`, for testing purposes. But don't worry - it's only activate when `GAGARIN_SETTINGS` environment variable is present. For safety, double check it's not there in your production environment.
 
-Basically, you run the tests with `gagarin` command within you project root.
-By default, the script will look for your test definitions inside `tests/gagarin` directory. You can alter this behavior by providing a custom path as the first parameter. For details try `gagarin --help`.
+## Writing simple tests
 
 The simplest possible test suite may look like this:
 ```javascript
 describe('Example test suite', function () {
   var server = meteor();
-
   it('execute should work', function () {
     // return a promise
     return server.execute(function () {
-      return Meteor.release;
-    })
-    .then(function (value) {
-      expect(value).not.to.be.empty;
+      expect(Meteor.release).not.to.be.empty;
     });
   });
-
 });
 ```
-In the above example `meteor` is a global function provided by the framework, which you can use to spawn new meteor instances. Another function of this type is `browser`. For your convenience we've also exposed `expect` from the good old [chai](http://chaijs.com/).
+In the above example `meteor` is a global function provided by the framework, which you can use to spawn new meteor instances.For your convenience we've also exposed `expect` from the good old [chai](http://chaijs.com/).
+
+Please note that the function passed to the `server.execute` routine is the only part that
+is executed within the server environment. The rest of the code is totally external to your application.
+This technique has a lot of advantages but it also have one major drawback. The functions which are passed
+to the server do not share their scope with the other ones. In particular, the following code
+```javascript
+a = 0;
+it('should print the value of a', function () {
+  return server.execute(function () {
+    console.log(a);
+  });
+});
+```
+will throw an "undefined variable" error. Instead you should pass `a` as an argument
+```javascript
+return server.execute(function (a) {
+  console.log(a);
+}, [ a ]);
+```
 
 ## Testing with browser
 
-Gagarin makes it really easy to coordinate tests for client and server. This idea originated from Laika, but we decided to go for more promise-oriented API. Basically speaking, you can use the `browser` function to spawn as many clients as you want. The only requirement is that you have a webdriver running somewhere. By default, gagarin will try to find webdriver at port `9515` (chromedriver default). You can customize the webdriver url by providing the corresponding option for the cli tool:
-```
-gagarin --webdriver http://localhost:9515
-```
-If you're testing locally, we recommend using **chromedriver** which can be downloaded [from here](http://chromedriver.storage.googleapis.com/index.html). After unpacking the executable the only thing you need to do is to run it in the background. By default the process will listen on port `9515` by default. This can be altered by specifying the port explicitly
-```
-./chromedriver --port=4444
-```
-Other webdrivers can be used as well. However, if you plan to use [phantomjs](http://phantomjs.org/) and **GhostDriver** please note that due to [a BUG in GhostDriver](https://github.com/detro/ghostdriver/issues/90) all browser sessions will share the same cookie jar, which may be problematic in test scenarios when multiple concurrent users need to be created.
-
-A test suite using both server and client may look like this:
+Gagarin makes it really easy to coordinate tests for client and server. For example
 ```javascript
 describe('You can also use browser in your tests', function () {
   var server = meteor();
   var client = browser(server);
 
-  it('should just work', function () {
+  it('should work for both client and server', function () {
     return client.execute(function () {
       // some code to execute
     }).then(function () {
@@ -97,26 +166,102 @@ describe('You can also use browser in your tests', function () {
   });
 });
 ```
+This idea originated from Laika, but we decided to go for a more promise-oriented API. Basically speaking, you can use the `browser` function to spawn as many clients as you want. The only requirement is that you have a webdriver running somewhere. By default, gagarin will try to find webdriver at port `9515` (chromedriver default). You can customize the webdriver url by providing the corresponding option for the cli tool:
+```
+gagarin --webdriver http://localhost:9515
+```
+If you're testing locally, we recommend using **chromedriver** which can be downloaded [from here](http://chromedriver.storage.googleapis.com/index.html). After unpacking the executable the only thing you need to do is to run it in the background. By default the process will listen on port `9515`. This behavior can be altered by specifying the port explicitly
+```
+./chromedriver --port=1234
+```
+Other webdrivers can be used as well. If you plan to use [phantomjs](http://phantomjs.org/) and **GhostDriver** please note that due to [a BUG in GhostDriver](https://github.com/detro/ghostdriver/issues/90) all browser sessions will share the same cookie jar, which may be problematic in test scenarios when multiple concurrent users need to be created.
+
+A part of webdriver API is exposed and ready to use within you client promise chain. For example:
+```javascript
+it('should be able to use webdriver methods', function () {
+  return client
+    .title()
+    .then(function (title) {
+      expect(title).to.contain("meteor");
+    });
+});
+```
+The full list of supported methods is:
+```javascript
+[
+  'newWindow',
+  'close',
+  'quit',
+  'status',
+  'get',
+  'refresh',
+  'maximize',
+  'getWindowSize',
+  'setWindowSize',
+  'forward',
+  'back',
+  'takeScreenshot',
+  'saveScreenshot',
+  'title',
+  'allCookies',
+  'setCookie',
+  'deleteAllCookies',
+  'deleteCookie',
+]
+```
+Additionally we've implemented a bunch of useful [helpers](https://github.com/anticoders/gagarin/blob/develop/lib/browser/helpers.js),
+which you can use to simplify your tests.
 
 ## Testing with Selenium WebDriver
 
+We recommend using selenium `2.45.0` along with Firefox 36 or 34.
+Please note that webdriver is broken in Firefox 35, so don't even try to use that one.
+Also keep in mind that `selenium` is usually much slower than `chromedriver` so consider
+using larger timeouts values when you switch to Firefox.
+
 Lets assume that you have a copy of `selenium-server-standalone-*.jar` available at `/path/to/selenium.jar`. First start a selenium "hub" with the following command:
 ```
-java -jar /path/to/selenium.jar -role hub
+java -jar /path/to/selenium.jar
 ```
-Selenium server should be listening on port `4444` by default. Then start a selenium "node" with
-```
-java -jar /path/to/selenium.jar -role node -hub http://localhost:4444
-```
-Finally run your Gagarin tests providing `--webdriver` option
+Selenium server should be listening on port `4444` by default.
+Then run your Gagarin tests specyfing `--webdriver` option
 ```
 gagarin --webdriver http://localhost:4444/wd/hub
 ```
-We've been testing Gagarin with `chrome` (38) and `firefox` (34). At this moment we cannot guarantee it will work with other browsers.
+Please note the `/wd/hub` suffix! If you only try to connect at port `4444` the webdriver will not respond.
+We've been testing Gagarin with `chrome` (38) and `firefox` (34, 36).
+At this moment we cannot guarantee it will work with other browsers.
+
+# Caveats
+
+There are a few issues which we are aware of
+and we are working hard to minimize their impact on the user experience.
+
+## Mongo throwing 100 error
+
+Sometimes, when you interrupt your tests with `CTRL-C` the test runner will fail to clean-up
+the mongo process running in the background. If you see this error, first try to find the process
+and kill it. If it does not help go to `.gagarin/local/db` and delete the `mongo.lock` file.
+
+## Tests fail due to timeouts
+
+Depending on the environment and the system performance,
+the tests may require timeout values different from the default ones.
+Please keep this in mind and see `gagarin --help` for available customization options.
+In case of problems, it's generally good to run tests in `--verbose` mode
+to have a better picture of what's going on.
+
+## `before all` timeout
+
+If you run your tests in `--verbose` mode you would notice that this is happening
+because sometimes webdriver fails to respond within a reasonable time window
+when we create a new browser session. This may also depend on your system resources.
+It's totally external to Gagarin, so the only thing we can do is to report
+this error properly.
 
 # Examples
 
-Since we don't have a comprehensive documentation yet, please consider the following set of simple examples as a current API reference. Note that this document will evolve in the nearest future.
+Since we don't have a comprehensive documentation yet, please consider the following set of simple examples as a current API reference.
 
 ## Scope of the a local variable
 
@@ -229,7 +374,8 @@ it("should be able to wait on server", function () {
 
 # For contributors
 
-To test the package locally make sure that a webdriver is listening on port `9515`, then simply run the tests with the following command
+To test the package locally make sure that a webdriver is listening on port `9515`,
+then simply run the tests with the following command
 ```
 npm test
 ```
@@ -241,17 +387,25 @@ in the project root directory. Additionally you can use
 ```
 ./test.js --help
 ```
-to display information about all possible options. For example, to use a different webdriver location, you can specify it with
+to display information about all possible options.
+For example, to use a different webdriver location, you can specify it with
 ```
 ./test.js --webdriver http://localhost:4444/wd/hub
 ```
-For testing purposes it's sometimes useful to intall a version of the npm package from specyfic branch.
+For testing purposes it's sometimes useful to install a version of the npm package from specyfic branch.
 ```
 npm install -g anticoders/gagarin#develop
 ```
+If you're developing Gagarin locally please remember that `anti:gagarin` package is an integral
+part of the testing framework and it has to be consistent with the `gagarin` node module.
+The easiest way to achieve this is to put a symbolic link inside the `packages` directory
+within your project root, i.e.
+```
+path/to/your/project/packages/anti:gagarin -> path/to/repos/gagarin
+```
 
-## Disclaimer
+## License
 
-Gagarin is still in a pretty early development stage. Though it's API will probably change. I have based most of the design decisions on experience with Meteor apps testing but I understand that there are always people who are more experienced and have some nice ideas. I am always opened for discussion and please, feel welcome if you want to contribute.
+MIT licensed
 
-
+Copyright (C) 2015 Tomasz Lenarcik, http://apendua.com
