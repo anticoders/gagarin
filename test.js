@@ -15,17 +15,20 @@ program
   .option('-v, --verbose', 'run with verbose mode with logs from client/server', false)
   .option('-o, --velocity <url>', 'report results to velocity at given url')
   .option('-p, --parallel <number>', 'run test suites in parallel', parseInt, 0)
+  .option('-m, --mute-build', 'do not show build logs', false)
 
 program.parse(process.argv);
 
 // set verbose mode ...
 logs.setVerbose(program.verbose);
+logs.setSilentBuild(program.muteBuild);
 
 var gagarin = new Gagarin({
   pathToApp     : pathToApp,
   webdriver     : program.webdriver,
   reporter      : 'spec',
   timeout       : 6000,
+  muteBuild     : program.muteBuild,
   grep          : program.grep,
   skipBuild     : program.skipBuild,
   buildOnly     : program.buildOnly,

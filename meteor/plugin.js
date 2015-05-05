@@ -13,12 +13,12 @@ mkdirSync(pathToLocal);
 //       how we can do it without checking for existance first
 
 if (!fs.existsSync(pathToGitIgnore)) {
-  fs.writeFileSync(pathToGitIgnore, 'local\n');  
+  fs.writeFileSync(pathToGitIgnore, 'local\n');
 }
 
 fs.writeFileSync(pathToArtifacts, JSON.stringify({
 
-  pathToDevBundle: process.argv[0].replace(/\/bin\/node$/, ''),
+  pathToNode: process.argv[0]
 
 }, undefined, 2));
 

@@ -1,8 +1,8 @@
 
 Package.describe({
-  summary:  "Gagarin, a Meteor testing framework",
+  summary:  "Gagarin, a Meteor testing framework based on mocha",
   name:     "anti:gagarin",
-  version:  "0.4.9",
+  version:  "0.4.10",
   git:      "https://github.com/anticoders/gagarin.git",
 });
 
@@ -24,13 +24,13 @@ Package.on_use(function (api) {
   if (api.versionsFrom) {
     api.versionsFrom('METEOR@0.9.0');
   }
-  
+
   api.use([ 'livedata', 'webapp' ] , 'server');
   api.use('accounts-password', 'server', { weak: true });
   api.use(['underscore', 'mongo'], [ 'client', 'server' ]);
 
   api.add_files([
-    
+
     'meteor/settings.js',
 
   ], 'server');
