@@ -55,7 +55,8 @@ logs.setSilentBuild(program.muteBuild);
 
 // fallback to default test dir if there is no pattern provided
 if (!pattern) {
-  pattern = [program.pathToApp, 'tests', 'gagarin', '**/*.{js,coffee}'].join('/');
+  var appPath = program.pathToApp.replace(/\\/g, '/');
+  pattern = [appPath, 'tests', 'gagarin', '**/*.{js,coffee}'].join('/');
 }
 
 // create a pattern if a directory was provided, a file path already is a valid pattern
