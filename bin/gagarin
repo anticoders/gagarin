@@ -6,10 +6,12 @@ var logs = require('../lib/logs');
 var path = require('path');
 var fs = require('fs');
 var coffee = require('coffee-script/register');
+var chalk = require('chalk');
+var glob = require('glob');
 
 program
   .version(require('../package.json').version)
-  .usage('[debug] [options] [files]')
+  .usage('[debug] [options] [file-pattern]')
   .option('-A, --async-only', "force all tests to take a callback (async)")
   .option('-c, --colors', 'force enabling of colors')
   .option('-C, --no-colors', 'force disabling of colors')
@@ -38,43 +40,49 @@ program
   .option('-T, --startup-timeout <ms>' ,'server startup timeout [5000]', parse10, 5000)
   .option('-U, --build-timeout <ms>' ,'meteor building timeout [120000]', parse10, 120000)
   .option('-O, --velocity <url>', 'report results to velocity at given url')
-  .option('-p, --parallel <number>', 'run test suites in parallel', parse10, 0)
+  .option('-p, --parallel <number>', 'run test suites in parallel', parse10, 0);
 
 program.name = 'gagarin';
 
 program.parse(process.argv);
 
 var gagarin = new Gagarin(program);
-var pathToTests = program.args[0] || path.join(program.pathToApp, 'tests', 'gagarin');
+var pattern = program.args[0];
 
 // set verbose mode if necessary
 logs.setVerbose(program.verbose);
 logs.setSilentBuild(program.muteBuild);
 
-if (!fs.existsSync(pathToTests)) {
-  console.warn('looking for tests in ' + pathToTests + ' but this path does not exist');
+// fallback to default test dir if there is no pattern provided
+if (!pattern) {
+  pattern = [program.pathToApp, 'tests', 'gagarin', '**/*.{js,coffee}'].join('/');
+}
+
+// create a pattern if a directory was provided, a file path already is a valid pattern
+if (fs.existsSync(pattern) && fs.lstatSync(pattern).isDirectory()) {
+  pattern = pattern.replace(/\/$/, '') + '/**/*.{js,coffee}';
+}
+
+logs.system('searching for test files, using glob pattern `' + pattern + '`');
+var files = glob.sync(pattern, {
+  // resolve absolute path instead of relative, just to be safe
+  realpath: true
+});
+
+if (files.length === 0) {
+  console.warn('could not find any test files matching pattern `' + pattern + '`');
   process.exit(1);
 }
 
-if (fs.lstatSync(pathToTests).isDirectory()) {
-  addFiles(pathToTests);
-
-  function addFiles(pathToTests) {
-    fs.readdirSync(pathToTests).forEach(function (file) {
-      var pathToFile = path.join(pathToTests, file);
-      if (fs.lstatSync(pathToFile).isDirectory()) {
-        return addFiles(pathToFile);
-      }
-
-      var fileType = path.extname(file);
-      if (fileType === '.js' || fileType === '.coffee') {
-      	return gagarin.addFile(pathToFile);
-      }
-    });
+files.forEach(function (file) {
+  if (program.verbose) {
+    process.stdout.write(chalk.green('  --- ') + chalk.gray('added => ' + file) + '\n');
   }
-} else {
-  gagarin.addFile(pathToTests);
-}
+
+  gagarin.addFile(file);
+});
+
+process.stdout.write(chalk.green('\n  added ' + files.length + ' test files ...\n\n'));
 
 gagarin.run(function (failedCount) {
   if (failedCount > 0) {
@@ -85,4 +93,4 @@ gagarin.run(function (failedCount) {
 
 function parse10(v) {
   return parseInt(v, 10);
-};
+}
