@@ -30,6 +30,10 @@ gagarin --verbose
 We recommend running tests in `verbose` mode, at least before `1.0.0`.
 Try `gagarin --help` if you need more options.
 
+It is possible to use more advanced directory structures. You can, for example, place
+your test files in local package folders, without registering them in `package.js`.
+See [Directory structure](#directory-structure) for more details.
+
 ## Important notes
 
 Gagarin is still under heavy development and a new release is published almost
@@ -101,7 +105,7 @@ Gagarin will always look for your test scenarios in `tests/gagarin/` directory. 
 ```
 gagarin path/to/my/tests
 ```
-For more details see `gagarin --help`.
+For more details see [Directory structure](#directory-structure) and `gagarin --help`.
 
 ### What about the `anti:gagarin` package?
 
@@ -111,6 +115,82 @@ If the dummy test passed you should notice that indeed the `anit:gagarin` packag
 is listed in `.meteor/packages` file.
 
 The role of the smart package is adding some backdoor functionality, similar to `meteor shell`, for testing purposes. But don't worry - it's only activate when `GAGARIN_SETTINGS` environment variable is present. For safety, double check it's not there in your production environment.
+
+## Directory structure
+
+While we advise to place your tests in `tests/gagarin` to maintain compatibility
+with other (Velocity) testing frameworks, you're free to create a directory structure
+that fits your needs. Gagarin uses [node-glob](https://github.com/isaacs/node-glob)
+to find your test files based on a glob pattern.
+
+By default, gagarin assumes you have placed your files inside `tests/gagarin`. By
+providing a glob as second argument, more advanced path structures are possible.
+
+**Example: tests under tests/gagarin**
+
+```bash
+gagarin
+```
+
+or
+
+```bash
+gagarin ./tests/gagarin
+```
+
+**Example: tests directly under ./tests**
+
+```bash
+  gagarin ./tests
+```
+
+**Example: package only structure**
+Let's say you maintain a 'package only' app, and would like to place your tests
+under the package they are testing. So your app lacks a global `tests` directory
+and looks somewhat similar to:
+
+```
+  client
+  server
+  packages
+    blog-acl
+      tests
+        authorized.js
+        guests.js
+    blog-comments
+      tests
+        comments.js
+```
+
+To run all tests found in local packages, you can provide a glob pattern like:
+
+```bash
+  gagarin ./packages/*/tests/*.js
+```
+
+Or if you have nested folders inside the `tests` folders:
+
+```bash
+  gagarin ./packages/*/tests/**/*.js
+```
+
+**Example: multiple extensions**
+Perhaps you have both `.js` files and `.coffee` files that you wish to run?
+
+```bash
+gagarin ./**/*.{js,coffee}
+```
+
+**Example: global tests folder combined with package specific tests**
+We can imagine you're having both global tests, and package specific tests in their
+own package directory. No problem, just run gagarin with a glob like:
+
+```bash
+gagarin ./**/tests/**/*.js
+```
+
+Run `gagarin *pattern* --verbose` if you need to find out witch tests files are
+being found by your pattern.
 
 ## Writing simple tests
 
