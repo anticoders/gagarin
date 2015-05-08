@@ -39,9 +39,9 @@ program
   .option('-U, --build-timeout <ms>' ,'meteor building timeout [120000]', parse10, 120000)
   .option('-O, --velocity <url>', 'report results to velocity at given url')
   .option('-p, --parallel <number>', 'run test suites in parallel', parse10, 0)
+  .option('-n, --mongoUrl <url> , external mongo url','');
 
 program.name = 'gagarin';
-
 program.parse(process.argv);
 
 var gagarin = new Gagarin(program);
