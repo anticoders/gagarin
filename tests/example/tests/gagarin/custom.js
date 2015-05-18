@@ -10,13 +10,13 @@ describe('Custom.', function () {
     mongoUrl: db.getMongoUrl(),
   });
 
-  /*var client1 = browser({
+  var client1 = browser({
     location: server1.getRootUrl(),
   });
 
   var client2 = browser({
     location: server2.getRootUrl(),
-  });*/
+  });
 
   it('should work fine', function () {});
 
