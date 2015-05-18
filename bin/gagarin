@@ -53,6 +53,9 @@ var pattern = program.args[0];
 logs.setVerbose(program.verbose);
 logs.setSilentBuild(program.muteBuild);
 
+// absolute path is always a little more safe ...
+program.pathToApp = path.resolve(program.pathToApp);
+
 // fallback to default test dir if there is no pattern provided
 if (!pattern) {
   var appPath = program.pathToApp.replace(/\\/g, '/');
