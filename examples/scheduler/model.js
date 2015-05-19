@@ -20,7 +20,7 @@ Archive = new Mongo.Collection('archive');
  */
 Tasks.schedule = function schedule (title, forDate) {
 
-    Tasks.insert({
+    return Tasks.insert({
 
         title        : title,
         status       : 'unclaimed',
@@ -43,7 +43,7 @@ Tasks.trigger = function trigger (id, fields) {
 
     Meteor.setTimeout(Meteor.bindEnvironment(function () {
 
-        console.log('executing task', fields.title);
+        console.log('executing task "' + fields.title + '"');
 
         Tasks.update({ _id: id }, {
             $set  : { status: 'in progress' },

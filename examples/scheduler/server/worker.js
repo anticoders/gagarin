@@ -5,6 +5,8 @@ var uniqueId = Random.id();
 
 Meteor.startup(function () {
 
+    watch();
+
     Meteor.setInterval(watch, WATCH_INTERVAL);
 
     Tasks.find({
@@ -33,6 +35,9 @@ function watch () {
     }).observeChanges({
         added: function (id) {
             // try to claim this task
+
+            console.log('server observed task', id);
+
             Tasks.update({ _id: id, claimedBy: null }, {
               $set: {
                 claimedBy : uniqueId,
