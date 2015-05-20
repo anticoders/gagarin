@@ -30,7 +30,7 @@ function watch () {
 
     handle = Tasks.find({
         scheduledFor : { $lte: moment().add(WATCH_INTERVAL, 'ms').toDate() },
-        status       : 'unclaimed',
+        status       : 'scheduled',
 
     }).observeChanges({
         added: function (id) {

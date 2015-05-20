@@ -3,5 +3,63 @@
 </head>
 
 <body>
-  <h1>Hello!</h1>
+    <div class="ui page grid">
+        <div class="four column row">
+            <div class="column">
+                <form class="ui form">
+                    <div class="ui fluid input">
+                        <input name="title" type="text" placeholder="enter title"/>
+                    </div>
+                    <div class="ui fluid input">
+                        <input name="delay" type="text" placeholder="enter delay"/>
+                    </div>
+                    <button class="ui primary fluid button" type="submit">
+                        schedule
+                    </button>
+                </form>
+            </div>
+        </div>
+        <div class="four column row">
+            <div class="column">
+                <div class="ui inverted segment">
+                    scheduled
+                </div>
+                {{#each tasks 'scheduled'}}
+                    <div class="ui segment">
+                        {{title}}, in {{secondsLeft}}s
+                    </div>
+                {{/each}}
+            </div>
+            <div class="column">
+                <div class="ui inverted segment">
+                    claimed
+                </div>
+                {{#each tasks 'claimed'}}
+                    <div class="ui segment">
+                        {{title}}, in {{secondsLeft}}s
+                    </div>
+                {{/each}}
+            </div>
+            <div class="column">
+                <div class="ui inverted segment">
+                    in progress
+                </div>
+                {{#each tasks 'in progress'}}
+                    <div class="ui loading segment">
+                        {{title}}
+                    </div>
+                {{/each}}
+            </div>
+            <div class="column">
+                <div class="ui inverted segment">
+                    resolved
+                </div>
+                {{#each tasks 'resolved'}}
+                    <div class="ui segment" data-action="remove">
+                        {{title}}
+                    </div>
+                {{/each}}
+            </div>
+        </div>
+    </div>
 </body>

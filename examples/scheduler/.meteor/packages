@@ -11,4 +11,4 @@ anti:gagarin@=0.4.10
 parhelium:js-schema
 mrt:moment
 semantic:ui-css
-cwohlman:pickadate
+reactive-var

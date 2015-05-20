@@ -23,7 +23,7 @@ Tasks.schedule = function schedule (title, forDate) {
     return Tasks.insert({
 
         title        : title,
-        status       : 'unclaimed',
+        status       : 'scheduled',
         createdAt    : moment().toDate(),
         scheduledFor : forDate,
     });
