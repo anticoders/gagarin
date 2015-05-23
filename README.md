@@ -192,6 +192,10 @@ gagarin ./**/tests/**/*.js
 Run `gagarin *pattern* --verbose` if you need to find out witch tests files are
 being found by your pattern.
 
+Some shells may expand wildcards. This will make `gagarin` load only the first
+test file matching the pattern. If you experience this problem,
+please wrap your pattern within `"..."` or `'...'`.
+
 ## Writing simple tests
 
 The simplest possible test suite may look like this:
