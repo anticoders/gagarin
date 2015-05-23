@@ -1,6 +1,6 @@
 {
   "name": "gagarin",
-  "version": "0.4.10",
+  "version": "0.4.11",
   "description": "another testing framework for your meteor apps",
   "main": "gagarin.js",
   "repository": {
@@ -40,6 +40,7 @@
     "es6-promise": "^1.0.0",
     "fibers": "^1.0.4",
     "lodash": "^3.9.1",
+    "glob": "^5.0.5",
     "mkdirp": "^0.5.0",
     "mocha": "^1.20.1",
     "mongodb": "^1.4.7",

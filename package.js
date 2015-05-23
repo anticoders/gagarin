@@ -2,7 +2,7 @@
 Package.describe({
   summary:  "Gagarin, a Meteor testing framework based on mocha",
   name:     "anti:gagarin",
-  version:  "0.4.10",
+  version:  "0.4.11",
   git:      "https://github.com/anticoders/gagarin.git",
 });
 
