@@ -40,7 +40,7 @@ describe('Build Errors', function () {
 
     // TODO: check if the process is properly killed
 
-    this.timeout(20000);
+    this.timeout(30000);
 
     var pathToApp = path.resolve(__dirname, '..', 'no_gagarin');
     var message   = "";
