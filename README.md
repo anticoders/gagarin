@@ -111,7 +111,7 @@ For more details see [Directory structure](#directory-structure) and `gagarin --
 
 If you forgot to add it manually,
 the `gagarin` cli-tool will make sure to add the right version to your project.
-If the dummy test passed you should notice that indeed the `anit:gagarin` package
+If the dummy test passed you should notice that indeed the `anti:gagarin` package
 is listed in `.meteor/packages` file.
 
 The role of the smart package is adding some backdoor functionality, similar to `meteor shell`, for testing purposes. But don't worry - it's only activate when `GAGARIN_SETTINGS` environment variable is present. For safety, double check it's not there in your production environment.
