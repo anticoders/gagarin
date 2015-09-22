@@ -8,6 +8,6 @@ describe('Node', function () {
     }).then(function (version) {
       expect(version).to.match(/0\.10\.40/);
     });
-});
+  });
 
 });
