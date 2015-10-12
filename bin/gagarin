@@ -89,10 +89,10 @@ files.forEach(function (file) {
 process.stdout.write(chalk.green('\n  added ' + files.length + ' test files ...\n\n'));
 
 gagarin.run(function (failedCount) {
-  process.emit('cleanup');
   process.once('clean', function () {
     process.exit(failedCount > 0 ? 1 : 0);
   });
+  process.emit('cleanup');
 });
 
 function parse10(v) {
