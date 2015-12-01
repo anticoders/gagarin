@@ -62,6 +62,16 @@ if (!pattern) {
   pattern = [appPath, 'tests', 'gagarin', '**/*.{js,coffee}'].join('/');
 }
 
+//make sure that we have only 'server' and 'browser' in
+// .meteor/platforms file
+
+var platformsFilePath = appPath +'/.meteor/platforms';
+fs.rename(platformsFilePath,appPath+'/.meteor/platforms.gagarin.backup',function(err,data){
+  fs.writeFile(platformsFilePath,'server\nbrowser');
+});
+
+
+
 // create a pattern if a directory was provided, a file path already is a valid pattern
 if (fs.existsSync(pattern) && fs.lstatSync(pattern).isDirectory()) {
   pattern = pattern.replace(/\/$/, '') + '/**/*.{js,coffee}';
@@ -92,7 +102,7 @@ gagarin.run(function (failedCount) {
   process.once('clean', function () {
     process.exit(failedCount > 0 ? 1 : 0);
   });
-  process.emit('cleanup');
+  process.emit('cleanup',appPath);
 });
 
 function parse10(v) {

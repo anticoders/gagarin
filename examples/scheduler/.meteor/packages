@@ -7,7 +7,7 @@
 meteor-platform
 autopublish
 insecure
-anti:gagarin@=0.4.10
+anti:gagarin@=0.4.11
 parhelium:js-schema
 mrt:moment
 semantic:ui-css
