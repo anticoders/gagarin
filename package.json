@@ -27,7 +27,9 @@
     "url": "https://github.com/anticoders/gagarin/issues"
   },
   "homepage": "https://github.com/anticoders/gagarin",
-  "devDependencies": {},
+  "devDependencies": {
+    "sinon": "^1.17.2"
+  },
   "dependencies": {
     "chai": "^1.10.0",
     "chai-things": "^0.2.0",
