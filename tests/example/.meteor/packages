@@ -11,3 +11,4 @@ accounts-password
 
 accounts-base
 iron:router
+standard-minifiers
