@@ -13,3 +13,4 @@ accounts-base
 iron:router
 my-package
 
+standard-minifiers
