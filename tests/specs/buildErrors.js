@@ -3,12 +3,14 @@ var fs = require('fs');
 
 describe('Build Errors', function () {
 
-  // it does not work without pty.js
-  describe('Given the app does not build properly,', function () {
+  // NOTE: meteor no longer reports build error if there's
+  //       a problem within source code itself ...
+  //
+  describe.skip('Given the app does not build properly,', function () {
 
     // TODO: check if the process is properly killed
 
-    this.timeout(20000);
+    this.timeout(60000);
 
     var message = "";
 
@@ -40,7 +42,7 @@ describe('Build Errors', function () {
 
     // TODO: check if the process is properly killed
 
-    this.timeout(20000);
+    this.timeout(60000);
 
     var pathToApp = path.resolve(__dirname, '..', 'no_gagarin');
     var message   = "";
@@ -81,7 +83,7 @@ describe('Build Errors', function () {
 
     // TODO: check if the process is properly killed
 
-    this.timeout(20000);
+    this.timeout(60000);
 
     var pathToApp = path.resolve(__dirname, '..', 'incompatible');
     var message   = "";
