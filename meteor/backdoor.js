@@ -11,6 +11,8 @@ if (Gagarin.isActive) {
 
   chai.should();
   chai.use(Npm.require('chai-things'));
+  chai.config.includeStack = true; // for newer > 2.1 versions
+  chai.Assertion.includeStack = true; // for currently included 2.1 version
 
   plugins.chai   = chai;
   plugins.Fiber  = Fiber;
@@ -41,7 +43,8 @@ if (Gagarin.isActive) {
         try {
           return { value : userFunc.apply(context, args), context: context, closure : getClosure() };
         } catch (err) {
-          return { error: err.message, context: context, closure: getClosure() };
+          // console.log("/gagarin/execute error",err);
+          return { error: err.message, stack: err.stack, context: context, closure: getClosure() };
         }
       }));
 
@@ -80,7 +83,8 @@ if (Gagarin.isActive) {
         try {
           userFunc.apply(context, args);
         } catch (err) {
-          return { error: err.message, context: context, closure: getClosure() };
+          // console.log("/gagarin/promise error",err);
+          return { error: err.message, stack: err.stack, context: context, closure: getClosure() };
         }
 
       })) || future.wait();
@@ -197,7 +201,7 @@ function isolateScope(code, closure) {
     "      return action(userFunc, getClosure);",
     "    } catch (err) {",
     // this should never happen ...
-    "      return { error: err.message, closure: getClosure() };",
+    "      return { error: err.message, stack: err.stack, closure: getClosure() };",
     "    }",
     "  })("
   );
@@ -253,6 +257,7 @@ function align(code) {
  */
 function compile(code, closure) {
   code = providePlugins(isolateScope(code, closure)).join('\n');
+  //console.log("COMPILED", code);
   try {
     return vm.runInThisContext('(' + code + ')').apply({}, values(plugins));
   } catch (err) {
