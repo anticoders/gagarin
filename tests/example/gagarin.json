@@ -1,0 +1,20 @@
+{
+  "processes": [
+    {
+      "type"     : "mongo",
+      "port"     : "27017",
+    },
+    {
+      "type"     : "meteor",
+      "port"     : "4000",
+      "env"      : {
+
+        "MONGO_URL" : "http://localhost:27017/gagarin"
+      }
+    },
+    {
+      "type"     : "browser",
+      "driver"   : "http://localhost:9515"
+    }
+  ]
+}
