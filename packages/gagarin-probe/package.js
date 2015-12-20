@@ -12,10 +12,10 @@ Package.describe({
 
 Package.onUse(function () {
 
-  var pathToGagarin    = path.resolve('.gagarin');
-  var pathToGitIgnore  = path.join(pathToGagarin, '.gitignore');
-  var pathToLocal      = path.join(pathToGagarin, 'local');
-  var pathToTrajectory = path.join(pathToLocal, 'probe.json');
+  var pathToGagarin   = path.resolve('.gagarin');
+  var pathToGitIgnore = path.join(pathToGagarin, '.gitignore');
+  var pathToLocal     = path.join(pathToGagarin, 'local');
+  var pathToProbe     = path.join(pathToLocal, 'probe.json');
 
   fs.mkdir(pathToGagarin, function (e) {
     'use strict';
@@ -40,7 +40,7 @@ Package.onUse(function () {
         fs.writeFile(pathToGitIgnore, 'local\n');
       });
 
-      fs.writeFile(pathToTrajectory, JSON.stringify({
+      fs.writeFile(pathToProbe, JSON.stringify({
         pathToNode: process.argv[0]
       }, null, 2));
 
