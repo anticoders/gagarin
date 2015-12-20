@@ -1,0 +1,16 @@
+{
+  "name": "gagarin-staging",
+  "version": "0.4.11",
+  "description": "A staging environment builder",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "gagarin",
+    "testing",
+    "meteor"
+  ],
+  "author": "apendua",
+  "license": "MIT"
+}
