@@ -24,7 +24,7 @@ Package.on_use(function (api) {
     api.versionsFrom('METEOR@0.9.0');
   }
 
-  api.use([ 'livedata', 'webapp' ] , 'server');
+  api.use([ 'livedata', 'webapp' , 'check'] , 'server');
   api.use('accounts-password', 'server', { weak: true });
 
   api.add_files([
