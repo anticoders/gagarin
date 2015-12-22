@@ -10,7 +10,7 @@ describe('Build Errors', function () {
 
     // TODO: check if the process is properly killed
 
-    this.timeout(60000);
+    this.timeout(120000);
 
     var message = "";
 
@@ -42,7 +42,7 @@ describe('Build Errors', function () {
 
     // TODO: check if the process is properly killed
 
-    this.timeout(60000);
+    this.timeout(120000);
 
     var pathToApp = path.resolve(__dirname, '..', 'no_gagarin');
     var message   = "";
@@ -83,7 +83,7 @@ describe('Build Errors', function () {
 
     // TODO: check if the process is properly killed
 
-    this.timeout(60000);
+    this.timeout(120000);
 
     var pathToApp = path.resolve(__dirname, '..', 'incompatible');
     var message   = "";
