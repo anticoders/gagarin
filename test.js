@@ -27,7 +27,7 @@ var gagarin = new Gagarin({
   pathToApp     : pathToApp,
   webdriver     : program.webdriver,
   reporter      : 'spec',
-  timeout       : 6000,
+  timeout       : 10000,
   muteBuild     : program.muteBuild,
   grep          : program.grep,
   skipBuild     : program.skipBuild,

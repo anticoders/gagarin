@@ -2,7 +2,7 @@
 Package.describe({
   summary:  "Gagarin, a Meteor testing framework based on mocha",
   name:     "anti:gagarin",
-  version:  "0.4.11",
+  version:  "0.4.12",
   git:      "https://github.com/anticoders/gagarin.git",
 });
 
@@ -22,10 +22,10 @@ Npm.depends({
 Package.on_use(function (api) {
 
   if (api.versionsFrom) {
-    api.versionsFrom('METEOR@0.9.0');
+    api.versionsFrom('METEOR@1.2.1');
   }
 
-  api.use([ 'livedata', 'webapp' ] , 'server');
+  api.use([ 'livedata', 'webapp' , 'check'] , 'server');
   api.use('accounts-password', 'server', { weak: true });
   api.use(['underscore', 'mongo'], [ 'client', 'server' ]);
 

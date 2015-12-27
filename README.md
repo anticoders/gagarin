@@ -50,7 +50,7 @@ which requires administrative rights. We are working hard to find a decent worka
 
 ### Compatibility with various node versions
 
-Gagarin should play nicely with node `0.10.x` and `0.12.x`. On the other hand, there are known compatibility issues with `0.11.x` so we don't recommend using that particular version. It only applies to the cli-tool though. Your meteor application will always be run with the `node` from the development bundle corresponding to your current meteor release. Please keep this in mind if you are using any kind of continuos integration system, because it basically means that the appropriate version of meteor dev-tools will need to be downloaded before the tests can be run.
+Gagarin should play nicely with node `0.10.x` and `0.12.x`. On the other hand, there are known compatibility issues with `0.11.x` so we don't recommend using that particular version. It only applies to the cli-tool though. Your meteor application will always be run with the `node` from the development bundle corresponding to your current meteor release. Please keep this in mind if you are using any kind of continuous integration system, because it basically means that the appropriate version of meteor dev-tools will need to be downloaded before the tests can be run.
 
 ### Breaking changes
 
@@ -74,7 +74,7 @@ The truth is Gagarin originates from [Laika](http://arunoda.github.io/laika/). I
 
 # Step-by-step guide
 
-Gagarin is a simple test runner built on top of [mocha](http://mochajs.org/). In it's essence is very similar to [laika](https://github.com/arunoda/laika), though it's much more flexible, up-to-date and compatible with the latest Meteor versions. Currently it's implemented as a custom `mocha` interface, which simply extends the standard `bdd` ui. This may change in the future if there's a a demand to support other testing frameworks.
+Gagarin is a simple test runner built on top of [mocha](http://mochajs.org/). In it's essence is very similar to [laika](https://github.com/arunoda/laika), though it's much more flexible, up-to-date and compatible with the latest Meteor versions. Currently it's implemented as a custom `mocha` interface, which simply extends the standard `bdd` ui. This may change in the future if there's a demand to support other testing frameworks.
 
 ## Installation
 
@@ -308,7 +308,7 @@ Lets assume that you have a copy of `selenium-server-standalone-*.jar` available
 java -jar /path/to/selenium.jar
 ```
 Selenium server should be listening on port `4444` by default.
-Then run your Gagarin tests specyfing `--webdriver` option
+Then run your Gagarin tests specifying `--webdriver` option
 ```
 gagarin --webdriver http://localhost:4444/wd/hub
 ```
@@ -349,7 +349,7 @@ Since we don't have a comprehensive documentation yet, please consider the follo
 
 ## Scope of the a local variable
 
-It's good to keep in mind that the code which is intended to be executed on either server or client is passed as a string. Of course it does not have an immediate access to you local variable scope. In particular, things like:
+It's good to keep in mind that the code which is intended to be executed on either server or client is passed as a string. Of course it does not have an immediate access to your local variable scope. In particular, things like:
 ```javascript
 var a = 1;
 it("should be able to access local variable", function () {
@@ -476,7 +476,7 @@ For example, to use a different webdriver location, you can specify it with
 ```
 ./test.js --webdriver http://localhost:4444/wd/hub
 ```
-For testing purposes it's sometimes useful to install a version of the npm package from specyfic branch.
+For testing purposes it's sometimes useful to install a version of the npm package from a specific branch.
 ```
 npm install -g anticoders/gagarin#develop
 ```
