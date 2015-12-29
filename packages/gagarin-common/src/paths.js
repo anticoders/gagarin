@@ -3,8 +3,8 @@ import {readFile, stat as fileStat} from 'fs';
 
 export const getMeteorReleaseName = memoize(function (pathToApp) {
   var pathToRelease = pathJoin(pathToApp, '.meteor', 'release');
-  return new Promise(function (resolve, reject) {
-    readFile(pathToRelease, { encoding: 'utf8' }, function (err, data) {
+  return new Promise((resolve, reject) => {
+    readFile(pathToRelease, { encoding: 'utf8' }, (err, data) => {
       if (err) {
         return reject(err);
       }
@@ -14,14 +14,14 @@ export const getMeteorReleaseName = memoize(function (pathToApp) {
 });
 
 export const getMeteorVersion = memoize(function (pathToApp) {
-  return getMeteorReleaseName(pathToApp).then(function (releaseName) {
+  return getMeteorReleaseName(pathToApp).then(releaseName => {
     return parseRelease(releaseName);
   });
 });
 
 export const getProbeJson = memoize(function (pathToApp) {
   var pathToProbeJson = pathJoin(pathToApp, '.gagarin', 'local', 'probe.json');
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
     readFile(pathToProbeJson, { encoding: 'utf8' }, function (err, data) {
       if (err) {
         if (err.code === 'ENOENT') {
@@ -40,19 +40,19 @@ export const getProbeJson = memoize(function (pathToApp) {
 
 export const getDevBundlePath = memoize(function (pathToApp) {
   return getProbeJson(pathToApp)
-    .then(function (artifact) {
+    .then(probe => {
 
-      // in the future the artifact.json should contain pathToNode ...
+      // in the future the probe.json should contain pathToNode ...
       // below is a temporary workaround to make it work on windows
 
       let pattern = 'dev_bundle';
-      let match   = artifact.pathToNode && artifact.pathToNode.match(pattern);
+      let match   = probe.pathToNode && probe.pathToNode.match(pattern);
 
       if (!match) {
-        throw new Error('invalid build artifact:' + artifact.pathToNode);
+        throw new Error('invalid build probe.json: ' + probe.pathToNode);
       }
 
-      return artifact.pathToNode.substr(0, match.index + pattern.length);
+      return probe.pathToNode.substr(0, match.index + pattern.length);
     });
 });
 
@@ -62,7 +62,7 @@ export const getMongoPath = memoize(function (pathToApp) {
     getNodePath(pathToApp),
     getDevBundlePath(pathToApp)
 
-  ]).then(function (results) {
+  ]).then(results => {
 
     let pathToNode      = results[0];
     let pathToDevBundle = results[1];
@@ -73,10 +73,10 @@ export const getMongoPath = memoize(function (pathToApp) {
 
 export const getNodePath = memoize(function (pathToApp) {
   return getProbeJson(pathToApp)
-    .then(function (artifact) {
+    .then(probe => {
       // XXX: this one would not work on windows, because of missing ".exe"
       // return pathJoin(pathToDevBundle, 'bin', 'node');
-      return artifact.pathToNode;
+      return probe.pathToNode;
     });
 });
 
@@ -95,7 +95,7 @@ export const getMeteorBinary = memoize(function () {
 
   let meteorPath = pathJoin(process.env.LOCALAPPDATA, '.meteor');
 
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
     // according to:
     //
     // http://stackoverflow.com/questions/17699599/node-js-check-exist-file
@@ -103,15 +103,12 @@ export const getMeteorBinary = memoize(function () {
     // this is the standard way to test file existance; note that "fs.exists"
     // is now deprecated ...
 
-    fileStat(pathJoin(meteorPath, 'meteor.bat'), err => {
+    checkPathExists(pathJoin(meteorPath, 'meteor.bat'), (err, exists) => {
       if (err) {
-        if (err.code === 'ENOENT') {
-          return resolve('meteor');
-        } else {
-          return reject(err);
-        }
+        reject(err);
+      } else {
+        resolve(exists ? 'meteor.bat' : 'meteor');
       }
-      resolve('meteor.bat');
     });
   });
 });
