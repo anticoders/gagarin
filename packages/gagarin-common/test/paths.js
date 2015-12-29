@@ -32,12 +32,4 @@ describe('Test Path Utilities', () => {
     return paths.getMeteorVersion(pathToApp).should.eventually.equal('1.2.1');
   });
 
-  it('should check if path exists', () => {
-    return paths.getMeteorVersion(pathToApp).should.eventually.equal('1.2.1');
-  });
-
-  it('should check if path does not exists', () => {
-    return paths.checkPathExists(join(pathToApp, '.gagarin', 'local', 'probe.json')).should.eventually.be.true;
-  });
-
 });

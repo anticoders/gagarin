@@ -7,3 +7,4 @@ require("babel-polyfill");
 
 // actual tests
 require("./paths.js");
+require("./check.js");

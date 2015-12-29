@@ -121,21 +121,6 @@ export const getPathToGitIgnore = memoize(function (pathToApp) {
   return Promise.resolve(pathJoin(pathToApp, '.gagarin', '.gitignore'));
 });
 
-export function checkPathExists (path) {
-  return new Promise((resolve, reject) => {
-    fileStat(path, err => {
-      if (err) {
-        if (err.code === 'ENOENT') {
-          return resolve(false);
-        } else {
-          return reject(err);
-        }
-      }
-      resolve(true);
-    });
-  });
-};
-
 // since 0.9.0, the format is METEOR@x.x.x
 function parseRelease(release) {
   return release.split('@')[1] || release;
