@@ -6,7 +6,7 @@
   "jsnext:main": "./src/index.js",
   "scripts": {
     "prepublish": "./build.sh",
-    "test": "./node_modules/mocha/bin/_mocha --reporter spec --full-trace test/index.js"
+    "test": "./node_modules/.bin/_mocha --reporter spec --full-trace test/index.js"
   },
   "keywords": [
     "gagarin",

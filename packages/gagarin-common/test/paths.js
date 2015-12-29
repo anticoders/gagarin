@@ -1,11 +1,12 @@
 import * as paths from '../src/paths';
 import chai, {expect} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
+import {join} from 'path';
 
 chai.should();
 chai.use(chaiAsPromised);
 
-let pathToApp = __dirname + '/app';
+let pathToApp = join(__dirname, 'app');
 
 describe('Test Path Utilities', () => {
 
@@ -29,6 +30,14 @@ describe('Test Path Utilities', () => {
 
   it('should find the right meteor version', () => {
     return paths.getMeteorVersion(pathToApp).should.eventually.equal('1.2.1');
+  });
+
+  it('should check if path exists', () => {
+    return paths.getMeteorVersion(pathToApp).should.eventually.equal('1.2.1');
+  });
+
+  it('should check if path does not exists', () => {
+    return paths.checkPathExists(join(pathToApp, '.gagarin', 'local', 'probe.json')).should.eventually.be.true;
   });
 
 });

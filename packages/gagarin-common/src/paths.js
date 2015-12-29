@@ -103,7 +103,7 @@ export const getMeteorBinary = memoize(function () {
     // this is the standard way to test file existance; note that "fs.exists"
     // is now deprecated ...
 
-    fileStat(pathJoin(meteorPath, 'meteor.bat'), function (err) {
+    fileStat(pathJoin(meteorPath, 'meteor.bat'), err => {
       if (err) {
         if (err.code === 'ENOENT') {
           return resolve('meteor');
@@ -123,6 +123,21 @@ export const getPathToDB = memoize(function (pathToApp) {
 export const getPathToGitIgnore = memoize(function (pathToApp) {
   return Promise.resolve(pathJoin(pathToApp, '.gagarin', '.gitignore'));
 });
+
+export function checkPathExists (path) {
+  return new Promise((resolve, reject) => {
+    fileStat(path, err => {
+      if (err) {
+        if (err.code === 'ENOENT') {
+          return resolve(false);
+        } else {
+          return reject(err);
+        }
+      }
+      resolve(true);
+    });
+  });
+};
 
 // since 0.9.0, the format is METEOR@x.x.x
 function parseRelease(release) {

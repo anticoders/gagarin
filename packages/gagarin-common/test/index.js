@@ -1,7 +1,9 @@
-// This file cannot be written with ECMAScript 2015 because it has to load
-// the Babel require hook to enable ECMAScript 2015 features!
+// babel compiler & runtime
 require("babel-register");
+
+// we should be able to get rid of polyfill as soon as
+// https://phabricator.babeljs.io/T6676 is fixed
 require("babel-polyfill");
 
-// The tests, however, can and should be written with ECMAScript 2015.
+// actual tests
 require("./paths.js");
