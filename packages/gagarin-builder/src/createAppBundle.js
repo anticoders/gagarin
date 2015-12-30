@@ -1,9 +1,18 @@
-import * as common from 'gagarin-common';
 import {resolve as pathResolve, join as pathJoin} from 'path';
+import {rename, writeFile} from 'fs';
 import {spawn} from 'child_process';
-import linkNodeModules from 'linkNodeModules';
+import linkNodeModules from './linkNodeModules';
+import {
+  logs, asPromise, getMeteorVersion, getMeteorBinary, ensureGagarinGitIgnore,
+} from 'gagarin-common';
 
-export default function createAppBundle (pathToApp, options) {
+/**
+ * Call "meteor build" and wait until it's done.
+ * @param {String} pathToApp
+ * @param {Object} options
+ * @param {Boolean} options.isSilent - if true, don't show output from meteor process ...
+ */
+export default async function createAppBundle (pathToApp, options) {
 
   if (!options) {
     options = pathToApp; pathToApp = null;
@@ -21,80 +30,61 @@ export default function createAppBundle (pathToApp, options) {
   // for meteor build in a moment ...
   pathToApp = pathResolve(pathToApp);
 
-  let timeout = options.timeout   || 120000;
-
   let pathToMain  = pathJoin(pathToApp, '.gagarin', 'local', 'bundle', 'main.js');
   let pathToLocal = pathJoin(pathToApp, '.gagarin', 'local');
   let isSilent    = !!options.isSilent;
 
   let env = Object.create(process.env);
 
-  return common.getMeteorVersion(pathToApp).then(version => {
+  let version = await getMeteorVersion(pathToApp);
+  let binary  = await getMeteorBinary();
 
-    return new Promise((resolve, reject) => {
+  let meteor = null;
+  let args;
 
-      let meteor = null;
-      let args;
+  logs.system("detected METEOR@" + version);
 
-      logs.system("detected METEOR@" + version);
+  if (version >= '1.0.0') {
+    args = [ 'build', '--debug', '--directory', pathToLocal ];
+  } else {
+    args = [ 'bundle', '--debug', '--directory', pathJoin(pathToLocal, 'bundle') ];
+  }
 
-      if (version >= '1.0.0') {
-        args = [ 'build', '--debug', '--directory', pathToLocal ];
+  logs.system("spawning meteor process with the following arguments");
+  logs.system(JSON.stringify(args));
+
+  //make sure that platforms file contains only server and browser
+  //and cache this file under platforms.gagarin.backup
+  let platformsFilePath = pathJoin(pathToApp,'.meteor','platforms');
+  let platformsBackupPath = pathJoin(pathToApp,'.meteor','platforms.gagarin.backup');
+
+  await asPromise(rename)(platformsFilePath, platformsBackupPath);
+  await asPromise(writeFile)(platformsFilePath, 'server\nbrowser\n', { encoding: 'utf8' });
+
+  meteor = spawn(binary, args, {
+    cwd: pathToApp, env: env, stdio: isSilent ? 'ignore' : 'inherit'
+  });
+
+  await new Promise((resolve, reject) => {
+    // TODO: maybe implement timeout?
+    meteor.on('exit', function onExit (code) {
+      if (code) {
+        reject(new Error('meteor build exited with code ' + code));
       } else {
-        args = [ 'bundle', '--debug', '--directory', pathJoin(pathToLocal, 'bundle') ];
+        resolve();
       }
-
-      logs.system("spawning meteor process with the following arguments");
-      logs.system(JSON.stringify(args));
-
-      let buildTimeout = null;
-
-      // NOTE: this is a Promise
-      let meteorBinary = common.getMeteorBinary();
-      //make sure that platforms file contains only server and browser
-      //and cache this file under platforms.gagarin.backup
-      let platformsFilePath = pathJoin(pathToApp,'.meteor','platforms');
-      let platformsBackupPath = pathJoin(pathToApp,'.meteor','platforms.gagarin.backup');
-
-      fs.rename(platformsFilePath,platformsBackupPath,function(err,data){
-        fs.writeFile(platformsFilePath,'server\nbrowser\n',function(){
-          spawnMeteorProcess();
-        });
-      });
-
-      function spawnMeteorProcess () {
-
-        meteor = spawn(meteorBinary, args, {
-          cwd: pathToApp, env: env, stdio: isSilent ? 'ignore' : 'inherit'
-        });
-
-        meteor.on('exit', function onExit (code) {
-          //switch back to initial content of platforms file
-          fs.rename(platformsBackupPath,platformsFilePath);
-          if (code) {
-            return reject(new Error('meteor build exited with code ' + code));
-          }
-
-          logs.system('linking node_modules');
-
-          linkNodeModules(pathToApp).then(function () {
-
-            logs.system('everything is fine');
-            resolve(pathToMain);
-
-          }).catch(reject);
-
-          buildTimeout = setTimeout(function () {
-            meteor.once('exit', function () {
-              reject(new Error('Timeout while waiting for meteor build to finish.'));
-            });
-            meteor.kill('SIGINT')
-          }, timeout);
-
-          clearTimeout(buildTimeout);
-        });
-      }
-
     });
   });
+
+  // switch back to the initial content of platforms file
+  await asPromise(rename)(platformsBackupPath,platformsFilePath);
+
+  logs.system('linking node_modules');
+
+  // NOTE: this will not work without "probe.json" file
+  await linkNodeModules(pathToApp);
+
+  logs.system('everything is fine');
+
+  return pathToMain;
 }

@@ -1,3 +1,1 @@
-import {getNodePath} from 'gagarin-common';
-
-
+import {getPathToAppBundle} from './getPathToAppBundle';

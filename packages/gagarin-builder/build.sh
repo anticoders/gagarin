@@ -2,7 +2,7 @@
 echo -e ""
 echo -e "\033[32mBABEL: 1st run"
 echo -e         "==============\033[0m"
-babel src/ --out-dir lib/
+babel --presets es2015 --plugins transform-regenerator,syntax-async-functions src/ --out-dir lib/
 echo -e ""
 echo -e "\033[32mBABEL: 2nd run"
 echo -e         "==============\033[0m"
