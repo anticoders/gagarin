@@ -21,17 +21,30 @@ export function checkMeteorIsRunning(pathToApp) {
   });
 }
 
-export function checkPathExists (path) {
+export async function checkPathExists (path) {
+  return !!(await getFileStatOrNull(path));
+};
+
+export async function checkPathIsDirectory (path) {
+  var stat = await getFileStatOrNull(path);
+  if (!stat) {
+    return false;
+  }
+  return stat.isDirectory();
+};
+
+function getFileStatOrNull (path) {
   return new Promise((resolve, reject) => {
-    fileStat(path, err => {
+    fileStat(path, (err, stat) => {
       if (err) {
         if (err.code === 'ENOENT') {
-          return resolve(false);
+          // file does not exist
+          return resolve(null);
         } else {
           return reject(err);
         }
       }
-      resolve(true);
+      resolve(stat);
     });
   });
-};
+}
