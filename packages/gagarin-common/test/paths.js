@@ -28,8 +28,4 @@ describe('Test Path Utilities', () => {
         '/home/gagarin/.meteor/packages/meteor-tool/.1.1.10.12w37b1++os.osx.x86_64+web.browser+web.cordova/mt-os.osx.x86_64/dev_bundle');
   });
 
-  it('should find the right meteor version', () => {
-    return paths.getMeteorVersion(pathToApp).should.eventually.equal('1.2.1');
-  });
-
 });

@@ -9,6 +9,16 @@ export function either (first) {
   };
 };
 
+export function memoize (func) {
+  let cache = {};
+  return function (string) {
+    if (!cache[string]) {
+      cache[string] = func.apply(this, arguments);
+    }
+    return cache[string];
+  };
+};
+
 export function firstArgNull (callback) {
   return function (value) {
     callback(null, value);

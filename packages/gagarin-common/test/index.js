@@ -1,10 +1,11 @@
 // babel compiler & runtime
-require("babel-register");
+require('babel-register');
 
 // we should be able to get rid of polyfill as soon as
 // https://phabricator.babeljs.io/T6676 is fixed
-require("babel-polyfill");
+require('babel-polyfill');
 
 // actual tests
-require("./paths.js");
-require("./check.js");
+require('./paths');
+require('./check');
+require('./version');

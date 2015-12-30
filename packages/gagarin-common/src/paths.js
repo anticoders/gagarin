@@ -1,23 +1,6 @@
 import {join as pathJoin, extname} from 'path';
 import {readFile, stat as fileStat} from 'fs';
-
-export const getMeteorReleaseName = memoize(function (pathToApp) {
-  var pathToRelease = pathJoin(pathToApp, '.meteor', 'release');
-  return new Promise((resolve, reject) => {
-    readFile(pathToRelease, { encoding: 'utf8' }, (err, data) => {
-      if (err) {
-        return reject(err);
-      }
-      resolve(data.replace(/\s/g, ''));
-    });
-  });
-});
-
-export const getMeteorVersion = memoize(function (pathToApp) {
-  return getMeteorReleaseName(pathToApp).then(releaseName => {
-    return parseRelease(releaseName);
-  });
-});
+import {memoize} from './utils';
 
 export const getProbeJson = memoize(function (pathToApp) {
   var pathToProbeJson = pathJoin(pathToApp, '.gagarin', 'local', 'probe.json');
@@ -120,18 +103,3 @@ export const getPathToDB = memoize(function (pathToApp) {
 export const getPathToGitIgnore = memoize(function (pathToApp) {
   return Promise.resolve(pathJoin(pathToApp, '.gagarin', '.gitignore'));
 });
-
-// since 0.9.0, the format is METEOR@x.x.x
-function parseRelease(release) {
-  return release.split('@')[1] || release;
-}
-
-function memoize (func) {
-  let cache = {};
-  return function (string) {
-    if (!cache[string]) {
-      cache[string] = func.apply(this, arguments);
-    }
-    return cache[string];
-  };
-}
