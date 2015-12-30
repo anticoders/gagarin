@@ -36,6 +36,8 @@
   },
   "dependencies": {
     "babel-runtime": "^6.3.19",
+    "gagarin-common": "^0.4.11",
+    "gagarin-builder": "^0.4.11",
     "chalk": "^1.1.1"
   }
 }
