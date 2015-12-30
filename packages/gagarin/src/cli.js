@@ -1,3 +1,4 @@
+import program from 'commander';
 import {logs, asPromise, checkPathIsDirectory} from 'gagarin-common';
 import {resolve as pathResolve} from 'path';
 import chalk from 'chalk';
@@ -8,7 +9,7 @@ function parse10(v) {
   return parseInt(v, 10);
 }
 
-export async function cli (program) {
+export async function cli () {
 
   program
     .version(version)
@@ -19,7 +20,7 @@ export async function cli (program) {
     .option('-B, --skip-build', 'do not build, just run the tests')
     .option('-v, --verbose', 'run with verbose mode with logs from client/server', false)
     .option('-w, --webdriver <url>', 'webdriver url [default: http://127.0.0.1:9515]', 'http://127.0.0.1:9515')
-    .option('-a, --path-to-app <path>', 'path to a meteor application', path.resolve('.'))
+    .option('-a, --path-to-app <path>', 'path to a meteor application', pathResolve('.'))
     .option('-f, --flavor <name>', 'default flavor of api (promise, fiber)', 'promise')
 
   program.name = 'gagarin';
@@ -53,7 +54,7 @@ export async function cli (program) {
   });
 
   if (files.length === 0) {
-    console.warn('could not find any test files matching pattern `' + pattern + '`');
+    console.log(chalk.red(`could not find any test files matching pattern '${pattern}'`));
     process.exit(1);
   }
 
@@ -64,7 +65,8 @@ export async function cli (program) {
     // gagarin.addFile(file);
   });
 
-  process.stdout.write(chalk.green(`\n  added ${files.length} test files ...\n\n`));
+  process.stdout.write(
+    chalk.green(`\n  added ${files.length} test file` + (files.length > 1 ? 's' : '') + ` ...\n\n`));
 
   // gagarin.run(function (failedCount) {
   //   process.once('clean', function () {

@@ -40,6 +40,7 @@
   "dependencies": {
     "babel-runtime": "^6.3.19",
     "chalk": "^1.1.1",
-    "commander": "^2.9.0"
+    "resolve": "^1.1.6",
+    "find-up": "^1.1.0"
   }
 }

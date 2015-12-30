@@ -2,8 +2,8 @@
   "name": "gagarin-empty",
   "version": "0.4.11",
   "description": "Gagarin package prototype",
-  "main": "./lib/index.js",
-  "jsnext:main": "./src/index.js",
+  "main": "./lib/gagarin.js",
+  "jsnext:main": "./src/gagarin.js",
   "scripts": {
     "prepublish": "./build.sh",
     "test": "./node_modules/.bin/_mocha --reporter spec test/index.js"
