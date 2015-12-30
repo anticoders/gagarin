@@ -1,12 +1,15 @@
 {
-  "name": "gagarin-satcom",
+  "name": "gagarin-cli",
   "version": "0.4.11",
-  "description": "Satellite communication for Gagarin",
+  "description": "Gagarin command line tool",
   "main": "./lib/index.js",
   "jsnext:main": "./src/index.js",
   "scripts": {
     "prepublish": "./build.sh",
     "test": "./node_modules/.bin/_mocha --reporter spec test/index.js"
+  },
+  "bin": {
+    "gagarin": "./lib/index.js"
   },
   "keywords": [
     "gagarin",
