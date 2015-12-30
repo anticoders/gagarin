@@ -1,6 +1,7 @@
-import program from 'commander';
+import {Command} from 'commander';
 import {logs, asPromise, checkPathIsDirectory} from 'gagarin-common';
 import {resolve as pathResolve} from 'path';
+import resolve from 'resolve';
 import chalk from 'chalk';
 import glob from 'glob';
 import version from '../package.json';
@@ -10,6 +11,8 @@ function parse10(v) {
 }
 
 export async function cli () {
+
+  var program = new Command();
 
   program
     .version(version)

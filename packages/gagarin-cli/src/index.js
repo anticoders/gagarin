@@ -1,7 +1,4 @@
-#!/usr/bin/env node
-
 // This code is based on:
-//
 // https://github.com/gruntjs/grunt-cli/blob/master/bin/grunt
 
 process.title = 'gagarin';

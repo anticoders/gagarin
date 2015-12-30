@@ -4,12 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/gagarin-cli/lib/index.js --verbose --path-to-app .."
+    "test": "./node_modules/gagarin-cli/bin/gagarin --verbose --path-to-app .."
   },
   "author": "apendua",
   "license": "MIT",
   "dependencies": {
     "gagarin": "0.4.11",
-    "gagarin-cli": "0.4.11"
+    "gagarin-cli": "0.4.11",
+    "gagarin-mocha": "0.4.11"
   }
 }
