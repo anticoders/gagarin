@@ -24,8 +24,11 @@
   },
   "license": "MIT",
   "dependencies": {
+    "babel-runtime": "^6.3.19",
+    "co": "^4.6.0",
     "gagarin-common": "^0.4.11",
-    "babel-runtime": "^6.3.19"
+    "mkdirp": "^0.5.1",
+    "source-map": "^0.5.3"
   },
   "devDependencies": {
     "assert": "^1.3.0",

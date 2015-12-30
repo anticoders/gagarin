@@ -3,7 +3,7 @@ import {resolve as pathResolve, join as pathJoin} from 'path';
 import {spawn} from 'child_process';
 import linkNodeModules from 'linkNodeModules';
 
-export function prepareAppBundle (pathToApp, options) {
+export default function createAppBundle (pathToApp, options) {
 
   if (!options) {
     options = pathToApp; pathToApp = null;
@@ -97,5 +97,4 @@ export function prepareAppBundle (pathToApp, options) {
 
     });
   });
-
 }

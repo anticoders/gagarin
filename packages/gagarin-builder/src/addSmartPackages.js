@@ -6,7 +6,7 @@ import {spawn} from 'child_process';
  *
  * @param {string} pathToApp
  */
-export function ensureGagarinVersionsMatch(pathToApp, verbose) {
+export function ensureGagarinVersionsMatch (pathToApp, verbose) {
 
   var pathToMeteorPackages = path.join(pathToApp, '.meteor', 'packages');
   var nodeModuleVersion    = require('../../package.json').version;
