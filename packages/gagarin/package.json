@@ -1,15 +1,12 @@
 {
-  "name": "gagarin-cli",
+  "name": "gagarin-empty",
   "version": "0.4.11",
-  "description": "Gagarin command line tool",
+  "description": "Gagarin package prototype",
   "main": "./lib/index.js",
   "jsnext:main": "./src/index.js",
   "scripts": {
     "prepublish": "./build.sh",
     "test": "./node_modules/.bin/_mocha --reporter spec test/index.js"
-  },
-  "bin": {
-    "gagarin": "./lib/index.js"
   },
   "keywords": [
     "gagarin",
@@ -39,7 +36,6 @@
   },
   "dependencies": {
     "babel-runtime": "^6.3.19",
-    "chalk": "^1.1.1",
-    "commander": "^2.9.0"
+    "chalk": "^1.1.1"
   }
 }
