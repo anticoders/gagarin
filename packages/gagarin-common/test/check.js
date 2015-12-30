@@ -1,4 +1,4 @@
-import * as check from '../src/check';
+import * as check from '../src/index';
 import chai, {expect} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import {join} from 'path';

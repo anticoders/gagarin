@@ -9,3 +9,4 @@ require('babel-polyfill');
 require('./paths');
 require('./check');
 require('./version');
+require('./logs');
