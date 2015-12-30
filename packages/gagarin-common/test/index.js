@@ -10,3 +10,4 @@ require('./paths');
 require('./check');
 require('./version');
 require('./logs');
+require('./files');
