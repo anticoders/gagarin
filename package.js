@@ -21,7 +21,7 @@ Npm.depends({
 Package.on_use(function (api) {
 
   if (api.versionsFrom) {
-    api.versionsFrom('METEOR@1.2.1');
+    api.versionsFrom('METEOR@0.9.0', 'METEOR@1.2.1');
   }
 
   api.use([ 'livedata', 'webapp' , 'check'] , 'server');
