@@ -1,4 +1,12 @@
 
+export function asPromise (func) {
+  return function promise (...args) {
+    return new Promise(function (resolve, reject) {
+      func(...args, either(reject).or(resolve));
+    });
+  }
+};
+
 export function either (first) {
   return {
     or: function (second) {
@@ -11,9 +19,9 @@ export function either (first) {
 
 export function memoize (func) {
   let cache = {};
-  return function (string) {
+  return function (string, ...args) {
     if (!cache[string]) {
-      cache[string] = func.apply(this, arguments);
+      cache[string] = func(string, ...args);
     }
     return cache[string];
   };
