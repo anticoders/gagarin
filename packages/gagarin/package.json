@@ -1,8 +1,8 @@
 {
-  "name": "gagarin-empty",
+  "name": "gagarin",
   "version": "0.4.11",
   "description": "Gagarin package prototype",
-  "main": "./src/gagarin.js",
+  "main": "./lib/gagarin.js",
   "jsnext:main": "./src/gagarin.js",
   "scripts": {
     "prepublish": "./build.sh",
@@ -37,6 +37,7 @@
   "dependencies": {
     "babel-runtime": "^6.3.19",
     "chalk": "^1.1.1",
+    "gagarin-launch-control": "^0.4.11",
     "gagarin-builder": "^0.4.11",
     "gagarin-common": "^0.4.11",
     "resolve": "^1.1.6"

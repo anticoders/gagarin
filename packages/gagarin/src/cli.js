@@ -1,10 +1,12 @@
+
 import {Command} from 'commander';
 import {logs, asPromise, checkPathIsDirectory} from 'gagarin-common';
 import {resolve as pathResolve} from 'path';
 import resolve from 'resolve';
 import chalk from 'chalk';
-import glob from 'glob';
 import version from '../package.json';
+import {launchGagarinProcesses} from 'gagarin-launch-control';
+import * as commands from './commands';
 
 function parse10(v) {
   return parseInt(v, 10);
@@ -12,70 +14,67 @@ function parse10(v) {
 
 export async function cli () {
 
+  var basedir = process.cwd();
   var program = new Command();
 
+  program.name = 'gagarin';
   program
     .version(version)
     .usage('[options] [file-pattern]')
-    .option('-g, --grep <pattern>', 'only run tests matching <pattern>')
-    .option('-s, --settings <path>', 'use meteor settings from the given file')
-    .option('-t, --timeout <ms>', 'set test-case timeout in milliseconds [5000]', 5000)
-    .option('-B, --skip-build', 'do not build, just run the tests')
+    .option('-d, --directory <path>', 'path to gagarin base directory')
     .option('-v, --verbose', 'run with verbose mode with logs from client/server', false)
     .option('-w, --webdriver <url>', 'webdriver url [default: http://127.0.0.1:9515]', 'http://127.0.0.1:9515')
-    .option('-a, --path-to-app <path>', 'path to a meteor application', pathResolve('.'))
-    .option('-f, --flavor <name>', 'default flavor of api (promise, fiber)', 'promise')
 
-  program.name = 'gagarin';
+  program
+    .command('init')
+    .description('initialize gagarin configuration file')
+    .action(function(options) {
+      if (!options.directory) {
+        options.directory = basedir;
+      }
+      commands.init(options).then(onReady, onError);
+    });
+
+  program
+    .command('launch')
+    .description('launch gagarin testing environment')
+    .option("-b, --rebuild [app]", "force meteor project rebuild")
+    .action(function(options) {
+      if (!options.directory) {
+        options.directory = basedir;
+      }
+      commands.launch(options).then(onReady, onError);;
+    });
+
+  program
+    .command('restart <name>')
+    .description('restart the process given by name')
+    .action(function(options) {
+      if (!options.directory) {
+        options.directory = basedir;
+      }
+      commands.restart(options).then(onReady, onError);;
+    });
+
+  // program
+  //   .command('test [pattern]')
+  //   .option('-g, --grep <pattern>', 'only run tests matching <pattern>')
+  //   .description('run tests using gagarin own test runner')
+  //   .action(function(options) {
+  //     if (!options.directory) {
+  //       options.directory = basedir;
+  //     }
+  //     commands.test(options).then(onReady, onError);;
+  //   });
+
   program.parse(process.argv);
 
-  let pattern = program.args[0];
-  let appPath = '';
-
-  // set verbose mode if necessary
-  logs.setVerbose(program.verbose);
-
-  // absolute path is always a little more safe ...
-  program.pathToApp = pathResolve(program.pathToApp);
-
-  // fallback to default test dir if there is no pattern provided
-  if (!pattern) {
-    appPath = program.pathToApp.replace(/\\/g, '/');
-    pattern = [appPath, 'tests', 'gagarin', '**/*.{js,coffee}'].join('/');
+  function onReady () {
+    console.log('ready');
   }
 
-  // create a pattern if a directory was provided, a file path already is a valid pattern
-  if (await checkPathIsDirectory(pattern)) {
-    pattern = pattern.replace(/\/$/, '') + '/**/*.{js,coffee}';
+  function onError (err) {
+    console.log(err.stack);
   }
-
-  logs.system('searching for test files, using glob pattern `' + pattern + '`');
-  
-  let files = glob.sync(pattern, {
-    // resolve absolute path instead of relative, just to be safe
-    realpath: true
-  });
-
-  if (files.length === 0) {
-    console.log(chalk.red(`could not find any test files matching pattern '${pattern}'`));
-    process.exit(1);
-  }
-
-  files.forEach(function (file) {
-    if (program.verbose) {
-      process.stdout.write(chalk.green('  --- ') + chalk.gray('added => ' + file) + '\n');
-    }
-    // gagarin.addFile(file);
-  });
-
-  process.stdout.write(
-    chalk.green(`\n  added ${files.length} test file` + (files.length > 1 ? 's' : '') + ` ...\n\n`));
-
-  // gagarin.run(function (failedCount) {
-  //   process.once('clean', function () {
-  //     process.exit(failedCount > 0 ? 1 : 0);
-  //   });
-  // });
-
 };
 
