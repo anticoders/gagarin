@@ -1,6 +1,6 @@
 import * as common from 'gagarin-common';
 import {join as pathJoin} from 'path';
-import prepareAppBundle from 'prepareAppBundle';
+import createAppBundle from './createAppBundle';
 
 // let logs                 = require('../logs');
 
