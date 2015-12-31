@@ -1,0 +1,13 @@
+{
+  "processes": [
+    {
+      "name": "db",
+      "type": "mongod"
+    },
+    {
+      "name": "app",
+      "path": "..",
+      "type": "meteor"
+    }
+  ]
+}

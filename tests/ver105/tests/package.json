@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/.bin/_mocha --ui gagarin-mocha-ui gagarin"
+    "test": "./node_modules/.bin/_mocha --delay --ui gagarin-mocha-ui gagarin"
   },
   "author": "apendua",
   "license": "MIT",
