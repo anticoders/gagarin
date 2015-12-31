@@ -1,5 +1,5 @@
 {
-  "name": "gagarin-empty",
+  "name": "gagarin-launch-control",
   "version": "0.4.11",
   "description": "Gagarin package prototype",
   "main": "./lib/index.js",
@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "babel-runtime": "^6.3.19",
-    "chalk": "^1.1.1"
+    "chalk": "^1.1.1",
+    "pm2": "^0.15.10"
   }
 }
