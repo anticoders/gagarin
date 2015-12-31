@@ -4,13 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/gagarin-cli/bin/gagarin --verbose --path-to-app .."
+    "test": "./node_modules/.bin/_mocha --ui gagarin-mocha-ui gagarin"
   },
   "author": "apendua",
   "license": "MIT",
   "dependencies": {
     "gagarin": "0.4.11",
     "gagarin-cli": "0.4.11",
-    "gagarin-mocha": "0.4.11"
+    "gagarin-mocha": "0.4.11",
+    "gagarin-mocha-ui": "0.4.11",
+    "mocha": "^2.3.4"
   }
 }
