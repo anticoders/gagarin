@@ -1,13 +1,22 @@
 ## gagarin-cli
 
 ```
-gagarin init
-gagarin launch --rebuild
-gagarin land
+commands:
+
+gagarin setup
+gagarin run
+gagarin cleanup
 gagarin status
-gagarin restart <name>
-gagarin shell <name>
 gagarin logs <name>
+
+options:
+
+--verbose
+--no-build
+--no-cleanup
+--directory
+--options
+
 ```
 
 ### gagarin init
@@ -16,19 +25,63 @@ Creates gagarin configuration file in the current directory:
 ```javascript
 // gagarin.json
 {
-  processes: {
-    app: {
-      type: 'meteor',
-      path: '..'
+  cleanup   : true,
+  browsers  : [
+    {
+      name: 'client1',
+      type: 'chrome',
+      port: 9515,
     },
-    db: {
-      type: 'mongod',
-      name: 'gagarin',
-      port: 27017
+    {
+      name: 'client2',
+      type: 'chrome',
+      port: 9515,
     },
-    wd: {
-      
-    }
+    {
+      name: 'client3',
+      type: 'firefox',
+      port: 4444,
+    },
+  ],
+  processes : [
+    {
+      name   : 'chromedriver',
+      type   : 'custom',
+      pwd    : '~',
+      script : './chromedriver',
+    },
+    {
+      name   : 'unit_tests',
+      once   : true,
+      type   : 'meteor',
+      path   : '..',
+      port   : 1961,
+    },
+    {
+      name   : 'app1',
+      type   : 'meteor',
+      path   : '..',
+      port   : 1961,
+    },
+    {
+      name   : 'app2',
+      type   : 'meteor',
+      path   : '..',
+      port   : 1962,
+    },
+    {
+      name   : 'db',
+      type   : 'mongod',
+      db     : 'gagarin',
+      port   : 27017,
+      oplog  : true,
+    },
+    {
+      once   : true,
+      name   : 'mocha',
+      type   : 'custom',
+      script : 'mocha --require gagarin-mocha --ui gagarin .',
+    },
   }
 }
 ```
