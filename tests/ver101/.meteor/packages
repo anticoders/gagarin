@@ -6,4 +6,5 @@
 meteor-platform
 autopublish
 insecure
-anti:gagarin
+anti:gagarin@=0.4.12
+
