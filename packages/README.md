@@ -4,18 +4,20 @@
 commands:
 
 gagarin setup
-gagarin run
+gagarin run [pattern]
 gagarin cleanup
 gagarin status
 gagarin logs <name>
 
 options:
 
---verbose
---no-build
---no-cleanup
---directory
---options
+-f, --framework <type>
+-v, --verbose
+-r, --force-rebuild
+-C, --no-cleanup
+-c, --config <path>
+-d, --directory
+-o, --options grep="UI"&reporter='dots'
 
 ```
 
@@ -25,62 +27,95 @@ Creates gagarin configuration file in the current directory:
 ```javascript
 // gagarin.json
 {
-  cleanup   : true,
-  browsers  : [
+  options     : {
+    cleanup   : true
+  },
+  frameworks  : [
     {
-      name: 'client1',
-      type: 'chrome',
-      port: 9515,
+      type    : 'mocha',
+      pattern : 'tests/mocha/**/*.js',
+      utilize : [ 'chromedriver', 'client1', 'client2' ],
+      options : {
+        ui       : 'gagarin',
+        reporter : 'spec'
+      }
     },
     {
-      name: 'client2',
-      type: 'chrome',
-      port: 9515,
+      type    : 'cucumber',
+      pattern : 'tests/cucumber/**/*.feature',
+      options : {}
     },
     {
-      name: 'client3',
-      type: 'firefox',
-      port: 4444,
-    },
+      type    : 'mocha-unit',
+      pattern : '**/*.test.js',
+      options : {}
+    }
   ],
-  processes : [
+  equipment : [
     {
-      name   : 'chromedriver',
-      type   : 'custom',
-      pwd    : '~',
-      script : './chromedriver',
+      name    : 'chromedriver',
+      type    : 'custom',
+      options : {
+        pwd    : '~',
+        script : './chromedriver',
+      }
     },
     {
-      name   : 'unit_tests',
-      once   : true,
-      type   : 'meteor',
-      path   : '..',
-      port   : 1961,
+      name    : 'client1',
+      type    : 'browser',
+      options : {
+        kind   : 'chrome',
+        port   : 9515,
+      }
     },
     {
-      name   : 'app1',
-      type   : 'meteor',
-      path   : '..',
-      port   : 1961,
+      name    : 'client2',
+      type    : 'browser',
+      options : {
+        kind   : 'chrome',
+        port   : 9515,
+      }
     },
     {
-      name   : 'app2',
-      type   : 'meteor',
-      path   : '..',
-      port   : 1962,
+      name    : 'client3',
+      type    : 'browser',
+      options : {
+        kind   : 'firefox',
+        port   : 4444,
+      }
     },
     {
       name   : 'db',
-      type   : 'mongod',
-      db     : 'gagarin',
-      port   : 27017,
-      oplog  : true,
+      type   : 'mongo',
+      options : {
+        db     : 'gagarin',
+        port   : 27017,
+        oplog  : true,
+      }
     },
     {
-      once   : true,
-      name   : 'mocha',
-      type   : 'custom',
-      script : 'mocha --require gagarin-mocha --ui gagarin .',
+      name    : 'app1',
+      type    : 'meteor',
+      options : {
+        path   : '..',
+        port   : 1961,
+        mongo  : {
+          port : 27017,
+          db   : 'gagarin'
+        },
+      }
+    },
+    {
+      name    : 'app2',
+      type    : 'meteor',
+      options : {
+        path   : '..',
+        port   : 1962,
+        mongo  : {
+          port : 27017,
+          db   : 'gagarin'
+        },
+      }
     },
   }
 }
@@ -95,10 +130,6 @@ mocha --require gagarin-mocha --ui gagarin gagarin/**/*.{js,coffee}
 
 In your mocha test
 ```javascript
-gagarin({
-  
-});
-
 describe('My Test Suite', function () {
   var server = meteor();
 
