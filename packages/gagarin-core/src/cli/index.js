@@ -5,15 +5,10 @@ import {logs, asPromise, checkPathIsDirectory} from 'gagarin-common';
 import {resolve as pathResolve} from 'path';
 import resolve from 'resolve';
 import chalk from 'chalk';
-import version from '../package.json';
-import {launchGagarinProcesses} from 'gagarin-launch-control';
+import version from '../../package.json';
 import * as commands from './commands';
 
-function parse10(v) {
-  return parseInt(v, 10);
-}
-
-export async function cli () {
+export async function cli (basedir) {
 
   var basedir = process.cwd();
   var program = new Command();
@@ -21,53 +16,50 @@ export async function cli () {
   program.name = 'gagarin';
   program
     .version(version)
-    .usage('[options] [file-pattern]')
-    .option('-d, --directory <path>', 'path to gagarin base directory')
+    .usage('[options] [pattern]')
+    .option('-c, --config <path>', 'provide path to config file')
     .option('-v, --verbose', 'run with verbose mode with logs from client/server', false)
-    .option('-w, --webdriver <url>', 'webdriver url [default: http://127.0.0.1:9515]', 'http://127.0.0.1:9515')
 
   program
-    .command('init')
-    .description('initialize gagarin configuration file')
+    .command('setup')
+    .description('initialize Gagarin configuration file')
     .action(function(options) {
-      if (!options.directory) {
-        options.directory = basedir;
-      }
-      commands.init(options).then(onReady, onError);
+      commands.setup(options).then(onReady, onError);
     });
 
   program
-    .command('launch')
-    .description('launch gagarin testing environment')
-    .option("-b, --rebuild [app]", "force meteor project rebuild")
-    .action(function(options) {
-      if (!options.directory) {
-        options.directory = basedir;
-      }
-      commands.launch(options).then(onReady, onError);;
+    .command('run <pattern>')
+    .description('prepare environment and run testing framework(s)')
+    .option('-f, --framework <type>', 'select testing framework to run')
+    .option('-o, --options <values>', 'allow overwriting selected framework options')
+    .option('-r, --force-rebuild', 'ensure applications are rebuild', false)
+    .option('-C, --no-cleanup', 'do not run cleanup after tests are done', false)
+    .action(function(pattern, options) {
+      commands.run(options).then(onReady, onError);;
     });
 
   program
-    .command('restart <name>')
-    .description('restart the process given by name')
+    .command('cleanup [name]')
+    .description('cleanup testing environment')
     .action(function(options) {
-      if (!options.directory) {
-        options.directory = basedir;
-      }
-      commands.restart(options).then(onReady, onError);;
+      commands.cleanup(options).then(onReady, onError);;
     });
 
-  // program
-  //   .command('test [pattern]')
-  //   .option('-g, --grep <pattern>', 'only run tests matching <pattern>')
-  //   .description('run tests using gagarin own test runner')
-  //   .action(function(options) {
-  //     if (!options.directory) {
-  //       options.directory = basedir;
-  //     }
-  //     commands.test(options).then(onReady, onError);;
-  //   });
+  program
+    .command('status [name]')
+    .description('show status')
+    .action(function(options) {
+      commands.status(options).then(onReady, onError);;
+    });
 
+  program
+    .command('logs [name]')
+    .description('show logs')
+    .action(function(options) {
+      commands.logs(options).then(onReady, onError);;
+    });
+
+  program.basedir = basedir;
   program.parse(process.argv);
 
   function onReady () {

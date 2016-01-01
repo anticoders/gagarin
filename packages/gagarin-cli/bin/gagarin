@@ -1,3 +1,4 @@
 #!/usr/bin/env node
 
+process.title = 'gagarin';
 require('../lib/index.js').run(process.cwd());

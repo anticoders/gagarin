@@ -1,4 +1,3 @@
-import {launch} from 'gagarin-launch-control';
 import {asPromise, checkPathExists} from 'gagarin-common';
 import {resolve as pathResolve} from 'path';
 import {writeFile, readFile} from 'fs';
@@ -14,8 +13,8 @@ export default async function (options) {
 
   let config = JSON.parse(await asPromise(readFile)(pathToGagarinJson, 'utf8'));
 
-  await launch({
-    directory : options.directory,
-    processes : config.processes,
-  });
+  // await launch({
+  //   directory : options.directory,
+  //   processes : config.processes,
+  // });
 }

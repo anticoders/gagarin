@@ -1,4 +1,4 @@
 
 export default function () {
-  console.log('restart');
+  console.log('cleanup');
 }
