@@ -24,7 +24,7 @@ describe('Test File Utilities', () => {
     });
     it('should not change its content', () => {
       return asPromise(readFile)(pathToGitIgnore, { encoding: 'utf8' })
-        .should.eventually.equal('/local/*\n!/local/probe.json\n');
+        .should.eventually.equal('/local/*\n!/local/gagarin.pathToNode\n');
     });
   });
 

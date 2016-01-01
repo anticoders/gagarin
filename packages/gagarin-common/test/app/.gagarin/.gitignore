@@ -1,2 +1,3 @@
 /local/*
 !/local/probe.json
+!/local/gagarin.pathToNode

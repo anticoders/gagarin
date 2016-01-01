@@ -8,7 +8,7 @@ import * as fs from 'fs';
  * but this is both slower and more error-prone.
  *
  * One thing to note here is that we are using "getDevBundlePath" which requires
- * ".gagarin/local/probe.json" to exists, so you cannot run this function unless you build first.
+ * ".gagarin/local/gagarin.pathToNode" to exists, so you cannot run this function unless you build first.
  *
  * @param {string} pathToApp
  */

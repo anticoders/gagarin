@@ -5,7 +5,6 @@ var fs              = Npm.require('fs');
 var pathToGagarin   = path.resolve('.gagarin');
 var pathToGitIgnore = path.join(pathToGagarin, '.gitignore');
 var pathToLocal     = path.join(pathToGagarin, 'local');
-var pathToProbe     = path.join(pathToLocal, 'probe.json');
 
 fs.mkdir(pathToGagarin, function (e) {
   'use strict';
@@ -30,10 +29,7 @@ fs.mkdir(pathToGagarin, function (e) {
       fs.writeFile(pathToGitIgnore, 'local\n');
     });
 
-    fs.writeFile(pathToProbe, JSON.stringify({
-      pathToNode: process.argv[0]
-    }, null, 2));
-
+    fs.writeFile(path.join(pathToLocal, 'gagarin.pathToNode'), process.argv[0]);
   });
 
 });

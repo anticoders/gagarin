@@ -2,40 +2,38 @@ import {join as pathJoin, extname} from 'path';
 import {readFile, stat as fileStat} from 'fs';
 import {memoize} from './utils';
 
-export const getProbeJson = memoize(function (pathToApp) {
-  var pathToProbeJson = pathJoin(pathToApp, '.gagarin', 'local', 'probe.json');
+export const getNodePath = memoize(function (pathToApp) {
+  var pathToBuildArtifact = pathJoin(pathToApp, '.gagarin', 'local', 'gagarin.pathToNode');
   return new Promise((resolve, reject) => {
-    readFile(pathToProbeJson, { encoding: 'utf8' }, function (err, data) {
+    readFile(pathToBuildArtifact, { encoding: 'utf8' }, function (err, data) {
       if (err) {
         if (err.code === 'ENOENT') {
-          err = new Error(`The file ${pathToProbeJson} does not exist!
+          err = new Error(`The file ${pathToBuildArtifact} does not exist!
 \tThis may be caused by several things:
 \t(1) your app does not build properly,
-\t(2) you forgot to add anti:gagarin to your app,
-\t(3) anti:gagarin is at version < 0.4.6.`);
+\t(2) package gagarin:builder is not installed,
+\t(3) package gagarin:builder is in wrong version`);
         }
         return reject(err);
       }
-      resolve(JSON.parse(data));
+      // let's trim it ... just in case ...
+      resolve(data.trim());
     });
   });
 });
 
 export const getDevBundlePath = memoize(function (pathToApp) {
-  return getProbeJson(pathToApp)
-    .then(probe => {
-
-      // in the future the probe.json should contain pathToNode ...
-      // below is a temporary workaround to make it work on windows
+  return getNodePath(pathToApp)
+    .then(pathToNode => {
 
       let pattern = 'dev_bundle';
-      let match   = probe.pathToNode && probe.pathToNode.match(pattern);
+      let match   = pathToNode && pathToNode.match(pattern);
 
       if (!match) {
-        throw new Error('invalid build probe.json: ' + probe.pathToNode);
+        throw new Error('invalid build artifact: ' + pathToNode);
       }
 
-      return probe.pathToNode.substr(0, match.index + pattern.length);
+      return pathToNode.substr(0, match.index + pattern.length);
     });
 });
 
@@ -52,15 +50,6 @@ export const getMongoPath = memoize(function (pathToApp) {
 
     return pathJoin(pathToDevBundle,  'mongodb', 'bin', 'mongod') + extname(pathToNode);
   });
-});
-
-export const getNodePath = memoize(function (pathToApp) {
-  return getProbeJson(pathToApp)
-    .then(probe => {
-      // XXX: this one would not work on windows, because of missing ".exe"
-      // return pathJoin(pathToDevBundle, 'bin', 'node');
-      return probe.pathToNode;
-    });
 });
 
 export const getMeteorBinary = memoize(function () {

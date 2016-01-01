@@ -15,7 +15,7 @@ describe('Test Check Utilities', () => {
   describe('File existence', () => {
 
     it('should tell if path exists', () => {
-      return check.checkPathExists(join(pathToApp, '.gagarin', 'local', 'probe.json')).should.eventually.be.true;
+      return check.checkPathExists(join(pathToApp, '.gagarin', 'local', 'gagarin.pathToNode')).should.eventually.be.true;
     });
 
     it('should tell if path does not exists', () => {

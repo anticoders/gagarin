@@ -81,7 +81,7 @@ export default async function createAppBundle (pathToApp, options) {
 
   logs.system('linking node_modules');
 
-  // NOTE: this will not work without "probe.json" file
+  // NOTE: this will not work without "gagarin.pathToNode" file
   await linkNodeModules(pathToApp);
 
   logs.system('everything is fine');
