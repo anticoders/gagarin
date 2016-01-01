@@ -1,7 +1,7 @@
 
 Package.describe({
   summary   : 'Collects data required to run Gagarin tests',
-  name      : 'gagarin:probe',
+  name      : 'gagarin:builder',
   version   : '0.4.11',
   git       : 'https://github.com/anticoders/gagarin.git',
   // debugOnly packages do not allow build plugins ...
@@ -9,7 +9,7 @@ Package.describe({
 });
 
 Package.registerBuildPlugin({
-  name: 'probe',
+  name: 'builder',
   sources: [ 'plugin.js' ],
 });
 
