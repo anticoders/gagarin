@@ -1,3 +1,4 @@
+/*jshint esnext: true*/
 
 import {Command} from 'commander';
 import {logs, asPromise, checkPathIsDirectory} from 'gagarin-common';
