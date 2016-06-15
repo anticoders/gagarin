@@ -21,6 +21,7 @@ if (Gagarin.isActive) {
         return function (arg1, arg2) { return arg1 ? first(arg1) : second(arg2) };
     }};
   };
+  plugins.Npm = Npm;
 
   // TODO: also protect these methods with some authentication (user/password/token?)
   //       note that required data my be provided with GAGARIN_SETTINGS
