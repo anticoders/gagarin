@@ -4,9 +4,12 @@
 # but you can also edit it by hand.
 
 standard-app-packages
-insecure
-accounts-password
+insecure@1.0.7
+anti:gagarin@=1.0.0
+accounts-password@1.5.0
 
-accounts-base
-standard-minifier-css
-standard-minifier-js
+accounts-base@1.4.2
+standard-minifier-css@1.4.0
+standard-minifier-js@2.3.1
+shell-server@0.3.1
+dynamic-import@0.3.0

@@ -5,10 +5,11 @@
 
 standard-app-packages
 insecure
-anti:gagarin@=0.4.12
+anti:gagarin@=1.0.0
 mystor:device-detection
 accounts-password
 
 accounts-base
-iron:router
-standard-minifiers
+iron:router@=1.1.2
+standard-minifier-css
+standard-minifier-js

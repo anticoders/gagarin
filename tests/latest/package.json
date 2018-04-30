@@ -1,0 +1,14 @@
+{
+  "name": "gagarin-latest",
+  "version": "1.0.0",
+  "description": "wrapper for latest",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/anticoders/gagarin"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@babel/runtime": "^7.0.0-beta.46",
+    "bcrypt": "^2.0.1"
+  }
+}
