@@ -59,7 +59,7 @@ if (Meteor.isClient) {
 
   Meteor.connection._stream.on('reset', function () {
     // console.warn('connection reset detected');
-    reset += 1;
+    global.reset += 1;
   });
 
   Meteor.startup(function () {

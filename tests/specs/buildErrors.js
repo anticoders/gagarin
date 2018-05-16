@@ -121,6 +121,7 @@ describe('Build Errors', function () {
   });
 
   describe('Given timeout for the first server output is exceeded', function(){
+    var message = "";
     var server = meteor({
       noAutoStart    : true,
       startupTimeout : 1,
@@ -141,6 +142,7 @@ describe('Build Errors', function () {
   });
 
   describe('Given timeout for server startup is exceeded', function(){
+    var message = "";
     var server = meteor({
       noAutoStart     : true,
       startupTimeout2 : 1,

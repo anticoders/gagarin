@@ -37,6 +37,13 @@ describe('Using chai in the browser', function () {
          expect(4).to.eql(4);
       });
     });
+    xit('should support coverage after change urls?', function () {
+      return client
+      .get('http://www.google.com')
+      .execute(function(){
+         expect(4).to.eql(4);
+      });
+    });
 
     it('should work given parameters', function () {
       return client
