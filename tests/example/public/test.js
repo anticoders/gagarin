@@ -1,1 +1,2 @@
+rootThing = 'foobar';
 window.thisPropertyIsAddedByTestJS = {};

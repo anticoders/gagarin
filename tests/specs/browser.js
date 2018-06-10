@@ -61,7 +61,7 @@ describe('Tests with browser', function () {
         5000,
         'for find to resolve',
         function(id){
-          return Items.findOne({_id: id});; //window.herp;//Items.find({}).fetch();
+          return Items.findOne({_id: id});
         }, [id]).then(function (value) {
           expect(value).not.to.be.empty;
           expect(value._id).to.equal(id);
@@ -105,7 +105,6 @@ describe('Tests with browser', function () {
           return Meteor.connection.status().connected;
         })
         .execute(function(){
-          console.log("thisss", this);
           return reset;
         })
         .then(function (numberOfResets) {
@@ -121,7 +120,6 @@ describe('Tests with browser', function () {
             return Meteor.connection.status().connected;
           })
           .execute(function(){
-            console.log("thisss", this);
             return reset;
           })
           .then(function (numberOfResets) {

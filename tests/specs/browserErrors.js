@@ -1,39 +1,46 @@
 
 describe('Browser Errors', function () {
 
-  var message = "";
   var server = meteor();
   var client = browser(server);
 
-  describe('Use strict', function () {
+  describe('Not strict', function () {
 
-    it('should not allow introducing new global variables in client.execute', function () {
-      return client.execute(function () {
+    this.timeout(20000);
+
+    it('should allow introducing new global variables in client.execute', function () {
+      return client.execute(function(){
         someNewVariable = true;
-      }).expectError(function (err) {
-        expect(err.message).to.include('someNewVariable');
+      }).execute(function(){
+        expect(someNewVariable).to.be.true
+      })
+    });
+
+    it('should allow introducing new global variables in client.promise', function () {
+      return client.promise(function (resolve, reject) {
+        someOtherVariable = true;
+        resolve();
+      }).execute(function(){
+        expect(someOtherVariable).to.be.true
       });
     });
 
-    it('should not allow introducing new global variables in client.promise', function () {
-      return client.promise(function (resolve) {
-        resolve(someNewVariable = true);
-      }).expectError(function (err) {
-        expect(err.message).to.include('someNewVariable');
+    it('should allow introducing new global variables in client.wait', function () {
+      return client.wait(1000, 'should wait for a global variable', function () {
+        someFooVariable = true;
+        return someFooVariable;
+      }).execute(function(){
+        expect(someFooVariable).to.be.true
       });
     });
-
-    it('should not allow introducing new global variables in client.wait', function () {
-      return client.wait(1000, '', function () {
-        return someNewVariable = true;
-      }).expectError(function (err) {
-        expect(err.message).to.include('someNewVariable');
-      });
+    xit('should allow introducing new global variables in client.wait without requiring global prefix', function () {
     });
 
   });
 
   describe('If there is a syntax error in client-side injected script', function () {
+
+    var message = '';
 
     it('should be properly reported', function () {
       return client
@@ -44,12 +51,14 @@ describe('Browser Errors', function () {
     });
 
     it('the error message should contain useful information', function () {
-      expect(message).to.contain('Unexpected token :');
+      expect(message).to.contain('Unexpected token');
     });
 
   });
 
   describe('If there is a syntax error in client-side promise', function () {
+
+    var message = '';
 
     it('should be properly reported', function () {
       return client
@@ -60,12 +69,14 @@ describe('Browser Errors', function () {
     });
 
     it('the error message should contain useful information', function () {
-      expect(message).to.contain('Unexpected token :');
+      expect(message).to.contain('Unexpected token');
     });
 
   });
 
   describe('If there is a syntax error in client-side wait', function () {
+
+    var message = '';
 
     it('should be properly reported', function () {
       return client
@@ -76,12 +87,14 @@ describe('Browser Errors', function () {
     });
 
     it('the error message should contain useful information', function () {
-      expect(message).to.contain('Unexpected token :');
+      expect(message).to.contain('Unexpected token');
     });
 
   });
 
   describe('If the client-side injected script throws an error', function () {
+
+    var message = '';
 
     it('should be properly reported', function () {
       return client
@@ -101,6 +114,7 @@ describe('Browser Errors', function () {
 
   describe('If the client-side promise is rejected', function () {
 
+    var message = '';
 
     it('should be properly reported', function () {
       return client
@@ -120,6 +134,8 @@ describe('Browser Errors', function () {
 
   describe('If the client-side wait fails due to some error', function () {
 
+    var message = '';
+
     it('should be properly reported', function () {
       return client
         .wait(1000, 'until error is thrown', function () {
@@ -137,6 +153,8 @@ describe('Browser Errors', function () {
   });
 
   describe('If the client-side wait fails due to timeout', function () {
+
+    var message = '';
 
     it('should be properly reported', function () {
       return client

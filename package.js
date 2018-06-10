@@ -22,6 +22,7 @@ Package.onUse(function (api) {
     api.versionsFrom('METEOR@1.3');
   }
 
+  api.use('ecmascript');
   api.use([ 'livedata', 'webapp' , 'check'] , 'server');
   api.use('accounts-password', 'server', { weak: true });
 

@@ -354,29 +354,6 @@ it("should be able to access local variable", function () {
 ```
 Note that this construction will already allow you to do anything you want with your local variables, because you can always update them within `then`, after your client/server computation is done. However, it's not very convenient in more complicated scenarios.
 
-## Copying closure
-
-To simplify the interaction between client and server code, we've added an affordance to reuse the declared closure in all three environments: test scope, server and client. To this end, you need to explicitly provide a list of variables to be synced as well as an accessor function:
-
-```javascript
-var a = 1, b = 2, c = 0;
-// this is a hack :)
-closure(['a', 'b', 'c'], function (key, value) {
-  return eval(key + (arguments.length > 1 ? '=' + JSON.stringify(value) : ''));
-});
-```
-Now this code should work without problems:
-```javascript
-it("should be able to access local variables", function () {
-  return client.execute(function (a) {
-    c = a + b;
-  }).then(function () {
-    expect(c).to.equal(3);
-  });
-});
-```
-The only reserved variable name for closures is `$`, which you probably would not like to use for other reasons.
-
 ## Asynchronous test cases
 
 On both server and client you can also use asynchronous scripts:

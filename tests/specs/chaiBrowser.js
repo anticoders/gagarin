@@ -114,7 +114,7 @@ describe('Using chai in the browser', function () {
       });
     });
 
-    it('should throw a descriptive error if the assertion fails', function () {
+    it('should throw a descriptive error if the assertion fails derp', function () {
       return client.promise(function () {
         expect(true).to.be.false;
       })
@@ -141,7 +141,7 @@ describe('Using chai in the browser', function () {
       });
     });
 
-    it('should throw a descriptive error if the assertion fails', function () {
+    it('should throw a descriptive error if the assertion fails herp', function () {
       return client.wait(1000, 'until something happens', function () {
         expect(true).to.be.false;
       })

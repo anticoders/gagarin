@@ -17,7 +17,9 @@
     "gagarin": "./bin/gagarin"
   },
   "scripts": {
-    "test": "./node_modules/babel-cli/bin/babel-node.js --presets node6 ./test.js"
+    "test": "./node_modules/babel-cli/bin/babel-node.js --presets node6 ./test.js",
+    "coverage": "./node_modules/babel-cli/bin/babel-node.js --presets node6 ./coverage.js",
+    "cli": "./node_modules/babel-cli/bin/babel-node.js --presets node6 ./cli.js"
   },
   "author": [
     "Tomasz Lenarcik (apendua@gmail.com)",
