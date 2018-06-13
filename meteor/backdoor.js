@@ -29,11 +29,18 @@ if (Gagarin.isActive) {
 
       try {
 
+        var babelOptions = Package['babel-compiler'].Babel.getDefaultOptions();
+        babelOptions.sourceMap = true;
+        babelOptions.ast = false;
+        babelOptions.retainLines = true;
+
         code = "var funcToRun = " + code + "; funcToRun";
-        code = eval(Package.ecmascript.ECMAScript.compileForShell(code));
+        code = Package['babel-compiler'].Babel.compile(code, babelOptions) //Package.ecmascript.ECMAScript.compileForShell(code);
+        code = eval(code.code);
         runMe = function(){ return eval(code).apply(null, arguments); };
 
       } catch (error) {
+        // console.log("execute error:", error)
         return {error: error.message}
       }
 
@@ -71,7 +78,8 @@ if (Gagarin.isActive) {
         var result = runMe.apply(null, args);
         return {value: result};
       } catch (error) {
-        return {error: error.message}
+        // console.log("execute error:", error)
+        return {error: error.message, errorName: error.name, errorMessage: error.message, errorStack: error.stack, code: code}
       }
     },
     '/gagarin/promise': function (code, args) {
@@ -126,10 +134,19 @@ if (Gagarin.isActive) {
         setRequireAndModule(global);
 
 
+
+        var babelOptions = Package['babel-compiler'].Babel.getDefaultOptions();
+        babelOptions.sourceMap = true;
+        babelOptions.ast = false;
+        babelOptions.retainLines = true;
+
         code = "var funcToRun = " + code + "; funcToRun";
-        code = eval(Package.ecmascript.ECMAScript.compileForShell(code));
+        code = Package['babel-compiler'].Babel.compile(code, babelOptions) //Package.ecmascript.ECMAScript.compileForShell(code);
+        code = eval(code.code);
+
         code.apply(null, args); // resolved by future
       } catch (error) {
+        // console.log("promise error:", error)
         future.throw(error)
         return { error: error.message };
       }
@@ -189,8 +206,14 @@ if (Gagarin.isActive) {
         setRequireAndModule(global);
 
 
+        var babelOptions = Package['babel-compiler'].Babel.getDefaultOptions();
+        babelOptions.sourceMap = true;
+        babelOptions.ast = false;
+        babelOptions.retainLines = true;
+
         code = "var funcToRun = " + code + "; funcToRun";
-        code = eval(Package.ecmascript.ECMAScript.compileForShell(code));
+        code = Package['babel-compiler'].Babel.compile(code, babelOptions) //Package.ecmascript.ECMAScript.compileForShell(code);
+        code = eval(code.code);
 
         timeoutId = Meteor.setTimeout(function () {
           Meteor.clearInterval(intervalId);
@@ -206,10 +229,12 @@ if (Gagarin.isActive) {
               ready({value: result});
             }
           } catch (error) {
+            // console.log("wait error:", error)
             ready({error: error});
           }
         }, 50);
       } catch (error) {
+        // console.log("wait error:", error)
         ready({error: error});
       }
 
