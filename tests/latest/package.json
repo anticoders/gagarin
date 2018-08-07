@@ -8,7 +8,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@babel/runtime": "^7.0.0-beta.46",
+    "@babel/runtime": "^7.0.0-beta.42",
     "bcrypt": "^2.0.1"
   }
 }
