@@ -35,7 +35,7 @@ describe('Tests with browser', function () {
     before(function () {
       return browser1
         .promise(function (resolve, reject, id) {
-          Items.insert({_id: id}, either(reject).or(resolve));
+          resolve( Items.insert({_id: id, foo: 'bar'}) )
         }, [ id ])
         .then(function (value) {
           expect(value).to.equal(id);
@@ -43,21 +43,25 @@ describe('Tests with browser', function () {
     });
 
     it('db insert should work in browser', function () {
-      return browser1.execute(
-          "return Items.findOne({_id: " + JSON.stringify(id) + "});"
-        )
-        .then(function (value) {
-          expect(value).not.to.be.empty;
-          expect(value._id).to.equal(id);
+      return browser1.wait(
+        5000,
+        'for find to resolve',
+        function(){
+          return Items.findOne({});
+        }).then(function (item) {
+          expect(item).not.to.be.empty;
+          expect(item._id).to.equal(id);
+          expect(item.foo).to.equal('bar');
         });
     });
     
     it('the same element should be present on server', function () {
-      return server.execute(function (id) {
-          // TODO: wait?
-          return Items.findOne({_id: id});
-        }, [ id ])
-        .then(function (value) {
+      return server.wait(
+        5000,
+        'for find to resolve',
+        function(id){
+          return Items.findOne({_id: id});; //window.herp;//Items.find({}).fetch();
+        }, [id]).then(function (value) {
           expect(value).not.to.be.empty;
           expect(value._id).to.equal(id);
         });

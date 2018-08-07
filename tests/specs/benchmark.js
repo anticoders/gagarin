@@ -16,7 +16,7 @@ describe('Benchmark test suite', function () {
 
   it('db insert should work', function () {
     return server.execute(function () {
-      return Items.insert({vostok: Random.id()});
+      return Items.insert({});
     })
     .then(function (value) {
       expect(value).not.to.be.empty;

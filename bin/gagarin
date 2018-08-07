@@ -5,7 +5,6 @@ var Gagarin = require('../lib/mocha/gagarin');
 var logs = require('../lib/logs');
 var path = require('path');
 var fs = require('fs');
-var coffee = require('coffee-script/register');
 var chalk = require('chalk');
 var glob = require('glob');
 
@@ -39,7 +38,6 @@ program
   .option('-f, --flavor <name>', 'default flavor of api (promise, fiber)', 'promise')
   .option('-T, --startup-timeout <ms>' ,'server startup timeout [5000]', parse10, 5000)
   .option('-U, --build-timeout <ms>' ,'meteor building timeout [120000]', parse10, 120000)
-  .option('-O, --velocity <url>', 'report results to velocity at given url')
   .option('-p, --parallel <number>', 'run test suites in parallel', parse10, 0);
 
 program.name = 'gagarin';
@@ -59,12 +57,12 @@ program.pathToApp = path.resolve(program.pathToApp);
 // fallback to default test dir if there is no pattern provided
 if (!pattern) {
   var appPath = program.pathToApp.replace(/\\/g, '/');
-  pattern = [appPath, 'tests', 'gagarin', '**/*.{js,coffee}'].join('/');
+  pattern = [appPath, 'tests', 'gagarin', '**/*.js'].join('/');
 }
 
 // create a pattern if a directory was provided, a file path already is a valid pattern
 if (fs.existsSync(pattern) && fs.lstatSync(pattern).isDirectory()) {
-  pattern = pattern.replace(/\/$/, '') + '/**/*.{js,coffee}';
+  pattern = pattern.replace(/\/$/, '') + '/**/*.js';
 }
 
 logs.system('searching for test files, using glob pattern `' + pattern + '`');

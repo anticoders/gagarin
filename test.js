@@ -13,7 +13,6 @@ program
   .option('-B, --skip-build', 'do not build, just run the tests')
   .option('-o, --build-only', 'just build, do not run the tests')
   .option('-v, --verbose', 'run with verbose mode with logs from client/server', false)
-  .option('-o, --velocity <url>', 'report results to velocity at given url')
   .option('-p, --parallel <number>', 'run test suites in parallel', parseInt, 0)
   .option('-m, --mute-build', 'do not show build logs', false)
 
@@ -32,7 +31,6 @@ var gagarin = new Gagarin({
   grep          : program.grep,
   skipBuild     : program.skipBuild,
   buildOnly     : program.buildOnly,
-  velocity      : program.velocity,
   parallel      : program.parallel,
 
   startupTimeout    : 5000,

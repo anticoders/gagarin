@@ -4,7 +4,7 @@
 
 Gagarin is a [mocha](http://mochajs.org/) based testing framework designed to be used with [Meteor](https://www.meteor.com/). It can spawn multiple instances of your meteor application and run the tests by executing commands on both server and client in realtime. In other words, Gagarin allows you to automate everything you could achieve manually with `meteor shell`, browser console and a lot of free time. There's no magic. It just works.
 
-Gagarin is also useful when you need more refined control over the meteor processes and test fancy things, e.g. the behavior of your app on server restarts or when you have multiple app instances writing to the same database. To our knowledge, this is currently not achievable with [Velocity](http://velocity.meteor.com/) - the official Meteor testing framework.
+Gagarin is also useful when you need more refined control over the meteor processes and test fancy things, e.g. the behavior of your app on server restarts or when you have multiple app instances writing to the same database.
 
 ## Quick start
 
@@ -60,21 +60,9 @@ var server = meteor();
 var client = browser(server); // before 0.4.0 you would use server.location here
 ```
 
-## How is it different from Velocity?
-
-Gagarin is external to meteor. It only takes care of spawning your meteor processes and allows you to execute chunks of source code in your app environment from within your test suite and that's it. On the other hand, Velocity will deeply integrate with your app by making your test cases an integral part of your app source code, but only in a special type of builds called mirrors. This is very clever because your tests will run as fast as they possibly can. The only drawback of using velocity is that you don't have a satisfactory control over your meteor processes. In most situations this is acceptable but there are some very specific scenarios when this is not sufficient. In those cases Gagarin is probably a good choice. Gagarin tests will run a little bit slower because the source code is sent to your app through DDP, but in most situations in which you would need Gagarin, this is totally acceptable because the bottleneck of your tests speed is usually somewhere else. Another advantage of using DDP is that the tests can be potentially executed on a deployed application which may be useful in some specific cases.
-
-## How is it different from Laika?
-
-The truth is Gagarin originates from [Laika](http://arunoda.github.io/laika/). In some sense, one may think of it as Laika 2.0, though it's not backward compatible. The main advantages of using Gagarin rather then Laika are the following:
-- it does not depend on `phantomjs`
-- it does not depend on injected source code, so the test runner does not have to rebuild your app each time you run the tests
-- the communication with client is done through a real web driver API, which means that your tests can visit any web page and are not bound to your app's routes
-- it does not depend on external mongo processes; the tests runner is clever enough to find mongo executable within your meteor development bundle
-
 # Step-by-step guide
 
-Gagarin is a simple test runner built on top of [mocha](http://mochajs.org/). In it's essence is very similar to [laika](https://github.com/arunoda/laika), though it's much more flexible, up-to-date and compatible with the latest Meteor versions. Currently it's implemented as a custom `mocha` interface, which simply extends the standard `bdd` ui. This may change in the future if there's a demand to support other testing frameworks.
+Gagarin is a simple test runner built on top of [mocha](http://mochajs.org/). Currently it's implemented as a custom `mocha` interface, which simply extends the standard `bdd` ui. This may change in the future if there's a demand to support other testing frameworks.
 
 ## Installation
 
@@ -118,8 +106,7 @@ The role of the smart package is adding some backdoor functionality, similar to 
 
 ## Directory structure
 
-While we advise to place your tests in `tests/gagarin` to maintain compatibility
-with other (Velocity) testing frameworks, you're free to create a directory structure
+While we advise to place your tests in `tests/gagarin` you're free to create a directory structure
 that fits your needs. Gagarin uses [node-glob](https://github.com/isaacs/node-glob)
 to find your test files based on a glob pattern.
 
@@ -172,13 +159,6 @@ Or if you have nested folders inside the `tests` folders:
 
 ```bash
   gagarin ./packages/*/tests/**/*.js
-```
-
-**Example: multiple extensions**
-Perhaps you have both `.js` files and `.coffee` files that you wish to run?
-
-```bash
-gagarin ./**/*.{js,coffee}
 ```
 
 **Example: global tests folder combined with package specific tests**
@@ -250,7 +230,7 @@ describe('You can also use browser in your tests', function () {
   });
 });
 ```
-This idea originated from Laika, but we decided to go for a more promise-oriented API. Basically speaking, you can use the `browser` function to spawn as many clients as you want. The only requirement is that you have a webdriver running somewhere. By default, gagarin will try to find webdriver at port `9515` (chromedriver default). You can customize the webdriver url by providing the corresponding option for the cli tool:
+You can use the `browser` function to spawn as many clients as you want. The only requirement is that you have a webdriver running somewhere. By default, gagarin will try to find webdriver at port `9515` (chromedriver default). You can customize the webdriver url by providing the corresponding option for the cli tool:
 ```
 gagarin --webdriver http://localhost:9515
 ```

@@ -51,13 +51,15 @@ describe('Using chai on the server', function () {
       return server  
       .execute(function(){
         [4, 11, 15].should.include.one.below(10);
-        [4, 11, 15].should.contain.some.above(10);
-        [4, 11, 15].should.not.contain.any.above(20);
+        [4, 11, 16].should.contain.some.above(10);
+        // WARN: chai-things `any` has issue w/ 5.x + 4.x mocha/chai, interestingly enough, changing 
+        // the name of `any`->`foobar` in chai-things, resolved the issue, some works without issue.
+        [4, 11, 17].should.not.contain.some.above(20);
         [{ a: 'cat' }, { a: 'dog' }].should.contain.a.thing.with.property('a', 'cat');
         [{ a: 'cat' }, { a: 'dog' }].should.contain.an.item.with.property('a', 'dog');
-        [4, 11, 15].should.all.be.below(20);
+        [4, 11, 18].should.all.be.below(20);
         [{ a: 'cat' }, { a: 'dog' }].should.all.have.property('a');
-        [4, 11, 15].should.all.be.above(2);
+        [4, 11, 19].should.all.be.above(2);
         [{ a: 'cat' }, { a: 'cat' }].should.all.have.property('a', 'cat');
       })
     });

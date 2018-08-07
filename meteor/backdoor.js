@@ -138,7 +138,7 @@ if (Gagarin.isActive) {
   });
 
   function norifyWeAreReady () {
-    console.log('Поехали!'); // Let's ride! (Gagarin, during the Vostok 1 launch)
+    console.log("Gagarin: Ready! Tests may engage!");
   }
 
   if (WebApp.onListening) {
