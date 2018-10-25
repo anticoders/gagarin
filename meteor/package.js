@@ -9,6 +9,7 @@ Package.describe({
 Npm.depends({
   'chai'        : '4.1.2',
   'chai-things' : '0.2.0',
+  'chai-spies'  : '1.0.0'
 });
 
 Package.registerBuildPlugin({

@@ -11,10 +11,12 @@ if (Gagarin.isActive) {
 
   chai.should();
   chai.use(Npm.require('chai-things'));
+  chai.use(Npm.require('chai-spies'));
 
   global.chai   = chai;
   global.Fiber  = Fiber;
   global.expect = chai.expect;
+  global.spy    = chai.spy;
 
   // TODO: also protect these methods with some authentication (user/password/token?)
   //       note that required data my be provided with GAGARIN_SETTINGS
