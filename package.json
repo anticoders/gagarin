@@ -50,7 +50,7 @@
     "portscanner": "^2.1.1",
     "right-pad": "^1.0.1",
     "underscore": "^1.9.0",
-    "wd": "^1.6.2"
+    "wd": "^1.11.0"
   },
   "deprecated": false,
   "description": "another testing framework for your meteor apps",

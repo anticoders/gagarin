@@ -1,4 +1,3 @@
-
 Package.describe({
   summary:  "Gagarin, a Meteor testing framework based on mocha",
   name:     "anti:gagarin",

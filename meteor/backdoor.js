@@ -18,11 +18,13 @@ if (Gagarin.isActive) {
   global.expect = chai.expect;
   global.spy    = chai.spy;
 
+
   // TODO: also protect these methods with some authentication (user/password/token?)
   //       note that required data my be provided with GAGARIN_SETTINGS
   Meteor.methods({
 
     '/gagarin/execute': function (code, args) {
+
       args = args || [];
 
       check(code, String);
@@ -36,14 +38,15 @@ if (Gagarin.isActive) {
         babelOptions.ast = false;
         babelOptions.retainLines = true;
 
-        code = "var funcToRun = " + code + "; funcToRun";
-        code = Package['babel-compiler'].Babel.compile(code, babelOptions) //Package.ecmascript.ECMAScript.compileForShell(code);
-        code = eval(code.code);
-        runMe = function(){ return eval(code).apply(null, arguments); };
+        code = "var funcToRun = function(){\n return (" + code.toString() + ").apply(global, arguments)\n}; \nfuncToRun";
+        code = Package['babel-compiler'].Babel.compile(code, babelOptions).code
+
+        runMe = function(){ 
+          return eval(code).apply(global, arguments);
+        };
 
       } catch (error) {
-        // console.log("execute error:", error)
-        return {error: error.message}
+        return {error: error.message, errorName: error.name, errorMessage: error.message, errorStack: error.stack, code: code}
       }
 
       // This allows modules to be loaded in the global context like in the shell-server, like above
@@ -80,7 +83,6 @@ if (Gagarin.isActive) {
         var result = runMe.apply(null, args);
         return {value: result};
       } catch (error) {
-        // console.log("execute error:", error)
         return {error: error.message, errorName: error.name, errorMessage: error.message, errorStack: error.stack, code: code}
       }
     },
@@ -90,17 +92,21 @@ if (Gagarin.isActive) {
 
       check(code, String);
       check(args, Array);
+      let runMe = undefined;
 
       try {
         var ready = function (feedback) {
           if (feedback.error && typeof feedback.error === 'object') {
-            feedback.error = feedback.error.message;
+            feedback = {error: feedback.error.message, errorName: feedback.error.name, errorMessage: feedback.error.message, errorStack: feedback.error.stack, code: code}
+          } else if (feedback.error) {
+            feedback.error = new Error('unhandled rejection');
+            feedback = {error: feedback.error.message, errorName: feedback.error.name, errorMessage: feedback.error.message, errorStack: feedback.error.stack, code: code}
           }
           future.return(feedback);
         };
 
         // reject
-        args.unshift(_.once(function (error) { setTimeout(function () { ready({ error: error }); }); }));
+        args.unshift(_.once(function (error) { ready({ error: error }); }));
         // resolve
         args.unshift(_.once(function (value) { setTimeout(function () { ready({ value: value }); }); }));
 
@@ -136,21 +142,22 @@ if (Gagarin.isActive) {
         setRequireAndModule(global);
 
 
-
         var babelOptions = Package['babel-compiler'].Babel.getDefaultOptions();
         babelOptions.sourceMap = true;
         babelOptions.ast = false;
         babelOptions.retainLines = true;
 
-        code = "var funcToRun = " + code + "; funcToRun";
-        code = Package['babel-compiler'].Babel.compile(code, babelOptions) //Package.ecmascript.ECMAScript.compileForShell(code);
-        code = eval(code.code);
+        code = "var funcToRun = function(){\n return (" + code.toString() + ").apply(global, arguments)\n}; \nfuncToRun";
+        code = Package['babel-compiler'].Babel.compile(code, babelOptions).code
 
-        code.apply(null, args); // resolved by future
+        runMe = function(){ 
+          return eval(code).apply(global, arguments);
+        };
+
+        // returned asyncly
+        runMe.apply(null, args);
       } catch (error) {
-        // console.log("promise error:", error)
-        future.throw(error)
-        return { error: error.message };
+        future.return({error: error.message, errorName: error.name, errorMessage: error.message, errorStack: error.stack, code: code});
       }
 
       return future.wait();
@@ -158,8 +165,9 @@ if (Gagarin.isActive) {
 
     '/gagarin/wait': function (timeout, message, code, args) {
       var future  = new Future();
-      var timeoutId = null;
-      var intervalId = null;
+      var timeoutId = undefined;
+      var intervalId = undefined;
+      var runMe = undefined;
       args = args || [];
 
       check(timeout, Number);
@@ -171,9 +179,6 @@ if (Gagarin.isActive) {
         var ready = function (feedback) {
           Meteor.clearTimeout(timeoutId);
           Meteor.clearInterval(intervalId);
-          if (feedback.error && typeof feedback.error === 'object') {
-            feedback.error = feedback.error.message;
-          }
           future.return(feedback);
         }
 
@@ -213,43 +218,64 @@ if (Gagarin.isActive) {
         babelOptions.ast = false;
         babelOptions.retainLines = true;
 
-        code = "var funcToRun = " + code + "; funcToRun";
-        code = Package['babel-compiler'].Babel.compile(code, babelOptions) //Package.ecmascript.ECMAScript.compileForShell(code);
-        code = eval(code.code);
+        var timeoutId =  undefined;
+        var intervalId =  undefined;
 
-        timeoutId = Meteor.setTimeout(function () {
-          Meteor.clearInterval(intervalId);
-          ready({error: 'I have been waiting for ' + timeout + ' ms ' + message + ', but it did not happen.' })
-        }, timeout);
+        var timeoutCode = function(timeout){
 
-        intervalId = Meteor.setInterval(function () {
-          try {
-            var result = code.apply(null, args);
-            if ( result ) {
-              Meteor.clearTimeout(timeoutId);
+          if(!timeoutId){
+            timeoutId = Meteor.setTimeout(function () {
               Meteor.clearInterval(intervalId);
-              ready({value: result});
-            }
-          } catch (error) {
-            // console.log("wait error:", error)
-            ready({error: error});
+              var error = new Error('I have been waiting for ' + timeout + ' ms ' + message + ', but it did not happen.');
+              error = {error: error.message, errorName: error.name, errorMessage: error.message, errorStack: error.stack, code: code};
+              ready(error);
+            }, 1000);
           }
-        }, 50);
+
+          if(!intervalId){
+            intervalId = Meteor.setInterval(function () {
+              try {
+                var result = runMe.apply(null, args);
+                if ( result ) {
+                  Meteor.clearTimeout(timeoutId);
+                  Meteor.clearInterval(intervalId);
+                  ready({value: result});
+                }
+              } catch (error) {
+                ready({error: error.message, errorName: error.name, errorMessage: error.message, errorStack: error.stack, code: code});
+              }
+            }, 250);
+          }
+
+        }
+
+
+        code = "var funcToRun = function(){\n return (" + code.toString() + ").apply(global, arguments)\n}; \nfuncToRun";
+        code = Package['babel-compiler'].Babel.compile(code, babelOptions).code
+
+        runMe = function(){ 
+          return eval(code).apply(global, arguments);
+        };
+
+        timeoutCode(timeout);
       } catch (error) {
-        // console.log("wait error:", error)
-        ready({error: error});
+        ready({error: error.message, errorName: error.name, errorMessage: error.message, errorStack: error.stack, code: code});
       }
 
       return future.wait();
-    },
+    }
 
   });
+
 
   function notifyWeAreReady () {
     console.log("Gagarin: Ready! Tests may engage!");
   }
 
-  if (WebApp.onListening) {
+
+  if(Package['okgrow:migrations']){
+    Package['okgrow:migrations'].Migrations.addReadyCondition(notifyWeAreReady);
+  } else if (WebApp.onListening) {
     WebApp.onListening(notifyWeAreReady);
   } else {
     Meteor.startup(notifyWeAreReady);

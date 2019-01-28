@@ -16,7 +16,8 @@ program
   .option('-R, --reporter <name>', 'specify the reporter to use', 'spec')
   .option('-S, --sort', "sort test files")
   .option('-b, --bail', "bail after first test failure")
-  .option('-d, --debug', "enable node's debugger, synonym for node --debug")
+  // WARN: Deprecated, use --inspect-brk
+  // .option('-d, --debug', "enable node's debugger, synonym for node --debug")
   .option('-g, --grep <pattern>', 'only run tests matching <pattern>')
   //.option('-gc', '--expose-gc', 'expose gc extension')
   .option('-i, --invert', 'inverts --grep matches')
