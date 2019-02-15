@@ -54,9 +54,19 @@ logs.setSilentBuild(program.muteBuild);
 program.pathToApp = path.resolve(program.pathToApp);
 
 // fallback to default test dir if there is no pattern provided
+var appPath = program.pathToApp.replace(/\\/g, '/');
+
 if (!pattern) {
-  var appPath = program.pathToApp.replace(/\\/g, '/');
   pattern = [appPath, 'tests', 'gagarin', '**/*.js'].join('/');
+}
+
+var setupFile = [appPath, 'tests', 'gagarin', 'gagarin.setup.js'].join('/');
+if (fs.existsSync(setupFile)){
+  logs.system('Found tests/gagarin/gagarin.setup.js adding suite setup');
+  if (program.verbose) {
+    process.stdout.write(chalk.green('  --- ') + chalk.gray('added => ' + setupFile) + '\n\n');
+  }
+  gagarin.addFile(setupFile);
 }
 
 // create a pattern if a directory was provided, a file path already is a valid pattern
