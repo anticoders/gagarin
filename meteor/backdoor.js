@@ -34,7 +34,6 @@ if (Gagarin.isActive) {
       try {
 
         var babelOptions = Package['babel-compiler'].Babel.getDefaultOptions();
-        babelOptions.sourceMap = true;
         babelOptions.ast = false;
         babelOptions.retainLines = true;
 
@@ -143,7 +142,6 @@ if (Gagarin.isActive) {
 
 
         var babelOptions = Package['babel-compiler'].Babel.getDefaultOptions();
-        babelOptions.sourceMap = true;
         babelOptions.ast = false;
         babelOptions.retainLines = true;
 
@@ -214,7 +212,6 @@ if (Gagarin.isActive) {
 
 
         var babelOptions = Package['babel-compiler'].Babel.getDefaultOptions();
-        babelOptions.sourceMap = true;
         babelOptions.ast = false;
         babelOptions.retainLines = true;
 
