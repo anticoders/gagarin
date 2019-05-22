@@ -19,6 +19,8 @@ program
   // WARN: Deprecated, use --inspect-brk
   // .option('-d, --debug', "enable node's debugger, synonym for node --debug")
   .option('-g, --grep <pattern>', 'only run tests matching <pattern>')
+  .option('--coverage', 'collect coverage for browser and server')
+  .option('--log-js', 'log javascript execute scripts')
   //.option('-gc', '--expose-gc', 'expose gc extension')
   .option('-i, --invert', 'inverts --grep matches')
   .option('-s, --slow <ms>', '"slow" test threshold in milliseconds [75]')
