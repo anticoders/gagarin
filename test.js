@@ -42,7 +42,11 @@ var gagarin = new Gagarin({
   parallel      : program.parallel,
   startupTimeout    : 5000,
   meteorLoadTimeout : 5000,
-  verbose           : program.verbose,
+  verbose           : true,
+  logJs: true,
+  settings: {
+    gagarin: true
+  }
 });
 
 fs.readdirSync(path.join(__dirname, 'tests', 'specs')).forEach(function (file) {

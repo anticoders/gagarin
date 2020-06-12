@@ -11,6 +11,6 @@ accounts-password
 
 accounts-base
 iron:router@=1.1.2
-standard-minifier-css
-standard-minifier-js
 ecmascript
+shell-server
+dynamic-import

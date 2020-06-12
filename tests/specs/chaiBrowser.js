@@ -3,20 +3,6 @@ describe('Using chai in the browser', function () {
 
   var server = meteor();
 
-  describe('browser chai.expect()', function () {
-
-    var client = browser(server);
-
-    it('should work', function () {
-      return client  
-      .execute(function(){
-        var x = 2;
-        var y = x + 3;
-        chai.expect(y).to.eql(5);
-      });
-    });
-  });
-
   describe('browser expect()', function () {
 
     var client = browser(server);
@@ -30,14 +16,7 @@ describe('Using chai in the browser', function () {
       });
     });
 
-    it('should work after get url', function () {
-      return client
-      .get('http://www.google.com')
-      .execute(function(){
-         expect(4).to.eql(4);
-      });
-    });
-    xit('should support coverage after change urls?', function () {
+    xit('should work after changing domain get url', function () {
       return client
       .get('http://www.google.com')
       .execute(function(){

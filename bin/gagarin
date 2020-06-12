@@ -7,10 +7,9 @@ process.env.BABEL_ENV = 'gagarin';
 
 // let the babel magic happen
 var argv = [process.argv.shift(), process.argv.shift()].concat([
-  '--presets',
-   'node6',
+   '--config='+path.dirname(process.mainModule.filename) + '/../cli.babelrc.json',
    path.dirname(process.mainModule.filename) + '/../cli.js'
 ]).concat(process.argv)
 process.argv = argv;
 
-require('babel-cli/lib/babel-node')
+require('@babel/node/lib/babel-node.js')

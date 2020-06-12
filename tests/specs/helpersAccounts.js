@@ -7,7 +7,7 @@ describe('Built in Accounts helpers', function () {
   before(function () {
     return server.execute(function () {
       Accounts.createUser({email: 'existingUser@example.com',password: 'password'});
-    })    
+    })
   });
 
   it('signUp should create a new user with email option', function () {

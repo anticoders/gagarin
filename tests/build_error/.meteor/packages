@@ -6,8 +6,11 @@
 standard-app-packages
 insecure
 anti:gagarin@=1.0.0
+mystor:device-detection
 accounts-password
 
 accounts-base
-standard-minifier-css
-standard-minifier-js
+iron:router@=1.1.2
+ecmascript
+shell-server
+dynamic-import

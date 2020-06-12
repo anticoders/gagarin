@@ -7,31 +7,35 @@
     "url": "https://github.com/anticoders/gagarin/issues"
   },
   "dependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-preset-node6": "^11.0.0",
+    "@babel/runtime": "^7.10.2",
     "chai": "^4.1.2",
-    "chai-things": "^0.2.0",
     "chai-spies": "^1.0.0",
+    "chai-things": "^0.2.0",
     "chalk": "^2.4.1",
     "chrome-remote-interface": "^0.25.5",
     "commander": "^2.15.1",
-    "ddp": "^0.12.1",
     "debounce": "^1.1.0",
     "es6-promise": "^4.2.4",
     "fiber-utils": "0.10.0",
     "fibers": "4.0.3",
     "glob": "^7.1.2",
-    "lodash": "^4.17.10",
-    "mocha": "5.1.1",
-    "mongodb": "2.2.34",
+    "istanbul-lib-coverage": "^2.0.5",
+    "lodash": "^4.17.15",
+    "minimist": "^1.2.5",
+    "mocha": "^8.0.1",
+    "mongodb": "^3.5.8",
     "portscanner": "^2.1.1",
     "right-pad": "^1.0.1",
     "underscore": "^1.9.0",
-    "wd": "^1.11.0"
+    "wd": "^1.12.1",
+    "ddp": "https://github.com/nytamin/node-ddp-client.git#dev"
   },
   "description": "another testing framework for your meteor apps",
   "devDependencies": {
-    "babel-preset-es2015": "^6.24.1",
+    "@babel/cli": "^7.10.1",
+    "@babel/core": "^7.10.2",
+    "@babel/node": "^7.10.1",
+    "@babel/preset-env": "^7.10.2",
     "sinon": "4.5.0"
   },
   "homepage": "https://github.com/anticoders/gagarin",
@@ -47,7 +51,10 @@
   "scripts": {
     "cli": "./node_modules/babel-cli/bin/babel-node.js --presets node6 ./cli.js",
     "coverage": "./node_modules/babel-cli/bin/babel-node.js --presets node6 ./coverage.js",
-    "test": "./node_modules/babel-cli/bin/babel-node.js --presets node6 ./test.js"
+    "test": "./node_modules/@babel/node/bin/babel-node.js --presets @babel/preset-env ./test.js",
+    "test:setup": "npm run test:example:install && npm run test:build_error:install",
+    "test:example:install": "cd tests/example && meteor npm install",
+    "test:build_error:install": "cd tests/build_error && meteor npm install"
   },
   "version": "1.0.0"
 }
