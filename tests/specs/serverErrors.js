@@ -52,7 +52,7 @@ describe('Server Errors', function () {
     });
 
     it('the error message should contain useful information', function () {
-      expect(message).to.contain('Unexpected token :');
+      expect(message).to.contain('Unexpected token');
     });
 
   });
@@ -68,7 +68,7 @@ describe('Server Errors', function () {
     });
 
     it('the error message should contain useful information', function () {
-      expect(message).to.contain('Unexpected token :');
+      expect(message).to.contain('Unexpected token');
     });
 
   });
@@ -84,7 +84,7 @@ describe('Server Errors', function () {
     });
 
     it('the error message should contain useful information', function () {
-      expect(message).to.contain('Unexpected token :');
+      expect(message).to.contain('Unexpected token');
     });
 
   });
@@ -148,7 +148,7 @@ describe('Server Errors', function () {
 
     it('should be properly reported', function () {
       return server2
-        .wait(1000, 'until error is thrown', function () {
+        .wait(100, 'until error is thrown', function () {
           throw new Error('this is a fake error');
         })
         .expectError(function (err) {

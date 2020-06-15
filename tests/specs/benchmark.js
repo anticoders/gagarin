@@ -16,7 +16,7 @@ describe('Benchmark test suite', function () {
 
   it('db insert should work', function () {
     return server.execute(function () {
-      return Items.insert({vostok: Random.id()});
+      return Items.insert({});
     })
     .then(function (value) {
       expect(value).not.to.be.empty;
@@ -43,14 +43,14 @@ describe('Benchmark test suite', function () {
   });
 
   describe("Server benchmark", function () {
-    this.timeout(5000);
+    this.timeout(10000);
 
     it('2000x execute', function () {
       var myPromise = server;
       var i;
       for (var i=0; i<2000; i++) {
         myPromise = myPromise.execute(function () {
-          return Meteor.relese;
+          return Meteor.release;
         });
       }
       return myPromise;
@@ -60,14 +60,14 @@ describe('Benchmark test suite', function () {
   describe("Browser benchmark", function () {
     var client = browser(server);
 
-    this.timeout(15000);
+    this.timeout(5000);
 
     it('500x execute', function () {
       var myPromise = client;
       var i;
       for (var i=0; i<500; i++) {
         myPromise = myPromise.execute(function () {
-          return Meteor.relese;
+          return Meteor.release;
         });
       }
       return myPromise;

@@ -1,51 +1,60 @@
 {
-  "name": "gagarin",
-  "version": "0.4.12",
-  "description": "another testing framework for your meteor apps",
-  "main": "gagarin.js",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/anticoders/gagarin"
-  },
-  "keywords": [
-    "gagarin",
-    "vostok",
-    "meteor",
-    "test",
-    "mocha",
-    "laika"
-  ],
+  "author": "",
   "bin": {
     "gagarin": "./bin/gagarin"
   },
-  "scripts": {
-    "test": "./test.js --verbose"
-  },
-  "author": "Tomasz Lenarcik (apendua@gmail.com)",
-  "license": "MIT",
   "bugs": {
     "url": "https://github.com/anticoders/gagarin/issues"
   },
-  "homepage": "https://github.com/anticoders/gagarin",
-  "devDependencies": {
-    "sinon": "^1.17.2"
-  },
   "dependencies": {
-    "chai": "^1.10.0",
+    "@babel/runtime": "^7.10.2",
+    "chai": "^4.1.2",
+    "chai-spies": "^1.0.0",
     "chai-things": "^0.2.0",
-    "chalk": "^0.5.1",
-    "coffee-script": "^1.9.1",
-    "commander": "^2.5.0",
-    "ddp": "^0.9.2",
-    "debounce": "^1.0.0",
-    "es6-promise": "^1.0.0",
-    "fibers": "^1.0.4",
-    "glob": "^5.0.5",
-    "lodash": "^3.6.0",
-    "mkdirp": "^0.5.0",
-    "mocha": "^1.20.1",
-    "mongodb": "^2.1.0",
-    "portscanner": "1.0.0",
-    "wd": "^0.3.11"
-  }
+    "chalk": "^2.4.1",
+    "chrome-remote-interface": "^0.25.5",
+    "commander": "^2.15.1",
+    "debounce": "^1.1.0",
+    "es6-promise": "^4.2.4",
+    "fiber-utils": "0.10.0",
+    "fibers": "4.0.3",
+    "glob": "^7.1.2",
+    "istanbul-lib-coverage": "^2.0.5",
+    "lodash": "^4.17.15",
+    "minimist": "^1.2.5",
+    "mocha": "^8.0.1",
+    "mongodb": "^3.5.8",
+    "portscanner": "^2.1.1",
+    "right-pad": "^1.0.1",
+    "underscore": "^1.9.0",
+    "wd": "^1.12.1",
+    "ddp": "https://github.com/nytamin/node-ddp-client.git#dev"
+  },
+  "description": "another testing framework for your meteor apps",
+  "devDependencies": {
+    "@babel/cli": "^7.10.1",
+    "@babel/core": "^7.10.2",
+    "@babel/node": "^7.10.1",
+    "@babel/preset-env": "^7.10.2",
+    "sinon": "4.5.0"
+  },
+  "homepage": "https://github.com/anticoders/gagarin",
+  "keywords": [
+    "gagarin",
+    "meteor",
+    "test",
+    "mocha"
+  ],
+  "license": "MIT",
+  "main": "gagarin.js",
+  "name": "gagarin",
+  "scripts": {
+    "cli": "./node_modules/babel-cli/bin/babel-node.js --presets node6 ./cli.js",
+    "coverage": "./node_modules/babel-cli/bin/babel-node.js --presets node6 ./coverage.js",
+    "test": "./node_modules/@babel/node/bin/babel-node.js --presets @babel/preset-env ./test.js",
+    "test:setup": "npm run test:example:install && npm run test:build_error:install",
+    "test:example:install": "cd tests/example && meteor npm install",
+    "test:build_error:install": "cd tests/build_error && meteor npm install"
+  },
+  "version": "1.0.0"
 }

@@ -1,0 +1,109 @@
+var program = require('commander');
+var Gagarin = require('./lib/mocha/gagarin');
+var logs = require('./lib/logs');
+var path = require('path');
+var fs = require('fs');
+var chalk = require('chalk');
+var glob = require('glob');
+
+program
+  .version(require('./package.json').version)
+  .usage('[debug] [options] [file-pattern]')
+  .option('-A, --async-only', "force all tests to take a callback (async)")
+  .option('-c, --colors', 'force enabling of colors')
+  .option('-C, --no-colors', 'force disabling of colors')
+  .option('-G, --growl', 'enable growl notification support')
+  .option('-R, --reporter <name>', 'specify the reporter to use', 'spec')
+  .option('-S, --sort', "sort test files")
+  .option('-b, --bail', "bail after first test failure")
+  // WARN: Deprecated, use --inspect-brk
+  // .option('-d, --debug', "enable node's debugger, synonym for node --debug")
+  .option('-g, --grep <pattern>', 'only run tests matching <pattern>')
+  .option('--coverage', 'collect coverage for browser and server')
+  .option('--log-js', 'log javascript execute scripts')
+  //.option('-gc', '--expose-gc', 'expose gc extension')
+  .option('-i, --invert', 'inverts --grep matches')
+  .option('-s, --slow <ms>', '"slow" test threshold in milliseconds [75]')
+  .option('-S, --settings <path>', 'use meteor settings from the given file')
+  .option('-t, --timeout <ms>', 'set test-case timeout in milliseconds [5000]', 40000)
+  //.option('-u, --ui <name>', 'specify user-interface (bdd|tdd|exports)', 'bdd')
+  .option('-B, --skip-build', 'do not build, just run the tests')
+  .option('-o, --build-only', 'just build, do not run the tests')
+  .option('-v, --verbose', 'run with verbose mode with logs from client/server', false)
+  .option('-w, --webdriver <url>', 'webdriver url [default: http://127.0.0.1:9515]', 'http://127.0.0.1:9515')
+  .option('-M, --dont-wait-for-meteor', 'do not wait until meteor is loaded')
+  .option('-l, --meteor-load-timeout <ms>', 'meteor load timeout [2000]', parse10, 20000)
+  .option('-a, --path-to-app <path>', 'path to a meteor application', path.resolve('.'))
+  .option('-r, --remote-server <url>', 'run tests on a remote server')
+  .option('-m, --mute-build', 'do not show build logs', false)
+  .option('-f, --flavor <name>', 'default flavor of api (promise, fiber)', 'fiber')
+  .option('-T, --startup-timeout <ms>' ,'server startup timeout [5000]', parse10, 30000)
+  .option('-U, --build-timeout <ms>' ,'meteor building timeout [120000]', parse10, 120000)
+  .option('-p, --parallel <number>', 'run test suites in parallel', parse10, 0);
+
+program.name = 'gagarin';
+
+program.parse(process.argv);
+
+var gagarin = new Gagarin(program);
+var pattern = program.args[0];
+
+// set verbose mode if necessary
+logs.setVerbose(program.verbose);
+logs.setSilentBuild(program.muteBuild);
+
+// absolute path is always a little more safe ...
+program.pathToApp = path.resolve(program.pathToApp);
+
+// fallback to default test dir if there is no pattern provided
+var appPath = program.pathToApp.replace(/\\/g, '/');
+
+if (!pattern) {
+  pattern = [appPath, 'tests', 'gagarin', '**/*.js'].join('/');
+}
+
+var setupFile = [appPath, 'tests', 'gagarin', 'gagarin.setup.js'].join('/');
+if (fs.existsSync(setupFile)){
+  logs.system('Found tests/gagarin/gagarin.setup.js adding suite setup');
+  if (program.verbose) {
+    process.stdout.write(chalk.green('  --- ') + chalk.gray('added => ' + setupFile) + '\n\n');
+  }
+  gagarin.addFile(setupFile);
+}
+
+// create a pattern if a directory was provided, a file path already is a valid pattern
+if (fs.existsSync(pattern) && fs.lstatSync(pattern).isDirectory()) {
+  pattern = pattern.replace(/\/$/, '') + '/**/*.js';
+}
+
+logs.system('searching for test files, using glob pattern `' + pattern + '`');
+var files = glob.sync(pattern, {
+  // resolve absolute path instead of relative, just to be safe
+  realpath: true
+});
+
+if (files.length === 0) {
+  console.warn('could not find any test files matching pattern `' + pattern + '`');
+  process.exit(1);
+}
+
+files.forEach(function (file) {
+  if (program.verbose) {
+    process.stdout.write(chalk.green('  --- ') + chalk.gray('added => ' + file) + '\n');
+  }
+
+  gagarin.addFile(file);
+});
+
+process.stdout.write(chalk.green('\n  added ' + files.length + ' test files ...\n\n'));
+
+gagarin.run(function (failedCount) {
+  if (failedCount > 0) {
+    process.exit(1);
+  }
+  process.exit(0);
+});
+
+function parse10(v) {
+  return parseInt(v, 10);
+}

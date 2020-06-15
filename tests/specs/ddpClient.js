@@ -47,7 +47,7 @@ describe('DDP client.', function () {
         });
       });
 
-      it('should not be able to call "private" method', function () {
+      it('should not be able to call private method', function () {
         return client.call("private", []).expectError(function (err) {
           expect(err.message).to.contain('403');
         });
@@ -55,7 +55,7 @@ describe('DDP client.', function () {
 
     });
 
-    describe('Authentication,', function () {
+    describe('Authentication', function () {
 
       var release = null;
 

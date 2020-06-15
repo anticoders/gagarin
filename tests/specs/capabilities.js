@@ -15,7 +15,7 @@ describe('Browser capabilities', function () {
       browserName: 'chrome',
       chromeOptions: {
         mobileEmulation: {
-          deviceName: 'Apple iPhone 5'
+          deviceName: 'iPhone 5/SE'
         }
       }
     }

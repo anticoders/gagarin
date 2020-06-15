@@ -11,289 +11,271 @@ if (Gagarin.isActive) {
 
   chai.should();
   chai.use(Npm.require('chai-things'));
+  chai.use(Npm.require('chai-spies'));
 
-  plugins.chai   = chai;
-  plugins.Fiber  = Fiber;
-  plugins.expect = chai.expect;
-  plugins.assert = chai.assert;
-  plugins.either = function either (first) {
-    return { or: function (second) {
-        return function (arg1, arg2) { return arg1 ? first(arg1) : second(arg2) };
-    }};
-  };
+  global.chai   = chai;
+  global.Fiber  = Fiber;
+  global.expect = chai.expect;
+  global.spy    = chai.spy;
+
 
   // TODO: also protect these methods with some authentication (user/password/token?)
   //       note that required data my be provided with GAGARIN_SETTINGS
-
   Meteor.methods({
 
-    '/gagarin/execute': function (context, closure, code, args) {
-      "use strict";
+    '/gagarin/execute': function (code, args) {
 
       args = args || [];
 
       check(code, String);
       check(args, Array);
-      check(closure, Object);
-      check(context, Object);
+      let runMe = undefined;
 
-      return compile(code, closure).apply({}, values(closure, function (userFunc, getClosure) {
-        try {
-          return { value : userFunc.apply(context, args), context: context, closure : getClosure() };
-        } catch (err) {
-          return { error: err.message, context: context, closure: getClosure() };
+      try {
+
+        var babelOptions = Package['babel-compiler'].Babel.getDefaultOptions();
+        babelOptions.ast = false;
+        babelOptions.retainLines = true;
+
+        code = "var funcToRun = function(){\n return (" + code.toString() + ").apply(global, arguments)\n}; \nfuncToRun";
+        code = Package['babel-compiler'].Babel.compile(code, babelOptions).code
+
+        runMe = function(){ 
+          return eval(code).apply(global, arguments);
+        };
+
+      } catch (error) {
+        return {error: error.message, errorName: error.name, errorMessage: error.message, errorStack: error.stack, code: code}
+      }
+
+      // This allows modules to be loaded in the global context like in the shell-server, like above
+      // https://github.com/meteor/meteor/blob/4aeb453c7b0a0a9556a11ea1928e63ab11302ef4/packages/shell-server/shell-server.js#L426
+      function setRequireAndModule(context) {
+        if (Package.modules) {
+          // Use the same `require` function and `module` object visible to the
+          // application.
+          var toBeInstalled = {};
+          var shellModuleName = "meteor-shell-" +
+            Math.random().toString(36).slice(2) + ".js";
+
+          toBeInstalled[shellModuleName] = function (require, exports, module) {
+            context.module = module;
+            context.require = require;
+
+            // Tab completion sometimes uses require.extensions, but only for
+            // the keys.
+            require.extensions = {
+              ".js": true,
+              ".json": true,
+              ".node": true,
+            };
+          };
+
+          // This populates repl.context.{module,require} by evaluating the
+          // module defined above.
+          Package.modules.meteorInstall(toBeInstalled)("./" + shellModuleName);
         }
-      }));
+      }
+      setRequireAndModule(global);
 
+      try {
+        var result = runMe.apply(null, args);
+        return {value: result};
+      } catch (error) {
+        return {error: error.message, errorName: error.name, errorMessage: error.message, errorStack: error.stack, code: code}
+      }
     },
-
-    '/gagarin/promise': function (context, closure, code, args) {
-      "use strict";
-
+    '/gagarin/promise': function (code, args) {
       args = args || [];
-
-      check(code, String);
-      check(args, Array);
-      check(closure, Object);
-      check(context, Object);
-
       var future = new Future();
 
-      var ready = function (feedback) {
-        if (!feedback.context) {
-          feedback.context = context;
-        }
-        if (feedback.error && typeof feedback.error === 'object') {
-          feedback.error = feedback.error.message;
-        }
-        future['return'](feedback);
-      };
+      check(code, String);
+      check(args, Array);
+      let runMe = undefined;
 
-      // either return immediately (e.g. on error) or future.wait()
-      return compile(code, closure).apply({}, values(closure, function (userFunc, getClosure) {
+      try {
+        var ready = function (feedback) {
+          if (feedback.error && typeof feedback.error === 'object') {
+            feedback = {error: feedback.error.message, errorName: feedback.error.name, errorMessage: feedback.error.message, errorStack: feedback.error.stack, code: code}
+          } else if (feedback.error) {
+            feedback.error = new Error('unhandled rejection');
+            feedback = {error: feedback.error.message, errorName: feedback.error.name, errorMessage: feedback.error.message, errorStack: feedback.error.stack, code: code}
+          }
+          future.return(feedback);
+        };
+
         // reject
-        args.unshift(_.once(function (error) { setTimeout(function () { ready({ error: error, closure: getClosure() }); }); }));
-
+        args.unshift(_.once(function (error) { ready({ error: error }); }));
         // resolve
-        args.unshift(_.once(function (value) { setTimeout(function () { ready({ value: value, closure: getClosure() }); }); }));
+        args.unshift(_.once(function (value) { setTimeout(function () { ready({ value: value }); }); }));
 
-        try {
-          userFunc.apply(context, args);
-        } catch (err) {
-          return { error: err.message, context: context, closure: getClosure() };
+
+        // This allows modules to be loaded in the global context like in the shell-server, like above
+        // https://github.com/meteor/meteor/blob/4aeb453c7b0a0a9556a11ea1928e63ab11302ef4/packages/shell-server/shell-server.js#L426
+        function setRequireAndModule(context) {
+          if (Package.modules) {
+            // Use the same `require` function and `module` object visible to the
+            // application.
+            var toBeInstalled = {};
+            var shellModuleName = "meteor-shell-" +
+              Math.random().toString(36).slice(2) + ".js";
+
+            toBeInstalled[shellModuleName] = function (require, exports, module) {
+              context.module = module;
+              context.require = require;
+
+              // Tab completion sometimes uses require.extensions, but only for
+              // the keys.
+              require.extensions = {
+                ".js": true,
+                ".json": true,
+                ".node": true,
+              };
+            };
+
+            // This populates repl.context.{module,require} by evaluating the
+            // module defined above.
+            Package.modules.meteorInstall(toBeInstalled)("./" + shellModuleName);
+          }
         }
+        setRequireAndModule(global);
 
-      })) || future.wait();
+
+        var babelOptions = Package['babel-compiler'].Babel.getDefaultOptions();
+        babelOptions.ast = false;
+        babelOptions.retainLines = true;
+
+        code = "var funcToRun = function(){\n return (" + code.toString() + ").apply(global, arguments)\n}; \nfuncToRun";
+        code = Package['babel-compiler'].Babel.compile(code, babelOptions).code
+
+        runMe = function(){ 
+          return eval(code).apply(global, arguments);
+        };
+
+        // returned asyncly
+        runMe.apply(null, args);
+      } catch (error) {
+        future.return({error: error.message, errorName: error.name, errorMessage: error.message, errorStack: error.stack, code: code});
+      }
+
+      return future.wait();
     },
 
-    '/gagarin/wait': function (context, closure, timeout, message, code, args) {
-      "use strict";
-
+    '/gagarin/wait': function (timeout, message, code, args) {
+      var future  = new Future();
+      var timeoutId = undefined;
+      var intervalId = undefined;
+      var runMe = undefined;
       args = args || [];
 
       check(timeout, Number);
       check(message, String);
       check(code, String);
       check(args, Array);
-      check(closure, Object);
-      check(context, Object);
 
-      var future  = new Future();
-      var handle1 = null;
-      var handle2 = null;
+      try {
+        var ready = function (feedback) {
+          Meteor.clearTimeout(timeoutId);
+          Meteor.clearInterval(intervalId);
+          future.return(feedback);
+        }
 
-      function ready(feedback) {
-        //-------------------------
-        clearTimeout(handle1);
-        clearTimeout(handle2);
-        if (!feedback.context) {
-          feedback.context = context;
+        // This allows modules to be loaded in the global context like in the shell-server, like above
+        // https://github.com/meteor/meteor/blob/4aeb453c7b0a0a9556a11ea1928e63ab11302ef4/packages/shell-server/shell-server.js#L426
+        function setRequireAndModule(context) {
+          if (Package.modules) {
+            // Use the same `require` function and `module` object visible to the
+            // application.
+            var toBeInstalled = {};
+            var shellModuleName = "meteor-shell-" +
+              Math.random().toString(36).slice(2) + ".js";
+
+            toBeInstalled[shellModuleName] = function (require, exports, module) {
+              context.module = module;
+              context.require = require;
+
+              // Tab completion sometimes uses require.extensions, but only for
+              // the keys.
+              require.extensions = {
+                ".js": true,
+                ".json": true,
+                ".node": true,
+              };
+            };
+
+            // This populates repl.context.{module,require} by evaluating the
+            // module defined above.
+            Package.modules.meteorInstall(toBeInstalled)("./" + shellModuleName);
+          }
         }
-        if (feedback.error && typeof feedback.error === 'object') {
-          feedback.error = feedback.error.message;
+        setRequireAndModule(global);
+
+
+        var babelOptions = Package['babel-compiler'].Babel.getDefaultOptions();
+        babelOptions.ast = false;
+        babelOptions.retainLines = true;
+
+        var timeoutId =  undefined;
+        var intervalId =  undefined;
+
+        var timeoutCode = function(timeout){
+
+          if(!timeoutId){
+            timeoutId = Meteor.setTimeout(function () {
+              Meteor.clearInterval(intervalId);
+              var error = new Error('I have been waiting for ' + timeout + ' ms ' + message + ', but it did not happen.');
+              error = {error: error.message, errorName: error.name, errorMessage: error.message, errorStack: error.stack, code: code};
+              ready(error);
+            }, 1000);
+          }
+
+          if(!intervalId){
+            intervalId = Meteor.setInterval(function () {
+              try {
+                var result = runMe.apply(null, args);
+                if ( result ) {
+                  Meteor.clearTimeout(timeoutId);
+                  Meteor.clearInterval(intervalId);
+                  ready({value: result});
+                }
+              } catch (error) {
+                ready({error: error.message, errorName: error.name, errorMessage: error.message, errorStack: error.stack, code: code});
+              }
+            }, 250);
+          }
+
         }
-        future['return'](feedback);
+
+
+        code = "var funcToRun = function(){\n return (" + code.toString() + ").apply(global, arguments)\n}; \nfuncToRun";
+        code = Package['babel-compiler'].Babel.compile(code, babelOptions).code
+
+        runMe = function(){ 
+          return eval(code).apply(global, arguments);
+        };
+
+        timeoutCode(timeout);
+      } catch (error) {
+        ready({error: error.message, errorName: error.name, errorMessage: error.message, errorStack: error.stack, code: code});
       }
 
-      // either return immediately (e.g. on error) or future.wait()
-      return compile(code, closure).apply({}, values(closure, function (userFunc, getClosure) {
-        handle2 = setTimeout(function () {
-          ready({ closure: getClosure(), error: 'I have been waiting for ' + timeout + ' ms ' + message + ', but it did not happen.' });
-        }, timeout);
-        (function test() {
-          var value;
-          try {
-            value = userFunc.apply(context, args);
-            if (value) {
-              return ready({ closure: getClosure(), value: value });
-            }
-          } catch (error) {
-            return ready({ closure: getClosure(), error: error });
-          }            
-          handle1 = setTimeout(Meteor.bindEnvironment(test), 50); // repeat after 1/20 sec.          
-        }());
-      })) || future.wait();
-    },
+      return future.wait();
+    }
 
   });
 
-  function norifyWeAreReady () {
-    console.log('Поехали!'); // Let's ride! (Gagarin, during the Vostok 1 launch)
+
+  function notifyWeAreReady () {
+    console.log("Gagarin: Ready! Tests may engage!");
   }
 
-  if (WebApp.onListening) {
-    WebApp.onListening(norifyWeAreReady);
 
+  if(Package['okgrow:migrations']){
+    Package['okgrow:migrations'].Migrations.addReadyCondition(notifyWeAreReady);
+  } else if (WebApp.onListening) {
+    WebApp.onListening(notifyWeAreReady);
   } else {
-    Meteor.startup(norifyWeAreReady);
+    Meteor.startup(notifyWeAreReady);
   }
 
 }
-
-/**
- * Provide plugins the the local context.
- *
- * @param {(string|string[])} code
- * @returns {string[]}
- */
-function providePlugins(code) {
-  var chunks = [];
-  if (typeof code === 'string') {
-    code = code.split('\n');
-  }
-  chunks.push("function (" + Object.keys(plugins).join(', ') + ") {");
-  chunks.push("  return " + code[0]);
-
-  code.forEach(function (line, index) {
-    if (index === 0) return; // omit the first line
-    chunks.push("  " + line);
-  });
-  chunks.push("}");
-  return chunks;
-}
-
-/**
- * Make sure that the only local variables visible inside the code,
- * are those from the closure object.
- *
- * @param {(string|string[])} code
- * @param {Object} closure
- * @returns {string[]}
- */
-function isolateScope(code, closure) {
-  if (typeof code === 'string') {
-    code = code.split('\n');
-  }
-  var keys = Object.keys(closure).map(function (key) {
-    return stringify(key) + ": " + key;
-  });
-  var chunks = [];
-
-  chunks.push(
-    "function (" + Object.keys(closure).join(', ') + ") {",
-    "  'use strict';",
-    "  return (function (userFunc, getClosure, action) {",
-    "    try {",
-    "      return action(userFunc, getClosure);",
-    "    } catch (err) {",
-    // this should never happen ...
-    "      return { error: err.message, closure: getClosure() };",
-    "    }",
-    "  })("
-  );
-
-  // the code provided by the user goes here
-  align(code).forEach(function (line) {
-    chunks.push("    " + line);
-  });
-  chunks[chunks.length-1] += ',';
-
-  chunks.push(
-    // the function returning current state of the closure
-    "    function () {",
-    "      return { " + keys.join(', ') + " };",
-    "    },",
-
-    // the custom action
-    "    arguments[arguments.length-1]",
-    "  );",
-    "}"
-  );
-
-  return chunks;
-}
-
-/**
- * Fixes the source code indentation.
- *
- * @param {(string|string[])} code
- * @returns {string[]}
- */
-function align(code) {
-  if (typeof code === 'string') {
-    code = code.split('\n');
-  }
-  var match = code[code.length-1].match(/^(\s+)\}/);
-  var regex = null;
-  if (match && code[0].match(/^function/)) {
-    regex = new RegExp("^" + match[1]);
-    return code.map(function (line) {
-      return line.replace(regex, "");
-    });
-  }
-  return code;
-}
-
-/**
- * Creates a function from the provided source code and closure object.
- *
- * @param {(string|string[])} code
- * @param {Object} closure
- * @returns {string[]}
- */
-function compile(code, closure) {
-  code = providePlugins(isolateScope(code, closure)).join('\n');
-  try {
-    return vm.runInThisContext('(' + code + ')').apply({}, values(plugins));
-  } catch (err) {
-    throw new Meteor.Error(400, err);
-  }
-}
-
-/**
- * Returns all values of the object, sorted
- * alphabetically by corresponding keys.
- *
- * @param {Object}
- * @returns {Array}
- */
-function values(object) {
-  "use strict";
-
-  var values = Object.keys(object).map(function (key) {
-    return object[key];
-  });
-  if (arguments.length > 1) {
-    values.push.apply(values, Array.prototype.slice.call(arguments, 1));
-  }
-  return values;
-}
-
-/**
- * A thin wrapper around JSON.stringify:
- *
- *  - `undefined` gets evaluated to "undefined"
- *  - a function gets evaluated to source code
- *
- * @param {Object} value
- * @returns {string}
- */
-function stringify(value) {
-  "use strict";
-
-  if (typeof value === 'function') {
-    return value.toString();
-  }
-  return value !== undefined ? JSON.stringify(value) : "undefined";
-}
-

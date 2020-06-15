@@ -61,12 +61,12 @@ describe('Gagarin methods', function () {
         }, 500)
       }, []);
       return server
-        .wait(2000, 'until something happens', function () {
+        .wait(4000, 'until something happens', function () {
           return !!Meteor.someRandomProperty;
         }, []);
     });
 
-    it('should be able to pass awrguments to wait on server', function () {
+    it('should be able to pass arguments to wait on server', function () {
       return server.execute(function () {
           setTimeout(function () {
             Meteor.someRandomProperty2 = Math.random();

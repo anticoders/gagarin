@@ -123,8 +123,9 @@ describe('Flavor', function () {
       });
     });
 
+    var beforeB = 0;
+
     describe('after', function() {
-      beforeB = 0;
       after(function() {
         beforeB = fiberServer.execute(function(beforeB) {
           return beforeB + 10;

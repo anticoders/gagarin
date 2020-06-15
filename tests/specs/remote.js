@@ -4,7 +4,7 @@ describe.skip('Running code on a remote server', function () {
   this.timeout(10000);
 
   var server = meteor({
-    remoteServer: 'https://vostok-1.meteor.com'
+    remoteServer: 'https://example.com'
   });
 
   it('execute should work', function () {
@@ -18,7 +18,7 @@ describe.skip('Running code on a remote server', function () {
 
   it('db insert should work', function () {
     return server.execute(function () {
-      return Items.insert({vostok: Random.id()});
+      return Items.insert({});
     })
     .then(function (value) {
       expect(value).not.to.be.empty;
