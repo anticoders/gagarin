@@ -28,7 +28,7 @@
     "right-pad": "^1.0.1",
     "underscore": "^1.9.0",
     "wd": "^1.12.1",
-    "ddp": "https://github.com/nytamin/node-ddp-client.git#dev"
+    "ode-ddp-client: "1.0.1"
   },
   "description": "another testing framework for your meteor apps",
   "devDependencies": {
